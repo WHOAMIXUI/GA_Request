@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetReq Pro - Permintaan Aset & Pengadaan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+        }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="glass-nav sticky top-0 z-30 border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-tr from-indigo-600 to-violet-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
+                        <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-tight">AssetReq <span class="text-indigo-600">Pro</span></h1>
+                        <p class="text-[11px] text-slate-500 font-medium">Sistem Permintaan Aset & Pengadaan Multi-Cabang</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex items-center space-x-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60">
+                    <button id="btn-tab-form" onclick="switchTab('form')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-200">
+                        <i class="fa-solid fa-file-circle-plus"></i> Buat Permintaan
+                    </button>
+                    <button id="btn-tab-list" onclick="switchTab('list')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-indigo-600">
+                        <i class="fa-solid fa-list-check"></i> Daftar Permintaan <span id="badgePendingCount" class="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">0</span>
+                    </button>
+                    <button id="btn-tab-master" onclick="switchTab('master')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-indigo-600">
+                        <i class="fa-solid fa-sliders"></i> Master Kategori, Divisi & Cabang
+                    </button>
+                </nav>
+
+                <!-- Action Controls -->
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" title="Cetak Halaman" class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition border border-slate-200/80">
+                        <i class="fa-solid fa-print"></i> Cetak
+                    </button>
+                    <button onclick="exportToCSV()" title="Export CSV" class="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold rounded-xl transition border border-emerald-200/80">
+                        <i class="fa-solid fa-file-csv text-sm"></i> Export CSV
+                    </button>
+                    <button onclick="resetDemoData()" title="Reset Data Demo" class="p-2 bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-600 text-xs font-semibold rounded-xl transition border border-slate-200/80">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div class="flex md:hidden border-t border-slate-200/80 py-2 gap-2 overflow-x-auto">
+                <button id="btn-tab-form-mb" onclick="switchTab('form')" class="tab-btn-mb px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-600 text-white">Buat Permintaan</button>
+                <button id="btn-tab-list-mb" onclick="switchTab('list')" class="tab-btn-mb px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600">Daftar Permintaan</button>
+                <button id="btn-tab-master-mb" onclick="switchTab('master')" class="tab-btn-mb px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600">Master Data</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+        <!-- ================= TAB 1: FORM BUAT PERMINTAAN ================= -->
+        <section id="tab-form" class="tab-content max-w-4xl mx-auto">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-100 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2.5">
+                        <i class="fa-solid fa-cart-flatbed text-indigo-600"></i> Pengajuan Permintaan Aset
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Isi divisi, cabang lokasi, serta daftar barang yang diminta beserta catatan & foto bukti jika ada.</p>
+                </div>
+
+                <form id="requestForm" class="space-y-6">
+                    <!-- Informasi Umum Pengajuan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Divisi Pemohon <span class="text-rose-500">*</span></label>
+                            <select id="divisionSelect" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <!-- Dynamic Options -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cabang / Lokasi Store <span class="text-rose-500">*</span></label>
+                            <select id="branchSelect" required class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <!-- Dynamic Options -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tingkat Urgensi Pengajuan</label>
+                            <select id="priority" class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Low">Low - Rutin / Terjadwal</option>
+                                <option value="Medium" selected>Medium - Normal (Kebutuhan Operasional)</option>
+                                <option value="High">High - Penting (Mendesak)</option>
+                                <option value="Critical">Critical - Darurat (Prioritas Utama)</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Alasan / Justifikasi Pengajuan <span class="text-rose-500">*</span></label>
+                            <textarea id="description" required rows="2" placeholder="Tuliskan tujuan dan latar belakang pengajuan barang-barang ini..." 
+                                class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section Daftar Barang (Multi-Items dengan Catatan & Bukti Kerusakan) -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-indigo-600"></i> DAFTAR BARANG YANG DIMINTA
+                            </h3>
+                            <button type="button" onclick="addItemRow()" class="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Tambah Barang
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Items Container -->
+                        <div id="itemsContainer" class="space-y-3">
+                            <!-- Dynamic Item Rows Injected via JS -->
+                        </div>
+
+                        <!-- Total Budget Summary -->
+                        <div class="p-4 bg-violet-50/70 border border-violet-100 rounded-2xl flex justify-between items-center text-xs font-bold text-violet-950">
+                            <span>Total Estimasi Anggaran Pengajuan:</span>
+                            <span id="formTotalBudget" class="text-base text-violet-700 font-extrabold">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan Permintaan
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 2: DAFTAR PERMINTAAN ASET ================= -->
+        <section id="tab-list" class="tab-content hidden space-y-6">
+            
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pengajuan</p>
+                        <h3 id="statTotal" class="text-2xl font-black text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                        <i class="fa-solid fa-boxes-packing text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Menunggu Approval</p>
+                        <h3 id="statPending" class="text-2xl font-black text-amber-500 mt-1">0</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
+                        <i class="fa-solid fa-clock text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Proses Pengadaan</p>
+                        <h3 id="statProgress" class="text-2xl font-black text-blue-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-truck-ramp-box text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Selesai / Terpenuhi</p>
+                        <h3 id="statResolved" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between sm:col-span-2 lg:col-span-1">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Estimasi Anggaran</p>
+                        <h3 id="statCost" class="text-xl font-black text-slate-800 mt-1">Rp 0</h3>
+                    </div>
+                    <div class="w-11 h-11 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600">
+                        <i class="fa-solid fa-sack-dollar text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+                
+                <!-- Filter Toolbar -->
+                <div class="flex flex-col md:flex-row gap-3 items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Cari barang, divisi, cabang, ID pengajuan..." 
+                            class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <select id="filterStatus" onchange="applyFilters()" class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">Semua Status</option>
+                            <option value="Pending">Menunggu Approval</option>
+                            <option value="Approved">Disetujui / Dalam Proses</option>
+                            <option value="Completed">Selesai / Terpenuhi</option>
+                            <option value="Rejected">Ditolak</option>
+                        </select>
+
+                        <select id="filterPriority" onchange="applyFilters()" class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">Semua Urgensi</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-extrabold uppercase tracking-wider border-b border-slate-100">
+                                <th class="py-3.5 px-4">No Pengajuan, Divisi & Cabang</th>
+                                <th class="py-3.5 px-4">Rincian Barang</th>
+                                <th class="py-3.5 px-4">Urgensi</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Total Anggaran</th>
+                                <th class="py-3.5 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestTableBody" class="divide-y divide-slate-100 text-xs">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Empty State -->
+                    <div id="emptyState" class="hidden py-16 text-center space-y-3">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-500">Belum ada daftar permintaan yang sesuai kriteria.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 3: KELOLA MASTER DATA ================= -->
+        <section id="tab-master" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-600"></i> Master Kategori, Divisi & Cabang Store
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">Kelola data pilihan Kategori Aset, Divisi Pemohon, dan Daftar Cabang Store yang dapat dipilih pada formulir.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Master Kategori Aset -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center justify-between">
+                        <span><i class="fa-solid fa-tags text-indigo-500 mr-1.5"></i> Kategori Aset</span>
+                        <span id="catCount" class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-bold">0</span>
+                    </h3>
+
+                    <div class="flex gap-2">
+                        <input type="text" id="newCategoryInput" placeholder="Kategori baru..." 
+                            class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="addCategory()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition">
+                            Tambah
+                        </button>
+                    </div>
+
+                    <ul id="categoryList" class="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden text-xs max-h-60 overflow-y-auto">
+                        <!-- Dynamic categories -->
+                    </ul>
+                </div>
+
+                <!-- Master Divisi Pemohon -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center justify-between">
+                        <span><i class="fa-solid fa-sitemap text-violet-500 mr-1.5"></i> Divisi Pemohon</span>
+                        <span id="divCount" class="text-xs bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full font-bold">0</span>
+                    </h3>
+
+                    <div class="flex gap-2">
+                        <input type="text" id="newDivisionInput" placeholder="Divisi baru..." 
+                            class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="addDivision()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition">
+                            Tambah
+                        </button>
+                    </div>
+
+                    <ul id="divisionList" class="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden text-xs max-h-60 overflow-y-auto">
+                        <!-- Dynamic divisions -->
+                    </ul>
+                </div>
+
+                <!-- Master Cabang / Lokasi Store -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center justify-between">
+                        <span><i class="fa-solid fa-store text-emerald-500 mr-1.5"></i> Cabang / Lokasi Store</span>
+                        <span id="branchCount" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">0</span>
+                    </h3>
+
+                    <div class="flex gap-2">
+                        <input type="text" id="newBranchInput" placeholder="Cabang baru..." 
+                            class="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="addBranch()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition">
+                            Tambah
+                        </button>
+                    </div>
+
+                    <ul id="branchList" class="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden text-xs max-h-60 overflow-y-auto">
+                        <!-- Dynamic branches -->
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= EDIT & APPROVAL MODAL ================= -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeEditModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="border-b border-slate-100 pb-3">
+                <span id="editModalRequestId" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">#0000</span>
+                <h3 class="text-xl font-black text-slate-800 mt-2">Edit Pengajuan & Approval Pengadaan</h3>
+            </div>
+
+            <form id="editRequestForm" onsubmit="saveEditRequest(event)" class="space-y-4">
+                <input type="hidden" id="editRequestId">
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Divisi Pemohon</label>
+                        <select id="editDivisionSelect" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Cabang / Lokasi Store</label>
+                        <select id="editBranchSelect" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Urgensi</label>
+                        <select id="editPriority" class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Alasan Justifikasi Pengajuan</label>
+                    <textarea id="editDescription" rows="2" required class="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <!-- Multi-Item Edit Container -->
+                <div class="space-y-2 border-t border-b border-slate-100 py-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-list-check text-indigo-600 mr-1"></i> Item Barang yang Diminta</h4>
+                        <button type="button" onclick="addEditItemRow()" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-bold rounded-lg hover:bg-indigo-100"><i class="fa-solid fa-plus"></i> Tambah Item</button>
+                    </div>
+                    
+                    <div id="editItemsContainer" class="space-y-3">
+                        <!-- Dynamic edit rows -->
+                    </div>
+
+                    <div class="p-2.5 bg-violet-50 border border-violet-100 rounded-xl flex justify-between items-center text-xs font-bold text-violet-950">
+                        <span>Total Anggaran Edit:</span>
+                        <span id="editTotalBudget" class="text-violet-700 font-extrabold">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Approval Section -->
+                <div class="p-4 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-3">
+                    <h4 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5"><i class="fa-solid fa-user-check"></i> Status Approval & Catatan Pengadaan</h4>
+                    
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Status Pengajuan</label>
+                        <select id="editStatus" class="w-full px-3.5 py-2 text-xs bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                            <option value="Pending">Menunggu Approval (Pending)</option>
+                            <option value="Approved">Disetujui / Dalam Proses (Approved)</option>
+                            <option value="Completed">Selesai / Terpenuhi (Completed)</option>
+                            <option value="Rejected">Ditolak (Rejected)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Catatan Tim Approval / GA</label>
+                        <textarea id="editApprovalNote" rows="2" placeholder="Catatan approval, nomor PO, atau instruksi pengadaan..." class="w-full px-3.5 py-2 text-xs bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= DETAIL VIEW MODAL ================= -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDetailModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="border-b border-slate-100 pb-3">
+                <span id="modalId" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">#0000</span>
+                <h3 id="modalDivisionBranch" class="text-xl font-bold text-slate-800 mt-2">Divisi • Cabang</h3>
+                <p id="modalDate" class="text-xs text-slate-400">Tanggal Pengajuan</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2 items-center">
+                    <div id="modalStatusBadge"></div>
+                    <div id="modalPriorityBadge"></div>
+                </div>
+
+                <div>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Alasan / Justifikasi</h4>
+                    <p id="modalDescription" class="text-xs text-slate-700 mt-1 bg-slate-50 p-3 rounded-2xl border border-slate-100 leading-relaxed"></p>
+                </div>
+
+                <!-- Table Breakdown Items dengan Catatan & Bukti Foto -->
+                <div>
+                    <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Rincian Barang, Catatan & Bukti Kerusakan</h4>
+                    <div class="overflow-x-auto border border-slate-100 rounded-2xl">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-bold">
+                                <tr>
+                                    <th class="p-2.5">Bukti Foto</th>
+                                    <th class="p-2.5">Nama Barang & Catatan</th>
+                                    <th class="p-2.5">Kategori</th>
+                                    <th class="p-2.5 text-center">Qty</th>
+                                    <th class="p-2.5 text-right">Est. Biaya</th>
+                                    <th class="p-2.5 text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalItemsBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Dynamic items -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-violet-50/80 rounded-2xl border border-violet-100 flex justify-between items-center text-xs font-bold text-violet-950">
+                    <span>Total Estimated Budget:</span>
+                    <span id="modalTotalBudget" class="text-sm font-black text-violet-700">Rp 0</span>
+                </div>
+
+                <div id="modalApprovalSection" class="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100 space-y-1 hidden">
+                    <h4 class="text-[11px] font-bold text-indigo-900 uppercase tracking-wider"><i class="fa-solid fa-circle-info"></i> Catatan Tim Approval / GA</h4>
+                    <p id="modalApprovalNote" class="text-xs text-indigo-950 font-medium leading-relaxed"></p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeDetailModal()" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Zoom Modal -->
+    <div id="zoomModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 cursor-pointer" onclick="closeZoomModal()">
+        <div class="relative max-w-3xl w-full">
+            <img id="zoomImage" class="w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl">
+            <p class="text-center text-white text-xs mt-2 font-medium">Klik di mana saja untuk menutup</p>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initial Master Data
+        const defaultCategories = ['Perangkat IT & Komputer', 'Mebel / Furniture', 'Peralatan Kantor', 'Elektronik & Display', 'Kendaraan Operasional'];
+        const defaultDivisions = ['General Affair', 'IT & Digital', 'Operasional & Toko', 'Keuangan & HRD', 'Marketing & Sales'];
+        const defaultBranches = ['Head Office', 'Cabang Bogor', 'Cabang Bandung', 'Cabang Jakarta Selatan', 'Cabang Surabaya'];
+        
+        // Multi-Item Requests Default Data
+        const defaultRequests = [
+            {
+                id: "REQ-2001",
+                division: "IT & Digital",
+                branch: "Head Office",
+                priority: "High",
+                description: "Pengajuan laptop baru dan monitor pendukung karena laptop lama rusak mati total.",
+                items: [
+                    { 
+                        assetName: "Laptop Asus Zenbook i7 16GB", 
+                        category: "Perangkat IT & Komputer", 
+                        quantity: 1, 
+                        unit: "Unit", 
+                        estimatedCost: 16500000,
+                        notes: "Warna Grey, Garansi Resmi Asus Indonesia 2 Tahun",
+                        itemPhoto: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&auto=format&fit=crop&q=60"
+                    },
+                    { 
+                        assetName: "Monitor Dell 24 Inch Full HD", 
+                        category: "Perangkat IT & Komputer", 
+                        quantity: 1, 
+                        unit: "Unit", 
+                        estimatedCost: 2200000,
+                        notes: "Port HDMI & DisplayPort",
+                        itemPhoto: ""
+                    }
+                ],
+                status: "Approved",
+                approvalNote: "Disetujui GA. Surat PO telah dibuat ke vendor resmi.",
+                createdAt: "2026-10-01 09:30"
+            },
+            {
+                id: "REQ-2002",
+                division: "Operasional & Toko",
+                branch: "Cabang Bogor",
+                priority: "Medium",
+                description: "Kebutuhan penggantian kursi kasir yang patah dan printer thermal bergaris.",
+                items: [
+                    { 
+                        assetName: "Kursi Ergonomis Mesh Frame", 
+                        category: "Mebel / Furniture", 
+                        quantity: 2, 
+                        unit: "Unit", 
+                        estimatedCost: 1200000,
+                        notes: "Tipe hidrolik hitam untuk area kasir",
+                        itemPhoto: ""
+                    }
+                ],
+                status: "Pending",
+                approvalNote: "",
+                createdAt: "2026-10-02 11:15"
+            }
+        ];
+
+        // State via LocalStorage
+        let categories = JSON.parse(localStorage.getItem('assetreq_multi_categories')) || defaultCategories;
+        let divisions = JSON.parse(localStorage.getItem('assetreq_multi_divisions')) || defaultDivisions;
+        let branches = JSON.parse(localStorage.getItem('assetreq_multi_branches')) || defaultBranches;
+        let requests = JSON.parse(localStorage.getItem('assetreq_multi_requests_v2')) || defaultRequests;
+
+        // Elements
+        const requestForm = document.getElementById('requestForm');
+        const itemsContainer = document.getElementById('itemsContainer');
+        const editItemsContainer = document.getElementById('editItemsContainer');
+
+        // TAB NAVIGATION
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-200');
+                btn.classList.add('text-slate-600');
+            });
+            const activeBtn = document.getElementById(`btn-tab-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-200');
+                activeBtn.classList.remove('text-slate-600');
+            }
+
+            document.querySelectorAll('.tab-btn-mb').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            const activeMbBtn = document.getElementById(`btn-tab-${tabName}-mb`);
+            if (activeMbBtn) {
+                activeMbBtn.classList.add('bg-indigo-600', 'text-white');
+                activeMbBtn.classList.remove('bg-slate-100', 'text-slate-600');
+            }
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+
+        // MASTER DATA MANAGERS
+        function renderMasterData() {
+            // Divisions Dropdown
+            const divSelect = document.getElementById('divisionSelect');
+            const editDivSelect = document.getElementById('editDivisionSelect');
+            const divOptions = divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+            divSelect.innerHTML = divOptions;
+            editDivSelect.innerHTML = divOptions;
+
+            // Branches Dropdown
+            const branchSelect = document.getElementById('branchSelect');
+            const editBranchSelect = document.getElementById('editBranchSelect');
+            const branchOptions = branches.map(b => `<option value="${b}">${b}</option>`).join('');
+            branchSelect.innerHTML = branchOptions;
+            editBranchSelect.innerHTML = branchOptions;
+
+            // Categories Master List
+            document.getElementById('catCount').innerText = categories.length;
+            document.getElementById('categoryList').innerHTML = categories.map((c, i) => `
+                <li class="p-2.5 bg-white hover:bg-slate-50 flex items-center justify-between">
+                    <span class="font-semibold text-slate-700">${c}</span>
+                    <div class="flex gap-1">
+                        <button onclick="editCategory(${i})" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCategory(${i})" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </li>
+            `).join('');
+
+            // Divisions Master List
+            document.getElementById('divCount').innerText = divisions.length;
+            document.getElementById('divisionList').innerHTML = divisions.map((d, i) => `
+                <li class="p-2.5 bg-white hover:bg-slate-50 flex items-center justify-between">
+                    <span class="font-semibold text-slate-700">${d}</span>
+                    <div class="flex gap-1">
+                        <button onclick="editDivision(${i})" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteDivision(${i})" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </li>
+            `).join('');
+
+            // Branches Master List
+            document.getElementById('branchCount').innerText = branches.length;
+            document.getElementById('branchList').innerHTML = branches.map((b, i) => `
+                <li class="p-2.5 bg-white hover:bg-slate-50 flex items-center justify-between">
+                    <span class="font-semibold text-slate-700">${b}</span>
+                    <div class="flex gap-1">
+                        <button onclick="editBranch(${i})" class="p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteBranch(${i})" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </li>
+            `).join('');
+
+            saveMasterData();
+        }
+
+        // CATEGORY ACTIONS
+        function addCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const val = input.value.trim();
+            if (val && !categories.includes(val)) {
+                categories.push(val);
+                input.value = '';
+                renderMasterData();
+                refreshItemCategoryDropdowns();
+            }
+        }
+        function editCategory(index) {
+            Swal.fire({ title: 'Edit Kategori', input: 'text', inputValue: categories[index], showCancelButton: true, confirmButtonText: 'Simpan' })
+            .then(res => { if (res.isConfirmed && res.value.trim()) { categories[index] = res.value.trim(); renderMasterData(); refreshItemCategoryDropdowns(); } });
+        }
+        function deleteCategory(index) {
+            if(categories.length <= 1) { Swal.fire('Info', 'Minimal 1 kategori.', 'warning'); return; }
+            categories.splice(index, 1); renderMasterData(); refreshItemCategoryDropdowns();
+        }
+
+        // DIVISION ACTIONS
+        function addDivision() {
+            const input = document.getElementById('newDivisionInput');
+            const val = input.value.trim();
+            if (val && !divisions.includes(val)) {
+                divisions.push(val); input.value = ''; renderMasterData();
+            }
+        }
+        function editDivision(index) {
+            Swal.fire({ title: 'Edit Divisi', input: 'text', inputValue: divisions[index], showCancelButton: true, confirmButtonText: 'Simpan' })
+            .then(res => { if (res.isConfirmed && res.value.trim()) { divisions[index] = res.value.trim(); renderMasterData(); } });
+        }
+        function deleteDivision(index) {
+            if(divisions.length <= 1) { Swal.fire('Info', 'Minimal 1 divisi.', 'warning'); return; }
+            divisions.splice(index, 1); renderMasterData();
+        }
+
+        // BRANCH ACTIONS
+        function addBranch() {
+            const input = document.getElementById('newBranchInput');
+            const val = input.value.trim();
+            if (val && !branches.includes(val)) {
+                branches.push(val); input.value = ''; renderMasterData();
+            }
+        }
+        function editBranch(index) {
+            Swal.fire({ title: 'Edit Cabang', input: 'text', inputValue: branches[index], showCancelButton: true, confirmButtonText: 'Simpan' })
+            .then(res => { if (res.isConfirmed && res.value.trim()) { branches[index] = res.value.trim(); renderMasterData(); } });
+        }
+        function deleteBranch(index) {
+            if(branches.length <= 1) { Swal.fire('Info', 'Minimal 1 cabang.', 'warning'); return; }
+            branches.splice(index, 1); renderMasterData();
+        }
+
+        function refreshItemCategoryDropdowns() {
+            const catOptions = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.querySelectorAll('.item-category-select').forEach(sel => {
+                const current = sel.value;
+                sel.innerHTML = catOptions;
+                if (current && categories.includes(current)) sel.value = current;
+            });
+        }
+
+        function saveMasterData() {
+            localStorage.setItem('assetreq_multi_categories', JSON.stringify(categories));
+            localStorage.setItem('assetreq_multi_divisions', JSON.stringify(divisions));
+            localStorage.setItem('assetreq_multi_branches', JSON.stringify(branches));
+        }
+
+        // DYNAMIC MULTI-ITEM ROWS IN FORM (DENGAN CATATAN & BUKTI KERUSAKAN)
+        function addItemRow(assetName = '', category = '', quantity = 1, unit = 'Unit', estimatedCost = 0, notes = '', itemPhoto = '') {
+            const catOptions = categories.map(c => `<option value="${c}" ${c === category ? 'selected' : ''}>${c}</option>`).join('');
+            const rowId = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.className = 'item-row p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-2xl space-y-3 relative shadow-xs';
+
+            row.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+                    <div class="sm:col-span-4">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Barang <span class="text-rose-500">*</span></label>
+                        <input type="text" class="item-name w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" required placeholder="Contoh: Laptop Asus i7" value="${assetName}">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kategori <span class="text-rose-500">*</span></label>
+                        <select class="item-category-select w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" required>
+                            ${catOptions}
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2 flex gap-1">
+                        <div class="w-1/2">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Qty</label>
+                            <input type="number" min="1" oninput="calculateFormTotals()" class="item-qty w-full px-2 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" required value="${quantity}">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Satuan</label>
+                            <input type="text" class="item-unit w-full px-1.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" required value="${unit}">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Est. Harga / Unit</label>
+                        <input type="number" min="0" oninput="calculateFormTotals()" class="item-cost w-full px-2.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" placeholder="0" value="${estimatedCost || ''}">
+                    </div>
+                    <div class="sm:col-span-1 flex justify-end">
+                        <button type="button" onclick="removeItemRow('${rowId}')" class="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition" title="Hapus Barang"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+
+                <!-- Input Catatan / Notes Barang -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1"><i class="fa-solid fa-sticky-note text-indigo-500 mr-1"></i> Catatan / Notes Barang (Opsional)</label>
+                    <input type="text" class="item-notes w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: Spesifikasi khusus, warna, garansi, atau detail tipe..." value="${notes}">
+                </div>
+
+                <!-- Field Bukti Kerusakan Barang (Camera / File) -->
+                <div class="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <label class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition text-indigo-600">
+                            <i class="fa-solid fa-camera"></i> Bukti Kerusakan Barang
+                            <input type="file" accept="image/*" capture="environment" class="hidden item-photo-file" onchange="handleItemPhotoUpload(this, '${rowId}')">
+                        </label>
+                        <span class="text-[10px] text-slate-400 font-medium">(Ambil Foto / Unggah File)</span>
+                    </div>
+
+                    <input type="hidden" class="item-photo-data" value="${itemPhoto}">
+                    <div class="item-photo-preview-wrapper ${itemPhoto ? '' : 'hidden'} flex items-center gap-2">
+                        <img class="item-photo-preview w-9 h-9 object-cover rounded-lg border border-slate-300 shadow-xs cursor-pointer" src="${itemPhoto}" onclick="zoomImage('${itemPhoto}')" title="Klik untuk memperbesar">
+                        <button type="button" onclick="clearItemPhoto('${rowId}')" class="text-[10px] text-rose-600 font-bold hover:underline">Hapus Foto</button>
+                    </div>
+                </div>
+            `;
+
+            itemsContainer.appendChild(row);
+            calculateFormTotals();
+        }
+
+        function handleItemPhotoUpload(input, rowId) {
+            const file = input.files[0];
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const base64 = evt.target.result;
+                    row.querySelector('.item-photo-data').value = base64;
+                    const preview = row.querySelector('.item-photo-preview');
+                    preview.src = base64;
+                    preview.setAttribute('onclick', `zoomImage('${base64}')`);
+                    row.querySelector('.item-photo-preview-wrapper').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearItemPhoto(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.querySelector('.item-photo-data').value = '';
+                row.querySelector('.item-photo-file').value = '';
+                row.querySelector('.item-photo-preview-wrapper').classList.add('hidden');
+            }
+        }
+
+        function removeItemRow(rowId) {
+            if (itemsContainer.children.length <= 1) {
+                Swal.fire('Info', 'Minimal harus ada 1 barang dalam pengajuan.', 'info');
+                return;
+            }
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+            calculateFormTotals();
+        }
+
+        function calculateFormTotals() {
+            let total = 0;
+            document.querySelectorAll('#itemsContainer .item-row').forEach(row => {
+                const qty = Number(row.querySelector('.item-qty').value) || 0;
+                const cost = Number(row.querySelector('.item-cost').value) || 0;
+                total += qty * cost;
+            });
+            document.getElementById('formTotalBudget').innerText = 'Rp ' + total.toLocaleString('id-ID');
+        }
+
+        // FORM SUBMIT NEW MULTI-ITEM REQUEST
+        requestForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const items = [];
+            document.querySelectorAll('#itemsContainer .item-row').forEach(row => {
+                items.push({
+                    assetName: row.querySelector('.item-name').value,
+                    category: row.querySelector('.item-category-select').value,
+                    quantity: Number(row.querySelector('.item-qty').value) || 1,
+                    unit: row.querySelector('.item-unit').value || 'Unit',
+                    estimatedCost: Number(row.querySelector('.item-cost').value) || 0,
+                    notes: row.querySelector('.item-notes').value || '',
+                    itemPhoto: row.querySelector('.item-photo-data').value || ''
+                });
+            });
+
+            if (items.length === 0) {
+                Swal.fire('Info', 'Silakan tambah minimal 1 barang.', 'warning');
+                return;
+            }
+
+            const newReq = {
+                id: 'REQ-' + Math.floor(2000 + Math.random() * 8000),
+                division: document.getElementById('divisionSelect').value,
+                branch: document.getElementById('branchSelect').value,
+                priority: document.getElementById('priority').value,
+                description: document.getElementById('description').value,
+                items: items,
+                status: 'Pending',
+                approvalNote: '',
+                createdAt: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+            };
+
+            requests.unshift(newReq);
+            saveRequests();
+            renderUI();
+
+            // Reset Form
+            requestForm.reset();
+            itemsContainer.innerHTML = '';
+            addItemRow(); // Default initial row
+            Swal.fire({
+                icon: 'success',
+                title: 'Pengajuan Berhasil Terkirim!',
+                text: `Nomor Pengajuan: ${newReq.id} (${items.length} Barang)`,
+                confirmButtonText: 'Lihat Daftar Permintaan'
+            }).then(() => {
+                switchTab('list');
+            });
+        });
+
+        // RENDER TABLE & METRICS
+        function renderUI() {
+            const tbody = document.getElementById('requestTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            const filtered = getFilteredRequests();
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition border-b border-slate-100';
+
+                const totalReqCost = req.items.reduce((s, it) => s + ((it.estimatedCost || 0) * (it.quantity || 1)), 0);
+                const formattedTotal = totalReqCost ? 'Rp ' + totalReqCost.toLocaleString('id-ID') : '-';
+                const itemSummaryList = req.items.map(i => `${i.assetName} (${i.quantity} ${i.unit})`).join(', ');
+                const firstPhoto = req.items.find(i => i.itemPhoto)?.itemPhoto;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-500 shrink-0 text-xs overflow-hidden border border-slate-200">
+                                ${firstPhoto ? `<img src="${firstPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-boxes-packing text-slate-400"></i>`}
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">${req.id}</p>
+                                <p class="text-[10px] text-indigo-600 font-bold"><i class="fa-solid fa-sitemap"></i> ${req.division} • <span class="text-emerald-600"><i class="fa-solid fa-store"></i> ${req.branch}</span></p>
+                                <p class="text-[10px] text-slate-400">${req.createdAt}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 max-w-xs">
+                        <span class="inline-block bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-bold text-[10px] mb-1">${req.items.length} Jenis Barang</span>
+                        <p class="text-xs text-slate-700 font-medium truncate" title="${itemSummaryList}">${itemSummaryList}</p>
+                    </td>
+                    <td class="py-3.5 px-4">${getPriorityBadge(req.priority)}</td>
+                    <td class="py-3.5 px-4">${getStatusBadge(req.status)}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">${formattedTotal}</td>
+                    <td class="py-3.5 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="openDetailModal('${req.id}')" title="Lihat Detail & Rincian Notes" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button onclick="openEditModal('${req.id}')" title="Edit Pengajuan / Approval" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteRequest('${req.id}')" title="Hapus Pengajuan" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateStats();
+        }
+
+        function getFilteredRequests() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            const priority = document.getElementById('filterPriority').value;
+
+            return requests.filter(r => {
+                const itemMatch = r.items.some(it => it.assetName.toLowerCase().includes(search) || it.category.toLowerCase().includes(search) || (it.notes && it.notes.toLowerCase().includes(search)));
+                const matchSearch = itemMatch || r.id.toLowerCase().includes(search) || r.division.toLowerCase().includes(search) || r.branch.toLowerCase().includes(search) || r.description.toLowerCase().includes(search);
+                const matchStatus = status === 'ALL' || r.status === status;
+                const matchPriority = priority === 'ALL' || r.priority === priority;
+                return matchSearch && matchStatus && matchPriority;
+            });
+        }
+
+        function applyFilters() {
+            renderUI();
+        }
+
+        // EDIT & APPROVAL MULTI-ITEM MODAL LOGIC
+        function openEditModal(id) {
+            const req = requests.find(r => r.id === id);
+            if (!req) return;
+
+            document.getElementById('editRequestId').value = req.id;
+            document.getElementById('editModalRequestId').innerText = `#${req.id}`;
+            document.getElementById('editDivisionSelect').value = req.division || divisions[0];
+            document.getElementById('editBranchSelect').value = req.branch || branches[0];
+            document.getElementById('editPriority').value = req.priority;
+            document.getElementById('editDescription').value = req.description;
+            document.getElementById('editStatus').value = req.status;
+            document.getElementById('editApprovalNote').value = req.approvalNote || '';
+
+            editItemsContainer.innerHTML = '';
+            req.items.forEach(it => {
+                addEditItemRow(it.assetName, it.category, it.quantity, it.unit, it.estimatedCost, it.notes || '', it.itemPhoto || '');
+            });
+
+            document.getElementById('editModal').classList.remove('hidden');
+            calculateEditTotals();
+        }
+
+        function addEditItemRow(assetName = '', category = '', quantity = 1, unit = 'Unit', estimatedCost = 0, notes = '', itemPhoto = '') {
+            const catOptions = categories.map(c => `<option value="${c}" ${c === category ? 'selected' : ''}>${c}</option>`).join('');
+            const rowId = 'edit-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.className = 'edit-item-row p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 relative';
+
+            row.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                    <div class="sm:col-span-4">
+                        <input type="text" class="edit-item-name w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg" required placeholder="Nama Barang" value="${assetName}">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <select class="item-category-select edit-item-category w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg" required>
+                            ${catOptions}
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2 flex gap-1">
+                        <input type="number" min="1" oninput="calculateEditTotals()" class="edit-item-qty w-1/2 px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg" required value="${quantity}">
+                        <input type="text" class="edit-item-unit w-1/2 px-1.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg" required value="${unit}">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <input type="number" min="0" oninput="calculateEditTotals()" class="edit-item-cost w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg" placeholder="Harga/Unit" value="${estimatedCost || ''}">
+                    </div>
+                    <div class="sm:col-span-1 flex justify-end">
+                        <button type="button" onclick="removeEditItemRow('${rowId}')" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <div>
+                    <input type="text" class="edit-item-notes w-full px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg" placeholder="Catatan / Notes Barang..." value="${notes}">
+                </div>
+
+                <div class="pt-1.5 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                    <label class="text-[10px] font-bold text-slate-600 flex items-center gap-1 cursor-pointer bg-white border border-slate-200 px-2 py-1 rounded-lg text-indigo-600">
+                        <i class="fa-solid fa-camera"></i> Bukti Kerusakan
+                        <input type="file" accept="image/*" capture="environment" class="hidden edit-item-photo-file" onchange="handleEditItemPhotoUpload(this, '${rowId}')">
+                    </label>
+                    <input type="hidden" class="edit-item-photo-data" value="${itemPhoto}">
+                    <div class="edit-item-photo-preview-wrapper ${itemPhoto ? '' : 'hidden'} flex items-center gap-2">
+                        <img class="edit-item-photo-preview w-7 h-7 object-cover rounded border border-slate-300 cursor-pointer" src="${itemPhoto}" onclick="zoomImage('${itemPhoto}')">
+                        <button type="button" onclick="clearEditItemPhoto('${rowId}')" class="text-[9px] text-rose-600 hover:underline">Hapus</button>
+                    </div>
+                </div>
+            `;
+
+            editItemsContainer.appendChild(row);
+            calculateEditTotals();
+        }
+
+        function handleEditItemPhotoUpload(input, rowId) {
+            const file = input.files[0];
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const base64 = evt.target.result;
+                    row.querySelector('.edit-item-photo-data').value = base64;
+                    const preview = row.querySelector('.edit-item-photo-preview');
+                    preview.src = base64;
+                    preview.setAttribute('onclick', `zoomImage('${base64}')`);
+                    row.querySelector('.edit-item-photo-preview-wrapper').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearEditItemPhoto(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.querySelector('.edit-item-photo-data').value = '';
+                row.querySelector('.edit-item-photo-file').value = '';
+                row.querySelector('.edit-item-photo-preview-wrapper').classList.add('hidden');
+            }
+        }
+
+        function removeEditItemRow(rowId) {
+            if (editItemsContainer.children.length <= 1) {
+                Swal.fire('Info', 'Minimal harus ada 1 barang.', 'info');
+                return;
+            }
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+            calculateEditTotals();
+        }
+
+        function calculateEditTotals() {
+            let total = 0;
+            document.querySelectorAll('#editItemsContainer .edit-item-row').forEach(row => {
+                const qty = Number(row.querySelector('.edit-item-qty').value) || 0;
+                const cost = Number(row.querySelector('.edit-item-cost').value) || 0;
+                total += qty * cost;
+            });
+            document.getElementById('editTotalBudget').innerText = 'Rp ' + total.toLocaleString('id-ID');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveEditRequest(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editRequestId').value;
+            const req = requests.find(r => r.id === id);
+
+            if (req) {
+                const items = [];
+                document.querySelectorAll('#editItemsContainer .edit-item-row').forEach(row => {
+                    items.push({
+                        assetName: row.querySelector('.edit-item-name').value,
+                        category: row.querySelector('.edit-item-category').value,
+                        quantity: Number(row.querySelector('.edit-item-qty').value) || 1,
+                        unit: row.querySelector('.edit-item-unit').value || 'Unit',
+                        estimatedCost: Number(row.querySelector('.edit-item-cost').value) || 0,
+                        notes: row.querySelector('.edit-item-notes').value || '',
+                        itemPhoto: row.querySelector('.edit-item-photo-data').value || ''
+                    });
+                });
+
+                req.division = document.getElementById('editDivisionSelect').value;
+                req.branch = document.getElementById('editBranchSelect').value;
+                req.priority = document.getElementById('editPriority').value;
+                req.description = document.getElementById('editDescription').value;
+                req.status = document.getElementById('editStatus').value;
+                req.approvalNote = document.getElementById('editApprovalNote').value;
+                req.items = items;
+
+                saveRequests();
+                renderUI();
+                closeEditModal();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pengajuan Diperbarui!',
+                    text: 'Perubahan data dan daftar barang berhasil disimpan.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        // DELETE REQUEST
+        function deleteRequest(id) {
+            Swal.fire({
+                title: 'Hapus Pengajuan ini?',
+                text: "Data pengajuan " + id + " akan dihapus permanen.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    requests = requests.filter(r => r.id !== id);
+                    saveRequests();
+                    renderUI();
+                    Swal.fire('Terhapus!', 'Pengajuan telah dihapus.', 'success');
+                }
+            });
+        }
+
+        // STATUS & PRIORITY BADGES
+        function getStatusBadge(status) {
+            if (status === 'Pending') return `<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-bold text-[10px]"><i class="fa-solid fa-clock text-[8px]"></i> Menunggu Approval</span>`;
+            if (status === 'Approved') return `<span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold text-[10px]"><i class="fa-solid fa-spinner animate-spin text-[8px]"></i> Proses Pengadaan</span>`;
+            if (status === 'Completed') return `<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold text-[10px]"><i class="fa-solid fa-circle-check text-[8px]"></i> Selesai / Terpenuhi</span>`;
+            if (status === 'Rejected') return `<span class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full font-bold text-[10px]"><i class="fa-solid fa-circle-xmark text-[8px]"></i> Ditolak</span>`;
+            return '';
+        }
+
+        function getPriorityBadge(priority) {
+            if (priority === 'Low') return `<span class="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Low</span>`;
+            if (priority === 'Medium') return `<span class="bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-md font-bold text-[10px]">Medium</span>`;
+            if (priority === 'High') return `<span class="bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-md font-bold text-[10px]">High</span>`;
+            if (priority === 'Critical') return `<span class="bg-rose-600 text-white px-2.5 py-0.5 rounded-md font-extrabold text-[10px] animate-pulse">Critical</span>`;
+            return '';
+        }
+
+        // STATS METRICS
+        function updateStats() {
+            const pendingCount = requests.filter(r => r.status === 'Pending').length;
+            const totalBudget = requests.reduce((sum, r) => {
+                const reqSum = r.items.reduce((s, i) => s + ((i.estimatedCost || 0) * (i.quantity || 1)), 0);
+                return sum + reqSum;
+            }, 0);
+
+            document.getElementById('statTotal').innerText = requests.length;
+            document.getElementById('statPending').innerText = pendingCount;
+            document.getElementById('statProgress').innerText = requests.filter(r => r.status === 'Approved').length;
+            document.getElementById('statResolved').innerText = requests.filter(r => r.status === 'Completed').length;
+            document.getElementById('statCost').innerText = 'Rp ' + totalBudget.toLocaleString('id-ID');
+            document.getElementById('badgePendingCount').innerText = pendingCount;
+        }
+
+        function saveRequests() {
+            localStorage.setItem('assetreq_multi_requests_v2', JSON.stringify(requests));
+        }
+
+        function resetDemoData() {
+            Swal.fire({
+                title: 'Reset ke Data Demo?',
+                text: 'Seluruh data permintaan dan master data akan dikembalikan ke awal.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Reset Total'
+            }).then((res) => {
+                if(res.isConfirmed) {
+                    localStorage.removeItem('assetreq_multi_requests_v2');
+                    localStorage.removeItem('assetreq_multi_categories');
+                    localStorage.removeItem('assetreq_multi_divisions');
+                    localStorage.removeItem('assetreq_multi_branches');
+                    requests = defaultRequests;
+                    categories = defaultCategories;
+                    divisions = defaultDivisions;
+                    branches = defaultBranches;
+                    renderMasterData();
+                    itemsContainer.innerHTML = '';
+                    addItemRow();
+                    renderUI();
+                    Swal.fire('Berhasil', 'Data dikembalikan ke setelan demo.', 'success');
+                }
+            });
+        }
+
+        // DETAIL MODAL LOGIC
+        function openDetailModal(id) {
+            const req = requests.find(r => r.id === id);
+            if (!req) return;
+
+            document.getElementById('modalId').innerText = req.id;
+            document.getElementById('modalDivisionBranch').innerText = `Divisi: ${req.division || '-'} • Cabang: ${req.branch || '-'}`;
+            document.getElementById('modalDate').innerText = `Tanggal Pengajuan: ${req.createdAt}`;
+            document.getElementById('modalDescription').innerText = req.description;
+            document.getElementById('modalStatusBadge').innerHTML = getStatusBadge(req.status);
+            document.getElementById('modalPriorityBadge').innerHTML = getPriorityBadge(req.priority);
+
+            // Render Item Breakdown Table dengan Notes & Foto Bukti
+            const tbody = document.getElementById('modalItemsBody');
+            tbody.innerHTML = '';
+            let totalBudget = 0;
+
+            req.items.forEach(it => {
+                const subtotal = (it.estimatedCost || 0) * (it.quantity || 1);
+                totalBudget += subtotal;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center">
+                        ${it.itemPhoto 
+                            ? `<img src="${it.itemPhoto}" class="w-10 h-10 object-cover rounded-lg border border-slate-200 cursor-pointer shadow-xs" onclick="zoomImage('${it.itemPhoto}')" title="Klik memperbesar">` 
+                            : `<span class="text-[10px] text-slate-400 font-medium">Tanpa Foto</span>`}
+                    </td>
+                    <td class="p-2.5">
+                        <p class="font-bold text-slate-800">${it.assetName}</p>
+                        ${it.notes ? `<p class="text-[10px] text-indigo-600 mt-0.5 bg-indigo-50 px-2 py-0.5 rounded-md inline-block"><i class="fa-solid fa-sticky-note"></i> ${it.notes}</p>` : ''}
+                    </td>
+                    <td class="p-2.5 text-slate-500">${it.category}</td>
+                    <td class="p-2.5 text-center font-bold">${it.quantity} ${it.unit}</td>
+                    <td class="p-2.5 text-right">${it.estimatedCost ? 'Rp ' + it.estimatedCost.toLocaleString('id-ID') : '-'}</td>
+                    <td class="p-2.5 text-right font-bold">${subtotal ? 'Rp ' + subtotal.toLocaleString('id-ID') : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('modalTotalBudget').innerText = 'Rp ' + totalBudget.toLocaleString('id-ID');
+
+            // Approval section
+            const appSec = document.getElementById('modalApprovalSection');
+            if (req.approvalNote) {
+                document.getElementById('modalApprovalNote').innerText = req.approvalNote;
+                appSec.classList.remove('hidden');
+            } else {
+                appSec.classList.add('hidden');
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function zoomImage(src) {
+            document.getElementById('zoomImage').src = src;
+            document.getElementById('zoomModal').classList.remove('hidden');
+        }
+
+        function closeZoomModal() {
+            document.getElementById('zoomModal').classList.add('hidden');
+        }
+
+        // EXPORT TO CSV
+        function exportToCSV() {
+            if (requests.length === 0) {
+                Swal.fire('Info', 'Tidak ada data permintaan untuk di-export.', 'info');
+                return;
+            }
+
+            let csv = 'ID Pengajuan,Divisi Pemohon,Cabang Store,Urgensi,Status,Nama Barang,Kategori,Qty,Satuan,Harga per Unit,Subtotal,Catatan Barang,Bukti Foto,Justifikasi,Catatan Approval,Tanggal\n';
+            
+            requests.forEach(r => {
+                r.items.forEach(it => {
+                    const subtotal = (it.estimatedCost || 0) * (it.quantity || 1);
+                    const hasPhoto = it.itemPhoto ? 'Ada Foto' : 'Tanpa Foto';
+                    csv += `"${r.id}","${r.division || ''}","${r.branch || ''}","${r.priority}","${r.status}","${it.assetName}","${it.category}","${it.quantity}","${it.unit}","${it.estimatedCost || 0}","${subtotal}","${it.notes || ''}","${hasPhoto}","${r.description}","${r.approvalNote || ''}","${r.createdAt}"\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Rekap_Permintaan_Aset_${new Date().toISOString().slice(0,10)}.csv`);
+            a.click();
+        }
+
+        // INITIALIZATION
+        renderMasterData();
+        addItemRow(); // Initial dynamic row for form
+        renderUI();
+    </script>
+</body>
+</html>
