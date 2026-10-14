@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetReq Pro - Sistem Pengadaan & Aset Perusahaan (Cloud Firebase)</title>
+    <title>AssetReq Pro - Sistem Pengadaan & Aset Perusahaan (Cloud & Local Sync)</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -97,9 +97,9 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-full flex flex-col antialiased">
+<body class="bg-slate-100 text-slate-900 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-900">
 
-    <!-- Header Navigation -->
+    <!-- Top Navigation Header -->
     <header class="bg-slate-900 text-white border-b-4 border-slate-950 sticky top-0 z-40 px-4 sm:px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -117,7 +117,6 @@
                 </div>
             </div>
 
-            <!-- Nav Tabs -->
             <nav class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                 <button onclick="switchTab('form')" id="tab-form" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
                     <i class="fa-solid fa-pen-to-square mr-2"></i>Buat Permintaan
@@ -136,7 +135,7 @@
                     <i class="fa-solid fa-file-csv mr-1.5 text-amber-500"></i>Export CSV
                 </button>
                 <button onclick="syncDataFromCloud(true)" title="Sinkronisasi Cloud" class="neo-button bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3 py-2 flex items-center">
-                    <i class="fa-solid fa-rotate mr-1.5"></i>Sync Cloud
+                    <i class="fa-solid fa-rotate mr-1.5"></i>Sync
                 </button>
 
                 <div id="userSessionInfo" class="hidden items-center space-x-3 bg-slate-800 px-3 py-1.5 neo-border">
@@ -160,14 +159,14 @@
             <div class="bg-white p-5 sm:p-6 neo-border neo-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="inline-block bg-amber-500 text-slate-900 font-black text-xs px-2.5 py-0.5 border border-slate-900 uppercase mb-2">
-                        FORMULIR PENGADAAN ASET (DUAL SYNC: CLOUD & LOKAL)
+                        FORMULIR PENGADAAN RESMI (CLOUD & LOCAL SYNC)
                     </div>
                     <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Pengajuan Permintaan Aset Baru / Perbaikan</h2>
-                    <p class="text-xs sm:text-sm text-slate-600 font-medium">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan.</p>
+                    <p class="text-xs sm:text-sm text-slate-600 font-medium">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
                 </div>
                 <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
                     <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
-                    <span>TANGGAL: <span id="clock-date-today" class="text-slate-900">10 Okt 2026</span></span>
+                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">10 Okt 2026</span></span>
                 </div>
             </div>
 
@@ -193,17 +192,17 @@
                         <div>
                             <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tingkat Urgensi <span class="text-rose-600">*</span></label>
                             <select id="formUrgency" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                                <option value="Low">Low - Biasa</option>
+                                <option value="Low">Low - Biasa (Rutin)</option>
                                 <option value="Medium" selected>Medium - Sedang</option>
-                                <option value="High">High - Penting</option>
-                                <option value="Critical">Critical - Darurat</option>
+                                <option value="High">High - Penting (Operasional Termacet)</option>
+                                <option value="Critical">Critical - Darurat (Mempengaruhi Omset)</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-700 mb-1">Alasan / Justifikasi Pengajuan <span class="text-rose-600">*</span></label>
-                        <textarea id="formJustification" rows="2" required placeholder="Jelaskan kebutuhan pengadaan atau perbaikan..." class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                        <textarea id="formJustification" rows="2" required placeholder="Jelaskan kebutuhan pengadaan atau alasan perbaikan aset ini secara ringkas..." class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
                     </div>
                 </div>
 
@@ -222,7 +221,7 @@
                     <div class="bg-slate-900 text-white p-4 neo-border flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center space-x-2">
                             <i class="fa-solid fa-calculator text-amber-500 text-lg"></i>
-                            <span class="font-black text-xs uppercase tracking-wider">TOTAL ESTIMASI ANGGARAN:</span>
+                            <span class="font-black text-xs uppercase tracking-wider">TOTAL ESTIMASI ANGGARAN PENGADAAN:</span>
                         </div>
                         <div id="formLiveTotalBudget" class="font-mono font-black text-xl text-amber-400">Rp 0</div>
                     </div>
@@ -230,7 +229,7 @@
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="resetForm()" class="neo-button bg-slate-200 text-slate-800 font-bold text-sm px-5 py-2.5">
-                        <i class="fa-solid fa-eraser mr-2"></i>Reset
+                        <i class="fa-solid fa-eraser mr-2"></i>Reset Form
                     </button>
                     <button type="submit" class="neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm px-6 py-2.5">
                         <i class="fa-solid fa-paper-plane mr-2"></i>Kirim Pengajuan
@@ -239,28 +238,28 @@
             </form>
         </section>
 
-        <!-- TAB 2: LIST -->
+        <!-- TAB 2: LIST & METRICS -->
         <section id="view-list" class="hidden space-y-6">
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div class="bg-white p-4 neo-border neo-shadow-sm">
-                    <span class="text-[11px] font-black uppercase text-slate-500 block">Total Pengajuan</span>
-                    <span id="metric-total" class="font-mono font-black text-2xl text-slate-900">0</span>
+                <div class="bg-white p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-slate-500">Total Pengajuan</span>
+                    <span id="metric-total" class="font-mono font-black text-2xl text-slate-900 mt-2">0</span>
                 </div>
-                <div class="bg-amber-100 p-4 neo-border neo-shadow-sm">
-                    <span class="text-[11px] font-black uppercase text-amber-900 block">Pending</span>
-                    <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950">0</span>
+                <div class="bg-amber-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-amber-900">Menunggu (Pending)</span>
+                    <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950 mt-2">0</span>
                 </div>
-                <div class="bg-blue-100 p-4 neo-border neo-shadow-sm">
-                    <span class="text-[11px] font-black uppercase text-blue-900 block">Proses</span>
-                    <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950">0</span>
+                <div class="bg-blue-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-blue-900">Disetujui / Proses</span>
+                    <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950 mt-2">0</span>
                 </div>
-                <div class="bg-emerald-100 p-4 neo-border neo-shadow-sm">
-                    <span class="text-[11px] font-black uppercase text-emerald-900 block">Selesai</span>
-                    <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950">0</span>
+                <div class="bg-emerald-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-emerald-900">Selesai (Completed)</span>
+                    <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950 mt-2">0</span>
                 </div>
-                <div class="bg-slate-900 text-white p-4 neo-border neo-shadow-sm col-span-2 lg:col-span-1">
-                    <span class="text-[11px] font-black uppercase text-slate-300 block">Total Anggaran</span>
-                    <span id="metric-budget" class="font-mono font-black text-base sm:text-lg text-amber-400 block truncate">Rp 0</span>
+                <div class="bg-slate-900 text-white p-4 neo-border neo-shadow-sm col-span-2 lg:col-span-1 flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-slate-300">Total Nilai Anggaran</span>
+                    <span id="metric-budget" class="font-mono font-black text-base sm:text-lg text-amber-400 mt-2 truncate">Rp 0</span>
                 </div>
             </div>
 
@@ -268,7 +267,7 @@
             <div class="bg-white p-4 neo-border neo-shadow flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="w-full md:w-72 relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 bg-slate-50 neo-border text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
@@ -302,7 +301,7 @@
                                 <th class="p-3 text-right">Est. Cost Total</th>
                                 <th class="p-3 text-center">Urgensi</th>
                                 <th class="p-3 text-center">Status</th>
-                                <th class="p-3 pr-4 text-center">Aksi</th>
+                                <th class="p-3 pr-4 text-center">Aksi / Kontrol</th>
                             </tr>
                         </thead>
                         <tbody id="requestsTableBody" class="divide-y-2 divide-slate-200 text-xs sm:text-sm font-medium"></tbody>
@@ -407,7 +406,58 @@
                         </tr>
                     </tfoot>
                 </table>
+                <div id="detailPhotosContainer" class="flex flex-wrap gap-3 pt-2"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- EDIT / APPROVAL MODAL -->
+    <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-8 overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
+                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval Pengajuan</h3>
+                <button onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
+            </div>
+            <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editReqDocId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Status Pengajuan</label>
+                        <select id="editStatus" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Urgensi</label>
+                        <select id="editUrgency" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Catatan GA</label>
+                    <textarea id="editGANotes" rows="3" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
+                    <button type="button" onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
+                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- IMAGE ZOOM MODAL -->
+    <div id="imageZoomModal" class="fixed inset-0 z-50 bg-slate-950/90 hidden items-center justify-center p-4" onclick="closeModal('imageZoomModal')">
+        <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 p-2 neo-border" onclick="event.stopPropagation()">
+            <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 neo-button bg-rose-600 text-white font-black text-sm w-8 h-8 flex items-center justify-center z-10">&times;</button>
+            <img id="zoomedImage" src="" alt="Zoom" class="max-h-[80vh] w-auto mx-auto object-contain neo-border">
+            <p id="zoomedImageCaption" class="text-center font-mono text-xs text-amber-400 mt-2 font-bold"></p>
         </div>
     </div>
 
@@ -426,7 +476,6 @@
             requests: []
         };
 
-        // LocalStorage Fallback Helper
         function saveLocalState() {
             localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests));
         }
@@ -438,14 +487,12 @@
             }
         }
 
-        // Firebase Cloud Sync
         window.addEventListener('firebase-ready', async () => {
             await syncDataFromCloud(false);
         });
 
         async function syncDataFromCloud(manualTrigger = false) {
-            loadLocalState(); // Load local first so user never sees empty screen
-            
+            loadLocalState();
             if (!window.db) {
                 updateCloudBadge('Offline (Lokal)');
                 renderRequestsTable();
@@ -457,7 +504,6 @@
                 if (manualTrigger) {
                     Swal.fire({ title: 'Menyinkronkan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 }
-
                 const { collection, getDocs } = window.fbDeps;
                 const reqSnap = await getDocs(collection(window.db, "requests"));
                 
@@ -469,17 +515,13 @@
                     appState.requests = cloudData;
                     saveLocalState();
                 }
-
                 updateCloudBadge('Cloud Live');
                 if (manualTrigger) Swal.fire('Tersinkronisasi!', 'Data terbaru berhasil dimuat dari Cloud.', 'success');
             } catch (e) {
                 console.error("Firebase Sync Warning:", e);
                 updateCloudBadge('Offline (Lokal)');
-                if (manualTrigger) {
-                    Swal.fire('Info Offline', 'Gagal terhubung ke Cloud Firebase. Menggunakan data lokal.', 'info');
-                }
+                if (manualTrigger) Swal.fire('Info Offline', 'Gagal terhubung ke Cloud. Menggunakan data lokal.', 'info');
             }
-
             renderRequestsTable();
             updateMetrics();
         }
@@ -494,20 +536,17 @@
             }
         }
 
-        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             loadLocalState();
             checkUserSession();
             document.getElementById('formSubmissionDate').value = '2026-10-10';
             document.getElementById('clock-date-today').innerText = '10 Okt 2026';
-
             populateDropdowns();
             renderRequestsTable();
             updateMetrics();
             addFormItemRow();
         });
 
-        // User Auth
         function checkUserSession() {
             const session = localStorage.getItem('assetReqUserSession');
             const loginModal = document.getElementById('loginModal');
@@ -561,7 +600,6 @@
             const idx = document.getElementById('loginUserSelect').value;
             const user = appState.users[idx];
             if (!user) return;
-
             localStorage.setItem('assetReqUserSession', JSON.stringify({ name: user.name, role: user.role, branch: user.branch }));
             checkUserSession();
             populateDropdowns();
@@ -575,14 +613,16 @@
         }
 
         function switchTab(tabId) {
+            const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
+            if (session.role === 'Staff Store' && tabId === 'master') {
+                Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk Manager General Affair.', 'warning');
+                return;
+            }
             appState.activeTab = tabId;
             ['form', 'list', 'master'].forEach(t => {
-                const view = document.getElementById(`view-${t}`);
-                if (view) view.classList.add('hidden');
-                const btn = document.getElementById(`tab-${t}`);
-                if (btn) btn.className = "neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
             });
-
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
 
@@ -594,13 +634,13 @@
             document.getElementById('formDivision').innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
             document.getElementById('formBranch').innerHTML = appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
             document.getElementById('filterBranch').innerHTML = `<option value="">Semua Cabang</option>` + appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
+            document.getElementById('editBranch').innerHTML = appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
         }
 
-        // Form Row Handling
-        function addFormItemRow() {
+        function addFormItemRow(itemData = null) {
             const container = document.getElementById('formItemsContainer');
-            const rowId = 'item_' + Date.now();
-            const catOptions = appState.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            const rowId = 'item_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const catOptions = appState.categories.map(c => `<option value="${c}" ${itemData && itemData.category === c ? 'selected' : ''}>${c}</option>`).join('');
 
             const rowHTML = `
                 <div id="${rowId}" class="item-row bg-slate-50 p-4 neo-border space-y-3">
@@ -610,16 +650,30 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
                         <div class="lg:col-span-4">
-                            <input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none">
+                            <input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none" value="${itemData ? itemData.name : ''}">
                         </div>
                         <div class="lg:col-span-3">
                             <select class="item-category w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none">${catOptions}</select>
                         </div>
-                        <div class="lg:col-span-2">
-                            <input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="1" oninput="calculateLiveTotal()">
+                        <div class="lg:col-span-1">
+                            <input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.qty : 1}" oninput="calculateLiveTotal()">
+                        </div>
+                        <div class="lg:col-span-1">
+                            <input type="text" required class="item-unit w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.unit : 'Unit'}">
                         </div>
                         <div class="lg:col-span-3">
-                            <input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="0" oninput="calculateLiveTotal()">
+                            <input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" oninput="calculateLiveTotal()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full bg-white neo-border px-3 py-1 text-xs" value="${itemData ? itemData.notes : ''}">
+                        <div class="flex items-center space-x-2">
+                            <label class="neo-button bg-slate-200 text-slate-800 text-[11px] font-bold px-2.5 py-1 cursor-pointer flex items-center shrink-0">
+                                <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
+                                <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rowId}')">
+                            </label>
+                            <input type="hidden" class="item-photo-data" value="${itemData ? itemData.photo || '' : ''}">
+                            <div class="photo-preview-box text-[11px] font-mono text-slate-500 truncate italic flex-1">${itemData && itemData.photo ? '✓ Foto Terlampir' : 'Belum ada foto'}</div>
                         </div>
                     </div>
                 </div>
@@ -630,9 +684,24 @@
 
         function removeFormItemRow(rowId) {
             if (document.querySelectorAll('.item-row').length <= 1) return;
-            const el = document.getElementById(rowId);
-            if (el) el.remove();
+            document.getElementById(rowId)?.remove();
             calculateLiveTotal();
+        }
+
+        function handlePhotoUpload(input, rowId) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) { Swal.fire('Error', 'Maksimal ukuran foto 2MB.', 'error'); return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const row = document.getElementById(rowId);
+                    if (row) {
+                        row.querySelector('.item-photo-data').value = e.target.result;
+                        row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${file.name})</span>`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         function calculateLiveTotal() {
@@ -645,7 +714,6 @@
             document.getElementById('formLiveTotalBudget').innerText = formatRupiah(total);
         }
 
-        // Submit Request
         async function handleFormSubmit(e) {
             e.preventDefault();
             const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
@@ -661,28 +729,26 @@
                     name: row.querySelector('.item-name').value,
                     category: row.querySelector('.item-category').value,
                     qty: parseInt(row.querySelector('.item-qty').value) || 1,
-                    unit: 'Unit',
-                    cost: parseFloat(row.querySelector('.item-cost').value) || 0
+                    unit: row.querySelector('.item-unit').value || 'Unit',
+                    cost: parseFloat(row.querySelector('.item-cost').value) || 0,
+                    notes: row.querySelector('.item-notes').value || '',
+                    photo: row.querySelector('.item-photo-data').value || ''
                 });
             });
 
             const newId = `ARQ-2026-${String(appState.requests.length + 1).padStart(3, '0')}`;
             const payload = { id: newId, division, branch, submissionDate, urgency, status: 'Pending', justification, gaNotes: '', items };
 
-            // Save to Local Immediately (Guarantees no data loss)
             appState.requests.unshift(payload);
             saveLocalState();
 
-            // Try save to Cloud
             if (window.db) {
                 try {
                     const { collection, addDoc } = window.fbDeps;
                     const docRef = await addDoc(collection(window.db, "requests"), payload);
                     payload.docId = docRef.id;
                     saveLocalState();
-                } catch(err) {
-                    console.error("Cloud Save Notice:", err);
-                }
+                } catch(err) { console.error("Cloud Save Notice:", err); }
             }
 
             Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman.`, 'success');
@@ -712,26 +778,33 @@
             tbody.innerHTML = '';
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Belum ada pengajuan. Silakan buat pengajuan baru!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan.</td></tr>`;
                 return;
             }
 
             list.forEach(req => {
                 const totalCost = req.items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+                const actualIndex = appState.requests.indexOf(req);
+                const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
                 let summaryItems = req.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-                if (summaryItems.length > 40) summaryItems = summaryItems.substring(0, 37) + '...';
+
+                let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
+                if (session.role === 'General Affair Manager') {
+                    actionButtons += `
+                        <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 pl-4 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500 font-normal">${req.submissionDate}</span></td>
+                        <td class="p-3 pl-4 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
                         <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
                         <td class="p-3">${summaryItems}</td>
                         <td class="p-3 text-right font-mono font-black">${formatRupiah(totalCost)}</td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-amber-100">${req.urgency}</span></td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-blue-100">${req.status}</span></td>
-                        <td class="p-3 pr-4 text-center">
-                            <button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>
-                        </td>
+                        <td class="p-3 pr-4 text-center whitespace-nowrap">${actionButtons}</td>
                     </tr>
                 `;
             });
@@ -780,7 +853,7 @@
             document.getElementById('detailBranch').innerText = req.branch;
             document.getElementById('detailSubmissionDate').innerText = req.submissionDate;
             document.getElementById('detailJustification').innerText = req.justification;
-            document.getElementById('detailStatusBadge').innerText = req.status;
+            document.getElementById('detailStatusBadge').innerText = `${req.status} (${req.urgency})`;
 
             const tbody = document.getElementById('detailItemsTableBody');
             tbody.innerHTML = '';
@@ -791,15 +864,91 @@
                 tbody.innerHTML += `
                     <tr>
                         <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
-                        <td class="p-2 border border-slate-900 font-bold">${item.name}</td>
-                        <td class="p-2 border border-slate-900 text-center">${item.qty}</td>
+                        <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category}</span></td>
+                        <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
                         <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
                         <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
                     </tr>
                 `;
             });
             document.getElementById('detailTotalBudget').innerText = formatRupiah(total);
+
+            const photosContainer = document.getElementById('detailPhotosContainer');
+            photosContainer.innerHTML = '';
+            req.items.filter(i => i.photo).forEach(item => {
+                photosContainer.innerHTML += `
+                    <div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}', '${item.name}')">
+                        <img src="${item.photo}" class="w-16 h-16 object-cover border">
+                        <span class="text-[9px] font-mono font-bold block text-center mt-1 truncate w-16">${item.name}</span>
+                    </div>
+                `;
+            });
+
             openModal('detailModal');
+        }
+
+        function openEditModal(index) {
+            const req = appState.requests[index];
+            if (!req) return;
+            document.getElementById('editReqDocId').value = req.docId || index;
+            document.getElementById('editModalTitle').innerText = `Edit Status: ${req.id}`;
+            document.getElementById('editStatus').value = req.status;
+            document.getElementById('editUrgency').value = req.urgency;
+            document.getElementById('editGANotes').value = req.gaNotes || '';
+            openModal('editApprovalModal');
+        }
+
+        async function saveEditApproval(e) {
+            e.preventDefault();
+            const docId = document.getElementById('editReqDocId').value;
+            const req = appState.requests.find(r => (r.docId === docId || appState.requests.indexOf(r).toString() === docId));
+            if (!req) return;
+
+            req.status = document.getElementById('editStatus').value;
+            req.urgency = document.getElementById('editUrgency').value;
+            req.gaNotes = document.getElementById('editGANotes').value;
+            saveLocalState();
+
+            if (window.db && req.docId) {
+                try {
+                    const { doc, setDoc } = window.fbDeps;
+                    await setDoc(doc(window.db, "requests", req.docId), req, { merge: true });
+                } catch(err) { console.error(err); }
+            }
+
+            closeModal('editApprovalModal');
+            renderRequestsTable();
+            updateMetrics();
+            Swal.fire('Berhasil', 'Status diperbarui.', 'success');
+        }
+
+        async function deleteRequest(index, docId) {
+            Swal.fire({
+                title: 'Hapus pengajuan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626'
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    if (window.db && docId) {
+                        try {
+                            const { doc, deleteDoc } = window.fbDeps;
+                            await deleteDoc(doc(window.db, "requests", docId));
+                        } catch(e) {}
+                    }
+                    appState.requests.splice(index, 1);
+                    saveLocalState();
+                    renderRequestsTable();
+                    updateMetrics();
+                    Swal.fire('Terhapus', 'Data dihapus.', 'success');
+                }
+            });
+        }
+
+        function openZoomImage(src, cap) {
+            document.getElementById('zoomedImage').src = src;
+            document.getElementById('zoomedImageCaption').innerText = cap;
+            openModal('imageZoomModal');
         }
 
         function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
