@@ -310,25 +310,70 @@
             </div>
         </section>
 
-        <!-- TAB 3: MASTER DATA -->
+        <!-- TAB 3: MASTER DATA (SESUAI GAMBAR) -->
         <section id="view-master" class="hidden space-y-6">
+            <div class="bg-white p-4 neo-border neo-shadow">
+                <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan permanen di cloud.</p>
+            </div>
+
+            <!-- BOX MANAJEMEN AKUN PENGGUNA TERDAFTAR -->
             <div class="bg-white p-5 neo-border neo-shadow space-y-4">
-                <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
-                    <h3 class="font-black text-xs uppercase tracking-wider text-slate-900">Manajemen Akun Terdaftar</h3>
-                    <button onclick="promptAddUser()" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-3 py-1.5"><i class="fa-solid fa-user-plus mr-1"></i>Tambah Akun</button>
+                <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+                    <h3 class="font-black text-xs uppercase tracking-wider text-slate-900 flex items-center">
+                        <i class="fa-solid fa-users-gear text-cobalt-600 mr-2"></i>MANAJEMEN AKUN PENGGUNA TERDAFTAR
+                    </h3>
+                    <button onclick="promptAddUser()" class="neo-button bg-amber-500 text-slate-900 font-black text-xs px-3.5 py-2 flex items-center">
+                        <i class="fa-solid fa-user-plus mr-1.5"></i>Tambah Akun Baru
+                    </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-900 text-white font-mono uppercase">
-                                <th class="p-2 border border-slate-900">Nama</th>
-                                <th class="p-2 border border-slate-900">Role</th>
-                                <th class="p-2 border border-slate-900">Cabang</th>
-                                <th class="p-2 border border-slate-900 text-center w-20">Aksi</th>
+                                <th class="p-2.5 border border-slate-900">NAMA PENGGUNA</th>
+                                <th class="p-2.5 border border-slate-900">ROLE / HAK AKSES</th>
+                                <th class="p-2.5 border border-slate-900">CABANG PENUGASAN</th>
+                                <th class="p-2.5 border border-slate-900 text-center w-20">AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="masterUserTableBody" class="divide-y border border-slate-300 font-medium"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- 3 KOLOM REFERENSI (SESUAI GAMBAR) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 1. KATEGORI ASET -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">1. KATEGORI ASET</h4>
+                        <button onclick="promptAddMasterItem('categories')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListCategories" class="space-y-2"></div>
+                </div>
+
+                <!-- 2. DIVISI PEMOHON -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">2. DIVISI PEMOHON</h4>
+                        <button onclick="promptAddMasterItem('divisions')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListDivisions" class="space-y-2"></div>
+                </div>
+
+                <!-- 3. CABANG STORE / LOKASI -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">3. CABANG STORE / LOKASI</h4>
+                        <button onclick="promptAddMasterItem('branches')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListBranches" class="space-y-2"></div>
                 </div>
             </div>
         </section>
@@ -340,20 +385,72 @@
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full p-6 space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-12 h-12 bg-amber-500 border-2 border-slate-900 mx-auto flex items-center justify-center text-slate-900 font-black text-2xl neo-shadow-sm">
-                    <i class="fa-solid fa-user-gear"></i>
+                    <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-black text-slate-900 uppercase">Login AssetReq Pro</h2>
+                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang didaftarkan Manager GA.</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Pilih Akun Terdaftar</label>
-                    <select id="loginUserSelect" onchange="fillLoginDetails()" class="w-full bg-slate-50 neo-border px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username <span class="text-rose-600">*</span></label>
+                    <input type="text" id="loginUsername" required placeholder="Username..." class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
-                <div class="bg-slate-50 p-3 neo-border text-xs space-y-1">
-                    <div><span class="font-bold text-slate-500">Role:</span> <span id="previewLoginRole" class="font-mono font-black text-cobalt-700">-</span></div>
-                    <div><span class="font-bold text-slate-500">Cabang:</span> <span id="previewLoginBranch" class="font-mono font-black text-slate-900">-</span></div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password <span class="text-rose-600">*</span></label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
-                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm py-3">Masuk ke Sistem</button>
+                
+                <div id="loginErrorMsg" class="hidden text-rose-600 text-xs font-bold bg-rose-50 p-2 neo-border border-rose-600">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau password salah!
+                </div>
+
+                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm py-3">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk ke Sistem
+                </button>
+            </form>
+            <div class="text-[11px] text-slate-400 text-center font-medium">
+                *User pemohon tidak dapat mendaftar mandiri. Akun dan password dibuat oleh General Affair Manager.
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT / TAMBAH USER (MASTER DATA) -->
+    <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
+                <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Pengguna Baru</h3>
+                <button onclick="closeModal('userModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
+            </div>
+            <form id="userForm" onsubmit="saveUserAccount(event)" class="p-6 space-y-4">
+                <input type="hidden" id="userFormId">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username Login <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormUsername" required placeholder="misal: tauik_bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Nama Pengguna Lengkap <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormName" required placeholder="misal: Staf Bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Akun <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormPassword" required placeholder="Masukkan password..." class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Role / Hak Akses <span class="text-rose-600">*</span></label>
+                    <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                        <option value="Staff Store">Staff Store</option>
+                        <option value="General Affair Manager">General Affair Manager</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Cabang Penugasan / Akses <span class="text-rose-600">*</span></label>
+                    <p class="text-[11px] text-slate-500 mb-2 font-medium">Pilih cabang mana saja yang boleh diakses oleh user ini:</p>
+                    <div id="branchCheckboxesContainer" class="space-y-2 bg-slate-50 p-3 neo-border text-xs font-bold"></div>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
+                    <button type="button" onclick="closeModal('userModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
+                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Akun</button>
+                </div>
             </form>
         </div>
     </div>
@@ -466,15 +563,33 @@
         let appState = {
             activeTab: 'form',
             users: [
-                { id: 'usr_1', name: 'Muhammad Taufik', role: 'General Affair Manager', branch: 'All Branches (GA)' },
-                { id: 'usr_2', name: 'Staf Bandung', role: 'Staff Store', branch: 'Bandung Store - Riau' },
-                { id: 'usr_3', name: 'Staf Jakarta', role: 'Staff Store', branch: 'Jakarta Central Flagship' }
+                { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
+                { id: 'usr_2', username: 'stafbandung', password: '123', name: 'Staf Bandung', role: 'Staff Store', branches: ['Bandung Store - Riau'] },
+                { id: 'usr_3', username: 'stafjakarta', password: '123', name: 'Staf Jakarta', role: 'Staff Store', branches: ['Jakarta Central Flagship'] }
             ],
-            categories: ['IT & Elektronik', 'Mebel & Furnitur', 'Kendaraan & Transportasi', 'Fasilitas & HVAC', 'Peralatan Toko & POS'],
-            divisions: ['Information Technology', 'General Affair', 'Keuangan & Kasir', 'Operasional Toko', 'SDM / HRD'],
-            branches: ['Jakarta Central Flagship', 'Bandung Store - Riau', 'Surabaya Regional Hub', 'Medan Store - Plaza'],
+            categories: ['IT & Elektronik', 'Mebel & Furnitur', 'Kendaraan & Transportasi', 'Fasilitas & HVAC', 'Peralatan Toko & POS', 'Keamanan & CCTV'],
+            divisions: ['Information Technology', 'General Affair', 'Keuangan & Kasir', 'Operasional Toko', 'SDM / HRD', 'Marketing & Display'],
+            branches: ['Jakarta Central Flagship', 'Bandung Store - Riau', 'Surabaya Regional Hub', 'Medan Store - Plaza', 'Bali Resort Outlet'],
             requests: []
         };
+
+        function saveMasterSettings() {
+            localStorage.setItem('assetReqUsersData', JSON.stringify(appState.users));
+            localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
+            localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
+            localStorage.setItem('assetReqBranchesData', JSON.stringify(appState.branches));
+        }
+
+        function loadMasterSettings() {
+            const u = localStorage.getItem('assetReqUsersData');
+            if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
+            const c = localStorage.getItem('assetReqCategoriesData');
+            if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
+            const d = localStorage.getItem('assetReqDivisionsData');
+            if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
+            const b = localStorage.getItem('assetReqBranchesData');
+            if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
+        }
 
         function saveLocalState() {
             localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests));
@@ -537,74 +652,71 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            loadMasterSettings();
             loadLocalState();
             checkUserSession();
             document.getElementById('formSubmissionDate').value = '2026-10-10';
             document.getElementById('clock-date-today').innerText = '10 Okt 2026';
-            populateDropdowns();
-            renderRequestsTable();
-            updateMetrics();
             addFormItemRow();
         });
 
-        function checkUserSession() {
+        function getCurrentUser() {
             const session = localStorage.getItem('assetReqUserSession');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function checkUserSession() {
+            const user = getCurrentUser();
             const loginModal = document.getElementById('loginModal');
             const userInfo = document.getElementById('userSessionInfo');
 
-            if (!session) {
+            if (!user) {
                 loginModal.classList.remove('hidden');
                 loginModal.classList.add('flex');
                 if (userInfo) userInfo.classList.add('hidden');
-                populateLoginUserDropdown();
             } else {
-                const user = JSON.parse(session);
                 loginModal.classList.remove('flex');
                 loginModal.classList.add('hidden');
                 if (userInfo) userInfo.classList.replace('hidden', 'flex');
                 document.getElementById('displayUserName').innerText = user.name;
-                document.getElementById('displayUserRole').innerText = user.role === 'Staff Store' ? `Staf (${user.branch})` : user.role;
+                document.getElementById('displayUserRole').innerText = user.role === 'Staff Store' ? `Staff Store` : user.role;
 
                 const tabMaster = document.getElementById('tab-master');
                 if (user.role === 'Staff Store') {
                     if (tabMaster) tabMaster.style.display = 'none';
-                    const formBranch = document.getElementById('formBranch');
-                    if (formBranch) { formBranch.value = user.branch; formBranch.disabled = true; }
                 } else {
                     if (tabMaster) tabMaster.style.display = 'flex';
-                    const formBranch = document.getElementById('formBranch');
-                    if (formBranch) formBranch.disabled = false;
                 }
-            }
-        }
 
-        function populateLoginUserDropdown() {
-            const selectEl = document.getElementById('loginUserSelect');
-            if (selectEl) {
-                selectEl.innerHTML = appState.users.map((u, idx) => `<option value="${idx}">${u.name} (${u.role})</option>`).join('');
-                fillLoginDetails();
-            }
-        }
-
-        function fillLoginDetails() {
-            const idx = document.getElementById('loginUserSelect').value;
-            const user = appState.users[idx];
-            if (user) {
-                document.getElementById('previewLoginRole').innerText = user.role;
-                document.getElementById('previewLoginBranch').innerText = user.branch;
+                populateDropdowns();
+                renderRequestsTable();
+                updateMetrics();
             }
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            const idx = document.getElementById('loginUserSelect').value;
-            const user = appState.users[idx];
-            if (!user) return;
-            localStorage.setItem('assetReqUserSession', JSON.stringify({ name: user.name, role: user.role, branch: user.branch }));
-            checkUserSession();
-            populateDropdowns();
-            renderRequestsTable();
-            updateMetrics();
+            const usernameInput = document.getElementById('loginUsername').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const errBox = document.getElementById('loginErrorMsg');
+
+            const found = appState.users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+            if (found) {
+                errBox.classList.add('hidden');
+                localStorage.setItem('assetReqUserSession', JSON.stringify({
+                    id: found.id,
+                    username: found.username,
+                    name: found.name,
+                    role: found.role,
+                    branches: found.branches || []
+                }));
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                checkUserSession();
+            } else {
+                errBox.classList.remove('hidden');
+            }
         }
 
         function handleLogout() {
@@ -613,8 +725,8 @@
         }
 
         function switchTab(tabId) {
-            const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
-            if (session.role === 'Staff Store' && tabId === 'master') {
+            const session = getCurrentUser();
+            if (session && session.role === 'Staff Store' && tabId === 'master') {
                 Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk Manager General Affair.', 'warning');
                 return;
             }
@@ -627,14 +739,18 @@
             document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
 
             if (tabId === 'list') { renderRequestsTable(); updateMetrics(); }
-            else if (tabId === 'master') { renderUserManagementTable(); }
+            else if (tabId === 'master') { renderMasterDataView(); }
         }
 
         function populateDropdowns() {
+            const user = getCurrentUser();
+            const userBranches = (user && user.branches && !user.branches.includes('ALL')) 
+                ? user.branches 
+                : appState.branches;
+
             document.getElementById('formDivision').innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('formBranch').innerHTML = appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
-            document.getElementById('filterBranch').innerHTML = `<option value="">Semua Cabang</option>` + appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
-            document.getElementById('editBranch').innerHTML = appState.branches.map(b => `<option value="${b}">${b}</option>`).join('');
+            document.getElementById('formBranch').innerHTML = userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+            document.getElementById('filterBranch').innerHTML = `<option value="">Semua Cabang (Akses)</option>` + userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
         }
 
         function addFormItemRow(itemData = null) {
@@ -716,9 +832,9 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
+            const session = getCurrentUser();
             const division = document.getElementById('formDivision').value;
-            const branch = session.role === 'Staff Store' ? session.branch : document.getElementById('formBranch').value;
+            const branch = document.getElementById('formBranch').value;
             const submissionDate = document.getElementById('formSubmissionDate').value;
             const urgency = document.getElementById('formUrgency').value;
             const justification = document.getElementById('formJustification').value;
@@ -765,11 +881,14 @@
         }
 
         function getAccessibleRequests() {
-            const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
-            if (session.role === 'Staff Store') {
-                return appState.requests.filter(r => r.branch === session.branch);
+            const user = getCurrentUser();
+            if (!user) return [];
+
+            if (user.role === 'General Affair Manager' || (user.branches && user.branches.includes('ALL'))) {
+                return appState.requests;
             }
-            return appState.requests;
+
+            return appState.requests.filter(r => user.branches && user.branches.includes(r.branch));
         }
 
         function renderRequestsTable(dataList = null) {
@@ -778,18 +897,18 @@
             tbody.innerHTML = '';
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
                 return;
             }
 
             list.forEach(req => {
                 const totalCost = req.items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
                 const actualIndex = appState.requests.indexOf(req);
-                const session = JSON.parse(localStorage.getItem('assetReqUserSession') || '{}');
+                const session = getCurrentUser();
                 let summaryItems = req.items.map(i => `${i.qty}x ${i.name}`).join(', ');
 
                 let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
-                if (session.role === 'General Affair Manager') {
+                if (session && session.role === 'General Affair Manager') {
                     actionButtons += `
                         <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>
@@ -954,17 +1073,178 @@
         function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
         function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
 
+        /* LOGIK MASTER DATA & REFERENSI (TAMPILAN GAMBAR) */
+        function renderMasterDataView() {
+            renderUserManagementTable();
+            renderMasterReferenceList('categories', 'masterListCategories');
+            renderMasterReferenceList('divisions', 'masterListDivisions');
+            renderMasterReferenceList('branches', 'masterListBranches');
+        }
+
         function renderUserManagementTable() {
             const tbody = document.getElementById('masterUserTableBody');
             if (!tbody) return;
-            tbody.innerHTML = appState.users.map(u => `
-                <tr>
-                    <td class="p-2 border border-slate-300 font-bold">${u.name}</td>
-                    <td class="p-2 border border-slate-300 font-mono text-cobalt-600">${u.role}</td>
-                    <td class="p-2 border border-slate-300">${u.branch}</td>
-                    <td class="p-2 border border-slate-300 text-center"><i class="fa-solid fa-lock text-slate-400"></i></td>
-                </tr>
+            tbody.innerHTML = appState.users.map((u, idx) => {
+                const branchText = u.branches.includes('ALL') 
+                    ? 'All Branches (GA)' 
+                    : u.branches.join(', ');
+
+                const roleColorClass = u.role === 'General Affair Manager' ? 'text-blue-600 font-mono' : 'text-blue-600 font-mono';
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2.5 border border-slate-300 font-bold text-slate-800">${u.name}</td>
+                        <td class="p-2.5 border border-slate-300 ${roleColorClass}">${u.role}</td>
+                        <td class="p-2.5 border border-slate-300 font-medium">${branchText}</td>
+                        <td class="p-2.5 border border-slate-300 text-center whitespace-nowrap">
+                            <button onclick="promptEditUser(${idx})" class="text-slate-600 hover:text-slate-900 mr-2" title="Edit Akun"><i class="fa-solid fa-pen"></i></button>
+                            ${u.username !== 'admin' ? `<button onclick="deleteUserAccount(${idx})" class="text-rose-600 hover:text-rose-800" title="Hapus Akun"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderMasterReferenceList(key, elementId) {
+            const container = document.getElementById(elementId);
+            if (!container) return;
+            container.innerHTML = appState[key].map((item, idx) => `
+                <div class="flex items-center justify-between bg-slate-50 p-2 neo-border text-xs font-bold">
+                    <span>${item}</span>
+                    <button onclick="deleteMasterItem('${key}', ${idx})" class="text-rose-600 hover:text-rose-800 px-1 font-black">&times;</button>
+                </div>
             `).join('');
+        }
+
+        function promptAddMasterItem(key) {
+            const labelMap = { categories: 'Kategori Aset', divisions: 'Divisi Pemohon', branches: 'Cabang Store / Lokasi' };
+            Swal.fire({
+                title: `Tambah ${labelMap[key]}`,
+                input: 'text',
+                inputPlaceholder: 'Masukkan nama...',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb'
+            }).then((res) => {
+                if (res.isConfirmed && res.value.trim() !== '') {
+                    appState[key].push(res.value.trim());
+                    saveMasterSettings();
+                    renderMasterDataView();
+                    populateDropdowns();
+                    Swal.fire('Berhasil', 'Data ditambahkan.', 'success');
+                }
+            });
+        }
+
+        function deleteMasterItem(key, index) {
+            appState[key].splice(index, 1);
+            saveMasterSettings();
+            renderMasterDataView();
+            populateDropdowns();
+        }
+
+        function renderBranchCheckboxes(selectedBranches = []) {
+            const container = document.getElementById('branchCheckboxesContainer');
+            container.innerHTML = appState.branches.map(b => {
+                const isChecked = selectedBranches.includes('ALL') || selectedBranches.includes(b);
+                return `
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${b}" ${isChecked ? 'checked' : ''} class="branch-checkbox w-4 h-4 text-cobalt-600 font-bold focus:ring-amber-500">
+                        <span>${b}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleBranchCheckboxesByRole() {
+            const role = document.getElementById('userFormRole').value;
+            const checkboxes = document.querySelectorAll('.branch-checkbox');
+            if (role === 'General Affair Manager') {
+                checkboxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
+            } else {
+                checkboxes.forEach(cb => { cb.disabled = false; });
+            }
+        }
+
+        function promptAddUser() {
+            document.getElementById('userFormId').value = '';
+            document.getElementById('userModalTitle').innerText = 'Buat Akun Pengguna Baru';
+            document.getElementById('userFormUsername').value = '';
+            document.getElementById('userFormName').value = '';
+            document.getElementById('userFormPassword').value = '123';
+            document.getElementById('userFormRole').value = 'Staff Store';
+            renderBranchCheckboxes([]);
+            toggleBranchCheckboxesByRole();
+            openModal('userModal');
+        }
+
+        function promptEditUser(index) {
+            const u = appState.users[index];
+            if (!u) return;
+            document.getElementById('userFormId').value = index;
+            document.getElementById('userModalTitle').innerText = `Edit Akun: ${u.name}`;
+            document.getElementById('userFormUsername').value = u.username;
+            document.getElementById('userFormName').value = u.name;
+            document.getElementById('userFormPassword').value = u.password;
+            document.getElementById('userFormRole').value = u.role;
+            renderBranchCheckboxes(u.branches || []);
+            toggleBranchCheckboxesByRole();
+            openModal('userModal');
+        }
+
+        function saveUserAccount(e) {
+            e.preventDefault();
+            const indexStr = document.getElementById('userFormId').value;
+            const username = document.getElementById('userFormUsername').value.trim();
+            const name = document.getElementById('userFormName').value.trim();
+            const password = document.getElementById('userFormPassword').value.trim();
+            const role = document.getElementById('userFormRole').value;
+
+            let selectedBranches = [];
+            if (role === 'General Affair Manager') {
+                selectedBranches = ['ALL'];
+            } else {
+                document.querySelectorAll('.branch-checkbox:checked').forEach(cb => {
+                    selectedBranches.push(cb.value);
+                });
+            }
+
+            if (selectedBranches.length === 0) {
+                Swal.fire('Peringatan', 'Pilih minimal 1 cabang penugasan!', 'warning');
+                return;
+            }
+
+            if (indexStr === '') {
+                if (appState.users.some(u => u.username === username)) {
+                    Swal.fire('Error', 'Username sudah terpakai!', 'error');
+                    return;
+                }
+                appState.users.push({ id: 'usr_' + Date.now(), username, name, password, role, branches: selectedBranches });
+            } else {
+                const idx = parseInt(indexStr);
+                appState.users[idx] = { ...appState.users[idx], username, name, password, role, branches: selectedBranches };
+            }
+
+            saveMasterSettings();
+            closeModal('userModal');
+            renderUserManagementTable();
+            Swal.fire('Tersimpan', 'Akun berhasil disimpan.', 'success');
+        }
+
+        function deleteUserAccount(index) {
+            Swal.fire({
+                title: 'Hapus akun ini?',
+                text: 'User ini tidak akan bisa login lagi.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    appState.users.splice(index, 1);
+                    saveMasterSettings();
+                    renderUserManagementTable();
+                    Swal.fire('Terhapus', 'Akun dihapus.', 'success');
+                }
+            });
         }
 
         function exportCSV() {
