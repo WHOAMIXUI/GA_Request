@@ -45,10 +45,10 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Firebase SDK (Modular v10.8.0) -->
+    <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
@@ -63,7 +63,7 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             window.db = db;
-            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc };
+            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, onSnapshot };
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (err) {
             console.error("Gagal Inisialisasi Firebase:", err);
@@ -602,11 +602,12 @@
             }
         }
 
-        window.addEventListener('firebase-ready', async () => {
-            await syncDataFromCloud(false);
+        window.addEventListener('firebase-ready', () => {
+            initRealtimeSync();
         });
 
-        async function syncDataFromCloud(manualTrigger = false) {
+        // REALTIME SYNC MENGGUNAKAN onSnapshot
+        function initRealtimeSync() {
             loadLocalState();
             if (!window.db) {
                 updateCloudBadge('Offline (Lokal)');
@@ -616,29 +617,32 @@
             }
 
             try {
-                if (manualTrigger) {
-                    Swal.fire({ title: 'Menyinkronkan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                }
-                const { collection, getDocs } = window.fbDeps;
-                const reqSnap = await getDocs(collection(window.db, "requests"));
-                
-                if (!reqSnap.empty) {
+                const { collection, onSnapshot } = window.fbDeps;
+                onSnapshot(collection(window.db, "requests"), (snapshot) => {
                     const cloudData = [];
-                    reqSnap.forEach(doc => {
+                    snapshot.forEach(doc => {
                         cloudData.push({ docId: doc.id, ...doc.data() });
                     });
                     appState.requests = cloudData;
                     saveLocalState();
-                }
-                updateCloudBadge('Cloud Live');
-                if (manualTrigger) Swal.fire('Tersinkronisasi!', 'Data terbaru berhasil dimuat dari Cloud.', 'success');
+                    
+                    updateCloudBadge('Cloud Live');
+                    renderRequestsTable();
+                    updateMetrics();
+                }, (error) => {
+                    console.error("Realtime sync error:", error);
+                    updateCloudBadge('Offline (Lokal)');
+                });
             } catch (e) {
-                console.error("Firebase Sync Warning:", e);
+                console.error("Firebase Realtime Warning:", e);
                 updateCloudBadge('Offline (Lokal)');
-                if (manualTrigger) Swal.fire('Info Offline', 'Gagal terhubung ke Cloud. Menggunakan data lokal.', 'info');
             }
-            renderRequestsTable();
-            updateMetrics();
+        }
+
+        async function syncDataFromCloud(manualTrigger = false) {
+            if (manualTrigger) {
+                Swal.fire('Tersinkronisasi!', 'Data terhubung secara real-time dengan Cloud.', 'success');
+            }
         }
 
         function updateCloudBadge(statusText) {
@@ -832,7 +836,6 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const session = getCurrentUser();
             const division = document.getElementById('formDivision').value;
             const branch = document.getElementById('formBranch').value;
             const submissionDate = document.getElementById('formSubmissionDate').value;
@@ -855,16 +858,14 @@
             const newId = `ARQ-2026-${String(appState.requests.length + 1).padStart(3, '0')}`;
             const payload = { id: newId, division, branch, submissionDate, urgency, status: 'Pending', justification, gaNotes: '', items };
 
-            appState.requests.unshift(payload);
-            saveLocalState();
-
             if (window.db) {
                 try {
                     const { collection, addDoc } = window.fbDeps;
-                    const docRef = await addDoc(collection(window.db, "requests"), payload);
-                    payload.docId = docRef.id;
-                    saveLocalState();
+                    await addDoc(collection(window.db, "requests"), payload);
                 } catch(err) { console.error("Cloud Save Notice:", err); }
+            } else {
+                appState.requests.unshift(payload);
+                saveLocalState();
             }
 
             Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman.`, 'success');
@@ -950,12 +951,10 @@
             renderRequestsTable();
         }
 
-        /* PERBAIKAN FUNGSI REKAP/METRIK DI DASHBOARD */
         function updateMetrics() {
             const list = getAccessibleRequests();
             document.getElementById('metric-total').innerText = list.length;
             
-            // Hitung persis berdasarkan status (Case-insensitive & Trimmed)
             const pendingCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'pending').length;
             const approvedCount = list.filter(r => r.status && (r.status.trim().toLowerCase() === 'approved' || r.status.trim().toLowerCase() === 'proses')).length;
             const completedCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'completed').length;
@@ -1020,7 +1019,7 @@
         function openEditModal(index) {
             const req = appState.requests[index];
             if (!req) return;
-            document.getElementById('editReqDocId').value = index; // simpan index aktual
+            document.getElementById('editReqDocId').value = index;
             document.getElementById('editModalTitle').innerText = `Edit Status: ${req.id}`;
             document.getElementById('editStatus').value = req.status;
             document.getElementById('editUrgency').value = req.urgency;
@@ -1028,7 +1027,6 @@
             openModal('editApprovalModal');
         }
 
-        /* PERBAIKAN UPDATE STATUS & METRIK DENGAN CEPAT AKURAT */
         async function saveEditApproval(e) {
             e.preventDefault();
             const index = parseInt(document.getElementById('editReqDocId').value);
@@ -1039,22 +1037,20 @@
             req.urgency = document.getElementById('editUrgency').value;
             req.gaNotes = document.getElementById('editGANotes').value;
             
-            saveLocalState();
-
             if (window.db && req.docId) {
                 try {
                     const { doc, setDoc } = window.fbDeps;
                     await setDoc(doc(window.db, "requests", req.docId), req, { merge: true });
                 } catch(err) { console.error("Update Cloud Error:", err); }
+            } else {
+                saveLocalState();
             }
 
             closeModal('editApprovalModal');
-            
-            // Re-render tabel dan perbarui metrik dashboard secara instan
             applyTableFilters();
             updateMetrics();
             
-            Swal.fire('Berhasil', 'Status pengajuan diperbarui dan dashboard disesuaikan.', 'success');
+            Swal.fire('Berhasil', 'Status pengajuan diperbarui secara real-time.', 'success');
         }
 
         async function deleteRequest(index, docId) {
@@ -1070,9 +1066,10 @@
                             const { doc, deleteDoc } = window.fbDeps;
                             await deleteDoc(doc(window.db, "requests", docId));
                         } catch(e) {}
+                    } else {
+                        appState.requests.splice(index, 1);
+                        saveLocalState();
                     }
-                    appState.requests.splice(index, 1);
-                    saveLocalState();
                     
                     applyTableFilters();
                     updateMetrics();
@@ -1090,7 +1087,6 @@
         function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
         function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
 
-        /* LOGIK MASTER DATA & REFERENSI */
         function renderMasterDataView() {
             renderUserManagementTable();
             renderMasterReferenceList('categories', 'masterListCategories');
@@ -1106,7 +1102,7 @@
                     ? 'All Branches (GA)' 
                     : u.branches.join(', ');
 
-                const roleColorClass = u.role === 'General Affair Manager' ? 'text-blue-600 font-mono' : 'text-blue-600 font-mono';
+                const roleColorClass = 'text-blue-600 font-mono';
 
                 return `
                     <tr class="hover:bg-slate-50">
