@@ -310,7 +310,7 @@
             </div>
         </section>
 
-        <!-- TAB 3: MASTER DATA (SESUAI GAMBAR) -->
+        <!-- TAB 3: MASTER DATA -->
         <section id="view-master" class="hidden space-y-6">
             <div class="bg-white p-4 neo-border neo-shadow">
                 <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan permanen di cloud.</p>
@@ -341,7 +341,7 @@
                 </div>
             </div>
 
-            <!-- 3 KOLOM REFERENSI (SESUAI GAMBAR) -->
+            <!-- 3 KOLOM REFERENSI -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- 1. KATEGORI ASET -->
                 <div class="bg-white p-4 neo-border neo-shadow space-y-3">
@@ -414,7 +414,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT / TAMBAH USER (MASTER DATA) -->
+    <!-- MODAL EDIT / TAMBAH USER -->
     <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
@@ -425,7 +425,7 @@
                 <input type="hidden" id="userFormId">
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username Login <span class="text-rose-600">*</span></label>
-                    <input type="text" id="userFormUsername" required placeholder="misal: tauik_bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                    <input type="text" id="userFormUsername" required placeholder="misal: taufik_bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Nama Pengguna Lengkap <span class="text-rose-600">*</span></label>
@@ -950,15 +950,26 @@
             renderRequestsTable();
         }
 
+        /* PERBAIKAN FUNGSI REKAP/METRIK DI DASHBOARD */
         function updateMetrics() {
             const list = getAccessibleRequests();
             document.getElementById('metric-total').innerText = list.length;
-            document.getElementById('metric-pending').innerText = list.filter(r => r.status === 'Pending').length;
-            document.getElementById('metric-progress').innerText = list.filter(r => r.status === 'Approved').length;
-            document.getElementById('metric-completed').innerText = list.filter(r => r.status === 'Completed').length;
+            
+            // Hitung persis berdasarkan status (Case-insensitive & Trimmed)
+            const pendingCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'pending').length;
+            const approvedCount = list.filter(r => r.status && (r.status.trim().toLowerCase() === 'approved' || r.status.trim().toLowerCase() === 'proses')).length;
+            const completedCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'completed').length;
+
+            document.getElementById('metric-pending').innerText = pendingCount;
+            document.getElementById('metric-progress').innerText = approvedCount;
+            document.getElementById('metric-completed').innerText = completedCount;
             
             let total = 0;
-            list.forEach(r => r.items.forEach(i => total += (i.qty * i.cost)));
+            list.forEach(r => {
+                if (r.items && Array.isArray(r.items)) {
+                    r.items.forEach(i => total += (parseFloat(i.qty || 0) * parseFloat(i.cost || 0)));
+                }
+            });
             document.getElementById('metric-budget').innerText = formatRupiah(total);
             document.getElementById('nav-count-badge').innerText = list.length;
         }
@@ -1009,7 +1020,7 @@
         function openEditModal(index) {
             const req = appState.requests[index];
             if (!req) return;
-            document.getElementById('editReqDocId').value = req.docId || index;
+            document.getElementById('editReqDocId').value = index; // simpan index aktual
             document.getElementById('editModalTitle').innerText = `Edit Status: ${req.id}`;
             document.getElementById('editStatus').value = req.status;
             document.getElementById('editUrgency').value = req.urgency;
@@ -1017,28 +1028,33 @@
             openModal('editApprovalModal');
         }
 
+        /* PERBAIKAN UPDATE STATUS & METRIK DENGAN CEPAT AKURAT */
         async function saveEditApproval(e) {
             e.preventDefault();
-            const docId = document.getElementById('editReqDocId').value;
-            const req = appState.requests.find(r => (r.docId === docId || appState.requests.indexOf(r).toString() === docId));
+            const index = parseInt(document.getElementById('editReqDocId').value);
+            const req = appState.requests[index];
             if (!req) return;
 
             req.status = document.getElementById('editStatus').value;
             req.urgency = document.getElementById('editUrgency').value;
             req.gaNotes = document.getElementById('editGANotes').value;
+            
             saveLocalState();
 
             if (window.db && req.docId) {
                 try {
                     const { doc, setDoc } = window.fbDeps;
                     await setDoc(doc(window.db, "requests", req.docId), req, { merge: true });
-                } catch(err) { console.error(err); }
+                } catch(err) { console.error("Update Cloud Error:", err); }
             }
 
             closeModal('editApprovalModal');
-            renderRequestsTable();
+            
+            // Re-render tabel dan perbarui metrik dashboard secara instan
+            applyTableFilters();
             updateMetrics();
-            Swal.fire('Berhasil', 'Status diperbarui.', 'success');
+            
+            Swal.fire('Berhasil', 'Status pengajuan diperbarui dan dashboard disesuaikan.', 'success');
         }
 
         async function deleteRequest(index, docId) {
@@ -1057,9 +1073,10 @@
                     }
                     appState.requests.splice(index, 1);
                     saveLocalState();
-                    renderRequestsTable();
+                    
+                    applyTableFilters();
                     updateMetrics();
-                    Swal.fire('Terhapus', 'Data dihapus.', 'success');
+                    Swal.fire('Terhapus', 'Data dihapus dari sistem.', 'success');
                 }
             });
         }
@@ -1073,7 +1090,7 @@
         function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
         function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
 
-        /* LOGIK MASTER DATA & REFERENSI (TAMPILAN GAMBAR) */
+        /* LOGIK MASTER DATA & REFERENSI */
         function renderMasterDataView() {
             renderUserManagementTable();
             renderMasterReferenceList('categories', 'masterListCategories');
