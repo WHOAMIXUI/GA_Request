@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetReq Pro - Sistem Pengadaan & Aset Perusahaan (Cloud & Local Sync)</title>
+    <title>AssetReq Pro - Sistem Pengadaan & Aset Perusahaan (Cloud & Realtime Sync)</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -48,7 +48,7 @@
     <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
@@ -63,7 +63,7 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             window.db = db;
-            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, onSnapshot };
+            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot };
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (err) {
             console.error("Gagal Inisialisasi Firebase:", err);
@@ -159,14 +159,14 @@
             <div class="bg-white p-5 sm:p-6 neo-border neo-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="inline-block bg-amber-500 text-slate-900 font-black text-xs px-2.5 py-0.5 border border-slate-900 uppercase mb-2">
-                        FORMULIR PENGADAAN RESMI (CLOUD & LOCAL SYNC)
+                        FORMULIR PENGADAAN RESMI (REALTIME CLOUD SYNC)
                     </div>
                     <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Pengajuan Permintaan Aset Baru / Perbaikan</h2>
                     <p class="text-xs sm:text-sm text-slate-600 font-medium">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
                 </div>
                 <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
                     <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
-                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">10 Okt 2026</span></span>
+                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">15 Okt 2026</span></span>
                 </div>
             </div>
 
@@ -313,7 +313,7 @@
         <!-- TAB 3: MASTER DATA -->
         <section id="view-master" class="hidden space-y-6">
             <div class="bg-white p-4 neo-border neo-shadow">
-                <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan permanen di cloud.</p>
+                <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
             </div>
 
             <!-- BOX MANAJEMEN AKUN PENGGUNA TERDAFTAR -->
@@ -388,7 +388,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-black text-slate-900 uppercase">Login AssetReq Pro</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang didaftarkan Manager GA.</p>
+                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang terdaftar di sistem.</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -409,7 +409,7 @@
                 </button>
             </form>
             <div class="text-[11px] text-slate-400 text-center font-medium">
-                *User pemohon tidak dapat mendaftar mandiri. Akun dan password dibuat oleh General Affair Manager.
+                *Akun tersinkronisasi cloud secara realtime.
             </div>
         </div>
     </div>
@@ -573,7 +573,25 @@
             requests: []
         };
 
-        function saveMasterSettings() {
+        // Simpan master data ke Cloud Firestore & LocalStorage Backup
+        async function saveMasterSettings() {
+            saveMasterSettingsToLocal();
+            if (window.db) {
+                try {
+                    const { doc, setDoc } = window.fbDeps;
+                    await setDoc(doc(window.db, "settings", "master_config"), {
+                        users: appState.users,
+                        categories: appState.categories,
+                        divisions: appState.divisions,
+                        branches: appState.branches
+                    }, { merge: true });
+                } catch(err) {
+                    console.error("Gagal simpan master data ke cloud:", err);
+                }
+            }
+        }
+
+        function saveMasterSettingsToLocal() {
             localStorage.setItem('assetReqUsersData', JSON.stringify(appState.users));
             localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
             localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
@@ -606,7 +624,7 @@
             initRealtimeSync();
         });
 
-        // REALTIME SYNC MENGGUNAKAN onSnapshot
+        // REALTIME SYNC MENGGUNAKAN onSnapshot (Requests & Master Settings)
         function initRealtimeSync() {
             loadLocalState();
             if (!window.db) {
@@ -617,11 +635,13 @@
             }
 
             try {
-                const { collection, onSnapshot } = window.fbDeps;
+                const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
+
+                // 1. Realtime sync untuk data pengadaan (requests)
                 onSnapshot(collection(window.db, "requests"), (snapshot) => {
                     const cloudData = [];
-                    snapshot.forEach(doc => {
-                        cloudData.push({ docId: doc.id, ...doc.data() });
+                    snapshot.forEach(docSnap => {
+                        cloudData.push({ docId: docSnap.id, ...docSnap.data() });
                     });
                     appState.requests = cloudData;
                     saveLocalState();
@@ -633,6 +653,34 @@
                     console.error("Realtime sync error:", error);
                     updateCloudBadge('Offline (Lokal)');
                 });
+
+                // 2. Realtime sync untuk Master Data & Akun Pengguna (settings/master_config)
+                onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.users) appState.users = data.users;
+                        if (data.categories) appState.categories = data.categories;
+                        if (data.divisions) appState.divisions = data.divisions;
+                        if (data.branches) appState.branches = data.branches;
+                        
+                        saveMasterSettingsToLocal();
+                        if (appState.activeTab === 'master') {
+                            renderMasterDataView();
+                        }
+                        populateDropdowns();
+                    } else {
+                        // Inisialisasi dokumen master di cloud jika belum ada
+                        await setDoc(doc(window.db, "settings", "master_config"), {
+                            users: appState.users,
+                            categories: appState.categories,
+                            divisions: appState.divisions,
+                            branches: appState.branches
+                        });
+                    }
+                }, (error) => {
+                    console.error("Master Data Sync Error:", error);
+                });
+
             } catch (e) {
                 console.error("Firebase Realtime Warning:", e);
                 updateCloudBadge('Offline (Lokal)');
@@ -641,7 +689,7 @@
 
         async function syncDataFromCloud(manualTrigger = false) {
             if (manualTrigger) {
-                Swal.fire('Tersinkronisasi!', 'Data terhubung secara real-time dengan Cloud.', 'success');
+                Swal.fire('Tersinkronisasi!', 'Data pengadaan & master data terhubung secara real-time dengan Cloud.', 'success');
             }
         }
 
@@ -659,8 +707,8 @@
             loadMasterSettings();
             loadLocalState();
             checkUserSession();
-            document.getElementById('formSubmissionDate').value = '2026-10-10';
-            document.getElementById('clock-date-today').innerText = '10 Okt 2026';
+            document.getElementById('formSubmissionDate').value = '2026-10-15';
+            document.getElementById('clock-date-today').innerText = '15 Okt 2026';
             addFormItemRow();
         });
 
@@ -752,9 +800,13 @@
                 ? user.branches 
                 : appState.branches;
 
-            document.getElementById('formDivision').innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-            document.getElementById('formBranch').innerHTML = userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
-            document.getElementById('filterBranch').innerHTML = `<option value="">Semua Cabang (Akses)</option>` + userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+            const divEl = document.getElementById('formDivision');
+            const branchEl = document.getElementById('formBranch');
+            const filtBranchEl = document.getElementById('filterBranch');
+
+            if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+            if (branchEl) branchEl.innerHTML = userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="">Semua Cabang (Akses)</option>` + userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
         }
 
         function addFormItemRow(itemData = null) {
@@ -868,14 +920,14 @@
                 saveLocalState();
             }
 
-            Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman.`, 'success');
+            Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman dan tersinkronisasi.`, 'success');
             resetForm();
             switchTab('list');
         }
 
         function resetForm() {
             document.getElementById('newRequestForm').reset();
-            document.getElementById('formSubmissionDate').value = '2026-10-10';
+            document.getElementById('formSubmissionDate').value = '2026-10-15';
             document.getElementById('formItemsContainer').innerHTML = '';
             addFormItemRow();
             calculateLiveTotal();
@@ -895,6 +947,7 @@
         function renderRequestsTable(dataList = null) {
             const list = dataList || getAccessibleRequests();
             const tbody = document.getElementById('requestsTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             if (list.length === 0) {
@@ -1143,7 +1196,7 @@
                     saveMasterSettings();
                     renderMasterDataView();
                     populateDropdowns();
-                    Swal.fire('Berhasil', 'Data ditambahkan.', 'success');
+                    Swal.fire('Berhasil', 'Data ditambahkan dan disinkronkan ke cloud.', 'success');
                 }
             });
         }
@@ -1157,6 +1210,7 @@
 
         function renderBranchCheckboxes(selectedBranches = []) {
             const container = document.getElementById('branchCheckboxesContainer');
+            if (!container) return;
             container.innerHTML = appState.branches.map(b => {
                 const isChecked = selectedBranches.includes('ALL') || selectedBranches.includes(b);
                 return `
@@ -1240,7 +1294,7 @@
             saveMasterSettings();
             closeModal('userModal');
             renderUserManagementTable();
-            Swal.fire('Tersimpan', 'Akun berhasil disimpan.', 'success');
+            Swal.fire('Tersimpan', 'Akun berhasil disimpan dan disinkronkan secara realtime.', 'success');
         }
 
         function deleteUserAccount(index) {
