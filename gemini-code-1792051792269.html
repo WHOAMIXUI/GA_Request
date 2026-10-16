@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA X DOBAH - Created By : DIVISI GA</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        amber: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        cobalt: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
+            authDomain: "assetreqpro-a67d7.firebaseapp.com",
+            projectId: "assetreqpro-a67d7",
+            storageBucket: "assetreqpro-a67d7.firebasestorage.app",
+            messagingSenderId: "319679123678",
+            appId: "1:319679123678:web:a0fcedfa4178ade4e8b24f"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            window.db = db;
+            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot };
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (err) {
+            console.error("Gagal Inisialisasi Firebase:", err);
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f1f5f9;
+        }
+        .neo-border { border: 2px solid #0f172a; }
+        .neo-shadow { box-shadow: 4px 4px 0px #0f172a; }
+        .neo-shadow-sm { box-shadow: 2px 2px 0px #0f172a; }
+        .neo-shadow-lg { box-shadow: 6px 6px 0px #0f172a; }
+        .neo-button {
+            border: 2px solid #0f172a;
+            box-shadow: 3px 3px 0px #0f172a;
+            transition: all 0.1s ease;
+        }
+        .neo-button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #0f172a; }
+        .neo-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #0f172a; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; border-left: 2px solid #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #0f172a; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-900">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white border-b-4 border-slate-950 sticky top-0 z-40 px-4 sm:px-6 py-3.5">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-amber-500 border-2 border-white flex items-center justify-center text-slate-900 font-black text-xl neo-shadow-sm">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-black text-xl tracking-tight text-white font-mono uppercase">GA X <span class="text-amber-500">DOBAH</span></h1>
+                            <span id="cloudStatusBadge" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase tracking-wider">Syncing...</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium tracking-wide uppercase">Created By : DIVISI GA</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <button onclick="switchTab('form')" id="tab-form" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-pen-to-square mr-2"></i>Buat Permintaan
+                </button>
+                <button onclick="switchTab('list')" id="tab-list" class="neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-list-check mr-2"></i>Daftar & Status
+                    <span id="nav-count-badge" class="ml-2 bg-cobalt-600 text-white text-[10px] font-mono px-1.5 py-0.5 border border-slate-900">0</span>
+                </button>
+                <button onclick="switchTab('master')" id="tab-master" class="neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-database mr-2"></i>Master Data & Akun
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="exportCSV()" title="Export CSV" class="hidden lg:flex neo-button bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 items-center">
+                    <i class="fa-solid fa-file-csv mr-1.5 text-amber-500"></i>Export CSV
+                </button>
+                <button onclick="syncDataFromCloud(true)" title="Sinkronisasi Cloud" class="neo-button bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3 py-2 flex items-center">
+                    <i class="fa-solid fa-rotate mr-1.5"></i>Sync
+                </button>
+
+                <div id="userSessionInfo" class="hidden items-center space-x-3 bg-slate-800 px-3 py-1.5 neo-border">
+                    <div class="text-left">
+                        <span id="displayUserName" class="text-xs font-black text-amber-400 block truncate max-w-[100px] sm:max-w-[140px]">User</span>
+                        <span id="displayUserRole" class="text-[10px] text-slate-300 font-mono block">Role</span>
+                    </div>
+                    <button onclick="handleLogout()" title="Keluar" class="neo-button bg-rose-600 text-white text-xs px-2 py-1">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6">
+
+        <!-- TAB 1: FORM -->
+        <section id="view-form" class="space-y-6">
+            <div class="bg-white p-5 sm:p-6 neo-border neo-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="inline-block bg-amber-500 text-slate-900 font-black text-xs px-2.5 py-0.5 border border-slate-900 uppercase mb-2">
+                        FORMULIR PENGADAAN RESMI (REALTIME CLOUD SYNC)
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Pengajuan Permintaan Aset Baru / Perbaikan</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 font-medium">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
+                </div>
+                <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
+                    <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
+                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">15 Okt 2026</span></span>
+                </div>
+            </div>
+
+            <form id="newRequestForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
+                    <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center">
+                        <i class="fa-solid fa-circle-info text-cobalt-600 mr-2"></i>1. Informasi Unit & Divisi Pemohon
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Divisi Pemohon <span class="text-rose-600">*</span></label>
+                            <select id="formDivision" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Cabang / Lokasi Store <span class="text-rose-600">*</span></label>
+                            <select id="formBranch" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tanggal Pengajuan <span class="text-rose-600">*</span></label>
+                            <input type="date" id="formSubmissionDate" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tingkat Urgensi <span class="text-rose-600">*</span></label>
+                            <select id="formUrgency" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <option value="Low">Low - Biasa (Rutin)</option>
+                                <option value="Medium" selected>Medium - Sedang</option>
+                                <option value="High">High - Penting (Operasional Termacet)</option>
+                                <option value="Critical">Critical - Darurat (Mempengaruhi Omset)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Alasan / Justifikasi Pengajuan <span class="text-rose-600">*</span></label>
+                        <textarea id="formJustification" rows="2" required placeholder="Jelaskan kebutuhan pengadaan atau alasan perbaikan aset ini secara ringkas..." class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-900 pb-2">
+                        <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 flex items-center">
+                            <i class="fa-solid fa-boxes-stacked text-amber-500 mr-2"></i>2. Rincian Aset yang Diminta
+                        </h3>
+                        <button type="button" onclick="addFormItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-3 py-1.5 flex items-center">
+                            <i class="fa-solid fa-plus mr-1.5"></i>Tambah Baris Aset
+                        </button>
+                    </div>
+
+                    <div id="formItemsContainer" class="space-y-4"></div>
+
+                    <div class="bg-slate-900 text-white p-4 neo-border flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-calculator text-amber-500 text-lg"></i>
+                            <span class="font-black text-xs uppercase tracking-wider">TOTAL ESTIMASI ANGGARAN PENGADAAN:</span>
+                        </div>
+                        <div id="formLiveTotalBudget" class="font-mono font-black text-xl text-amber-400">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="resetForm()" class="neo-button bg-slate-200 text-slate-800 font-bold text-sm px-5 py-2.5">
+                        <i class="fa-solid fa-eraser mr-2"></i>Reset Form
+                    </button>
+                    <button type="submit" class="neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm px-6 py-2.5">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Kirim Pengajuan
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- TAB 2: LIST & METRICS -->
+        <section id="view-list" class="hidden space-y-6">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div class="bg-white p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-slate-500">Total Pengajuan</span>
+                    <span id="metric-total" class="font-mono font-black text-2xl text-slate-900 mt-2">0</span>
+                </div>
+                <div class="bg-amber-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-amber-900">Menunggu (Pending)</span>
+                    <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950 mt-2">0</span>
+                </div>
+                <div class="bg-blue-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-blue-900">Disetujui / Proses</span>
+                    <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950 mt-2">0</span>
+                </div>
+                <div class="bg-emerald-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-emerald-900">Selesai (Completed)</span>
+                    <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950 mt-2">0</span>
+                </div>
+                <div class="bg-slate-900 text-white p-4 neo-border neo-shadow-sm col-span-2 lg:col-span-1 flex flex-col justify-between">
+                    <span class="text-[11px] font-black uppercase text-slate-300">Total Nilai Anggaran</span>
+                    <span id="metric-budget" class="font-mono font-black text-base sm:text-lg text-amber-400 mt-2 truncate">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="bg-white p-4 neo-border neo-shadow flex flex-col md:flex-row justify-between items-center gap-3">
+                <div class="w-full md:w-72 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                    <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="">Semua Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                    <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="">Semua Urgensi</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                    <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-3 py-2">Reset</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white neo-border neo-shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-mono text-xs uppercase border-b-2 border-slate-950">
+                                <th class="p-3 pl-4">ID & Tanggal</th>
+                                <th class="p-3">Divisi & Cabang</th>
+                                <th class="p-3">Ringkasan Item</th>
+                                <th class="p-3 text-right">Est. Cost Total</th>
+                                <th class="p-3 text-center">Urgensi</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 pr-4 text-center">Aksi / Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody" class="divide-y-2 divide-slate-200 text-xs sm:text-sm font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MASTER DATA -->
+        <section id="view-master" class="hidden space-y-6">
+            <div class="bg-white p-4 neo-border neo-shadow">
+                <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
+            </div>
+
+            <!-- BOX MANAJEMEN AKUN PENGGUNA TERDAFTAR -->
+            <div class="bg-white p-5 neo-border neo-shadow space-y-4">
+                <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+                    <h3 class="font-black text-xs uppercase tracking-wider text-slate-900 flex items-center">
+                        <i class="fa-solid fa-users-gear text-cobalt-600 mr-2"></i>MANAJEMEN AKUN PENGGUNA TERDAFTAR
+                    </h3>
+                    <button onclick="promptAddUser()" class="neo-button bg-amber-500 text-slate-900 font-black text-xs px-3.5 py-2 flex items-center">
+                        <i class="fa-solid fa-user-plus mr-1.5"></i>Tambah Akun Baru
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-mono uppercase">
+                                <th class="p-2.5 border border-slate-900">NAMA PENGGUNA</th>
+                                <th class="p-2.5 border border-slate-900">ROLE / HAK AKSES</th>
+                                <th class="p-2.5 border border-slate-900">CABANG PENUGASAN</th>
+                                <th class="p-2.5 border border-slate-900 text-center w-20">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="masterUserTableBody" class="divide-y border border-slate-300 font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3 KOLOM REFERENSI -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 1. KATEGORI ASET -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">1. KATEGORI ASET</h4>
+                        <button onclick="promptAddMasterItem('categories')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListCategories" class="space-y-2"></div>
+                </div>
+
+                <!-- 2. DIVISI PEMOHON -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">2. DIVISI PEMOHON</h4>
+                        <button onclick="promptAddMasterItem('divisions')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListDivisions" class="space-y-2"></div>
+                </div>
+
+                <!-- 3. CABANG STORE / LOKASI -->
+                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
+                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">3. CABANG STORE / LOKASI</h4>
+                        <button onclick="promptAddMasterItem('branches')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListBranches" class="space-y-2"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODALS -->
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white neo-border neo-shadow-lg max-w-md w-full p-6 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-amber-500 border-2 border-slate-900 mx-auto flex items-center justify-center text-slate-900 font-black text-2xl neo-shadow-sm">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 class="text-xl font-black text-slate-900 uppercase">Login GA X DOBAH</h2>
+                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang terdaftar di sistem.</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username <span class="text-rose-600">*</span></label>
+                    <input type="text" id="loginUsername" required placeholder="Username..." class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password <span class="text-rose-600">*</span></label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                
+                <div id="loginErrorMsg" class="hidden text-rose-600 text-xs font-bold bg-rose-50 p-2 neo-border border-rose-600">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau password salah!
+                </div>
+
+                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm py-3">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk ke Sistem
+                </button>
+            </form>
+            <div class="text-[11px] text-slate-400 text-center font-medium">
+                *Akun tersinkronisasi cloud secara realtime.
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT / TAMBAH USER -->
+    <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
+                <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Pengguna Baru</h3>
+                <button onclick="closeModal('userModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
+            </div>
+            <form id="userForm" onsubmit="saveUserAccount(event)" class="p-6 space-y-4">
+                <input type="hidden" id="userFormId">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username Login <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormUsername" required placeholder="misal: taufik_bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Nama Pengguna Lengkap <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormName" required placeholder="misal: Staf Bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Akun <span class="text-rose-600">*</span></label>
+                    <input type="text" id="userFormPassword" required placeholder="Masukkan password..." class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Role / Hak Akses <span class="text-rose-600">*</span></label>
+                    <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                        <option value="Staff Store">Staff Store</option>
+                        <option value="General Affair Manager">General Affair Manager</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Cabang Penugasan / Akses <span class="text-rose-600">*</span></label>
+                    <p class="text-[11px] text-slate-500 mb-2 font-medium">Pilih cabang mana saja yang boleh diakses oleh user ini:</p>
+                    <div id="branchCheckboxesContainer" class="space-y-2 bg-slate-50 p-3 neo-border text-xs font-bold"></div>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
+                    <button type="button" onclick="closeModal('userModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
+                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div id="detailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between no-print">
+                <h3 class="font-black text-sm uppercase font-mono">Detail Dokumen Permintaan</h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.print()" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-3 py-1"><i class="fa-solid fa-print mr-1"></i>Cetak PDF</button>
+                    <button onclick="closeModal('detailModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
+                </div>
+            </div>
+            <div id="printable-area" class="p-6 sm:p-8 space-y-6 text-slate-900 bg-white">
+                <div class="border-b-4 border-slate-900 pb-4 flex justify-between items-start">
+                    <div>
+                        <h2 class="font-black text-xl uppercase">DONAT BAHAGIA</h2>
+                        <p class="text-xs font-semibold text-slate-600">Departemen General Affair & Aset Perusahaan</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="detailReqId" class="font-mono font-black text-sm text-slate-900">#ARQ-000</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-100 p-3 neo-border text-xs">
+                    <div><span class="text-[10px] text-slate-500 block font-bold uppercase">Divisi:</span><span id="detailDivision" class="font-bold"></span></div>
+                    <div><span class="text-[10px] text-slate-500 block font-bold uppercase">Cabang:</span><span id="detailBranch" class="font-bold"></span></div>
+                    <div><span class="text-[10px] text-slate-500 block font-bold uppercase">Tanggal:</span><span id="detailSubmissionDate" class="font-mono font-bold"></span></div>
+                    <div><span class="text-[10px] text-slate-500 block font-bold uppercase">Status:</span><span id="detailStatusBadge" class="font-bold"></span></div>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-xs font-black uppercase text-slate-700">Justifikasi:</span>
+                    <p id="detailJustification" class="text-xs bg-slate-50 p-3 neo-border italic"></p>
+                </div>
+                <table class="w-full text-left border-collapse border-2 border-slate-900 text-xs">
+                    <thead>
+                        <tr class="bg-slate-900 text-white font-mono uppercase">
+                            <th class="p-2 border border-slate-900 text-center w-8">No</th>
+                            <th class="p-2 border border-slate-900">Item</th>
+                            <th class="p-2 border border-slate-900 text-center">Qty</th>
+                            <th class="p-2 border border-slate-900 text-right">Harga</th>
+                            <th class="p-2 border border-slate-900 text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailItemsTableBody" class="divide-y border-2 border-slate-900"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-100 font-bold border-t-2 border-slate-900">
+                            <td colspan="4" class="p-2 text-right uppercase font-black">Total:</td>
+                            <td id="detailTotalBudget" class="p-2 text-right font-mono font-black text-sm text-cobalt-700">Rp 0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div id="detailPhotosContainer" class="flex flex-wrap gap-3 pt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT / APPROVAL MODAL -->
+    <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-8 overflow-hidden">
+            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
+                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval Pengajuan</h3>
+                <button onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
+            </div>
+            <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editReqDocId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Status Pengajuan</label>
+                        <select id="editStatus" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Urgensi</label>
+                        <select id="editUrgency" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Catatan GA</label>
+                    <textarea id="editGANotes" rows="3" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
+                    <button type="button" onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
+                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- IMAGE ZOOM MODAL -->
+    <div id="imageZoomModal" class="fixed inset-0 z-50 bg-slate-950/90 hidden items-center justify-center p-4" onclick="closeModal('imageZoomModal')">
+        <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 p-2 neo-border" onclick="event.stopPropagation()">
+            <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 neo-button bg-rose-600 text-white font-black text-sm w-8 h-8 flex items-center justify-center z-10">&times;</button>
+            <img id="zoomedImage" src="" alt="Zoom" class="max-h-[80vh] w-auto mx-auto object-contain neo-border">
+            <p id="zoomedImageCaption" class="text-center font-mono text-xs text-amber-400 mt-2 font-bold"></p>
+        </div>
+    </div>
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        let appState = {
+            activeTab: 'form',
+            users: [
+                { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
+                { id: 'usr_2', username: 'stafbandung', password: '123', name: 'Staf Bandung', role: 'Staff Store', branches: ['Bandung Store - Riau'] },
+                { id: 'usr_3', username: 'stafjakarta', password: '123', name: 'Staf Jakarta', role: 'Staff Store', branches: ['Jakarta Central Flagship'] }
+            ],
+            categories: ['IT & Elektronik', 'Mebel & Furnitur', 'Kendaraan & Transportasi', 'Fasilitas & HVAC', 'Peralatan Toko & POS', 'Keamanan & CCTV'],
+            divisions: ['Information Technology', 'General Affair', 'Keuangan & Kasir', 'Operasional Toko', 'SDM / HRD', 'Marketing & Display'],
+            branches: ['Jakarta Central Flagship', 'Bandung Store - Riau', 'Surabaya Regional Hub', 'Medan Store - Plaza', 'Bali Resort Outlet'],
+            requests: []
+        };
+
+        // Simpan master data ke Cloud Firestore & LocalStorage Backup
+        async function saveMasterSettings() {
+            saveMasterSettingsToLocal();
+            if (window.db) {
+                try {
+                    const { doc, setDoc } = window.fbDeps;
+                    await setDoc(doc(window.db, "settings", "master_config"), {
+                        users: appState.users,
+                        categories: appState.categories,
+                        divisions: appState.divisions,
+                        branches: appState.branches
+                    }, { merge: true });
+                } catch(err) {
+                    console.error("Gagal simpan master data ke cloud:", err);
+                }
+            }
+        }
+
+        function saveMasterSettingsToLocal() {
+            localStorage.setItem('assetReqUsersData', JSON.stringify(appState.users));
+            localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
+            localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
+            localStorage.setItem('assetReqBranchesData', JSON.stringify(appState.branches));
+        }
+
+        function loadMasterSettings() {
+            const u = localStorage.getItem('assetReqUsersData');
+            if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
+            const c = localStorage.getItem('assetReqCategoriesData');
+            if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
+            const d = localStorage.getItem('assetReqDivisionsData');
+            if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
+            const b = localStorage.getItem('assetReqBranchesData');
+            if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
+        }
+
+        function saveLocalState() {
+            localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests));
+        }
+
+        function loadLocalState() {
+            const local = localStorage.getItem('assetReqLocalData');
+            if (local) {
+                try { appState.requests = JSON.parse(local); } catch(e) {}
+            }
+        }
+
+        window.addEventListener('firebase-ready', () => {
+            initRealtimeSync();
+        });
+
+        // REALTIME SYNC MENGGUNAKAN onSnapshot (Requests & Master Settings)
+        function initRealtimeSync() {
+            loadLocalState();
+            if (!window.db) {
+                updateCloudBadge('Offline (Lokal)');
+                renderRequestsTable();
+                updateMetrics();
+                return;
+            }
+
+            try {
+                const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
+
+                // 1. Realtime sync untuk data pengadaan (requests)
+                onSnapshot(collection(window.db, "requests"), (snapshot) => {
+                    const cloudData = [];
+                    snapshot.forEach(docSnap => {
+                        cloudData.push({ docId: docSnap.id, ...docSnap.data() });
+                    });
+                    appState.requests = cloudData;
+                    saveLocalState();
+                    
+                    updateCloudBadge('Cloud Live');
+                    renderRequestsTable();
+                    updateMetrics();
+                }, (error) => {
+                    console.error("Realtime sync error:", error);
+                    updateCloudBadge('Offline (Lokal)');
+                });
+
+                // 2. Realtime sync untuk Master Data & Akun Pengguna (settings/master_config)
+                onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.users) appState.users = data.users;
+                        if (data.categories) appState.categories = data.categories;
+                        if (data.divisions) appState.divisions = data.divisions;
+                        if (data.branches) appState.branches = data.branches;
+                        
+                        saveMasterSettingsToLocal();
+                        if (appState.activeTab === 'master') {
+                            renderMasterDataView();
+                        }
+                        populateDropdowns();
+                    } else {
+                        // Inisialisasi dokumen master di cloud jika belum ada
+                        await setDoc(doc(window.db, "settings", "master_config"), {
+                            users: appState.users,
+                            categories: appState.categories,
+                            divisions: appState.divisions,
+                            branches: appState.branches
+                        });
+                    }
+                }, (error) => {
+                    console.error("Master Data Sync Error:", error);
+                });
+
+            } catch (e) {
+                console.error("Firebase Realtime Warning:", e);
+                updateCloudBadge('Offline (Lokal)');
+            }
+        }
+
+        async function syncDataFromCloud(manualTrigger = false) {
+            if (manualTrigger) {
+                Swal.fire('Tersinkronisasi!', 'Data pengadaan & master data terhubung secara real-time dengan Cloud.', 'success');
+            }
+        }
+
+        function updateCloudBadge(statusText) {
+            const badge = document.getElementById('cloudStatusBadge');
+            if (badge) {
+                badge.innerText = statusText;
+                badge.className = statusText.includes('Live') 
+                    ? "bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase"
+                    : "bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase";
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMasterSettings();
+            loadLocalState();
+            checkUserSession();
+            document.getElementById('formSubmissionDate').value = '2026-10-15';
+            document.getElementById('clock-date-today').innerText = '15 Okt 2026';
+            addFormItemRow();
+        });
+
+        function getCurrentUser() {
+            const session = localStorage.getItem('assetReqUserSession');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function checkUserSession() {
+            const user = getCurrentUser();
+            const loginModal = document.getElementById('loginModal');
+            const userInfo = document.getElementById('userSessionInfo');
+
+            if (!user) {
+                loginModal.classList.remove('hidden');
+                loginModal.classList.add('flex');
+                if (userInfo) userInfo.classList.add('hidden');
+            } else {
+                loginModal.classList.remove('flex');
+                loginModal.classList.add('hidden');
+                if (userInfo) userInfo.classList.replace('hidden', 'flex');
+                document.getElementById('displayUserName').innerText = user.name;
+                document.getElementById('displayUserRole').innerText = user.role === 'Staff Store' ? `Staff Store` : user.role;
+
+                const tabMaster = document.getElementById('tab-master');
+                if (user.role === 'Staff Store') {
+                    if (tabMaster) tabMaster.style.display = 'none';
+                } else {
+                    if (tabMaster) tabMaster.style.display = 'flex';
+                }
+
+                populateDropdowns();
+                renderRequestsTable();
+                updateMetrics();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('loginUsername').value.trim();
+            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const errBox = document.getElementById('loginErrorMsg');
+
+            const found = appState.users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+            if (found) {
+                errBox.classList.add('hidden');
+                localStorage.setItem('assetReqUserSession', JSON.stringify({
+                    id: found.id,
+                    username: found.username,
+                    name: found.name,
+                    role: found.role,
+                    branches: found.branches || []
+                }));
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                checkUserSession();
+            } else {
+                errBox.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('assetReqUserSession');
+            location.reload();
+        }
+
+        function switchTab(tabId) {
+            const session = getCurrentUser();
+            if (session && session.role === 'Staff Store' && tabId === 'master') {
+                Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk Manager General Affair.', 'warning');
+                return;
+            }
+            appState.activeTab = tabId;
+            ['form', 'list', 'master'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
+
+            if (tabId === 'list') { renderRequestsTable(); updateMetrics(); }
+            else if (tabId === 'master') { renderMasterDataView(); }
+        }
+
+        function populateDropdowns() {
+            const user = getCurrentUser();
+            const userBranches = (user && user.branches && !user.branches.includes('ALL')) 
+                ? user.branches 
+                : appState.branches;
+
+            const divEl = document.getElementById('formDivision');
+            const branchEl = document.getElementById('formBranch');
+            const filtBranchEl = document.getElementById('filterBranch');
+
+            if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
+            if (branchEl) branchEl.innerHTML = userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="">Semua Cabang (Akses)</option>` + userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+        }
+
+        function addFormItemRow(itemData = null) {
+            const container = document.getElementById('formItemsContainer');
+            const rowId = 'item_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const catOptions = appState.categories.map(c => `<option value="${c}" ${itemData && itemData.category === c ? 'selected' : ''}>${c}</option>`).join('');
+
+            const rowHTML = `
+                <div id="${rowId}" class="item-row bg-slate-50 p-4 neo-border space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-300 pb-2">
+                        <span class="font-mono font-black text-xs uppercase text-slate-700"><i class="fa-solid fa-cube text-amber-500 mr-1.5"></i>Baris Aset</span>
+                        <button type="button" onclick="removeFormItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[11px] px-2 py-0.5">Hapus Baris</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+                        <div class="lg:col-span-4">
+                            <input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none" value="${itemData ? itemData.name : ''}">
+                        </div>
+                        <div class="lg:col-span-3">
+                            <select class="item-category w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none">${catOptions}</select>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.qty : 1}" oninput="calculateLiveTotal()">
+                        </div>
+                        <div class="lg:col-span-1">
+                            <input type="text" required class="item-unit w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.unit : 'Unit'}">
+                        </div>
+                        <div class="lg:col-span-3">
+                            <input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" oninput="calculateLiveTotal()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full bg-white neo-border px-3 py-1 text-xs" value="${itemData ? itemData.notes : ''}">
+                        <div class="flex items-center space-x-2">
+                            <label class="neo-button bg-slate-200 text-slate-800 text-[11px] font-bold px-2.5 py-1 cursor-pointer flex items-center shrink-0">
+                                <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
+                                <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rowId}')">
+                            </label>
+                            <input type="hidden" class="item-photo-data" value="${itemData ? itemData.photo || '' : ''}">
+                            <div class="photo-preview-box text-[11px] font-mono text-slate-500 truncate italic flex-1">${itemData && itemData.photo ? '✓ Foto Terlampir' : 'Belum ada foto'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHTML);
+            calculateLiveTotal();
+        }
+
+        function removeFormItemRow(rowId) {
+            if (document.querySelectorAll('.item-row').length <= 1) return;
+            document.getElementById(rowId)?.remove();
+            calculateLiveTotal();
+        }
+
+        function handlePhotoUpload(input, rowId) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) { Swal.fire('Error', 'Maksimal ukuran foto 2MB.', 'error'); return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const row = document.getElementById(rowId);
+                    if (row) {
+                        row.querySelector('.item-photo-data').value = e.target.result;
+                        row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${file.name})</span>`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function calculateLiveTotal() {
+            let total = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
+                total += (qty * cost);
+            });
+            document.getElementById('formLiveTotalBudget').innerText = formatRupiah(total);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const division = document.getElementById('formDivision').value;
+            const branch = document.getElementById('formBranch').value;
+            const submissionDate = document.getElementById('formSubmissionDate').value;
+            const urgency = document.getElementById('formUrgency').value;
+            const justification = document.getElementById('formJustification').value;
+
+            let items = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                items.push({
+                    name: row.querySelector('.item-name').value,
+                    category: row.querySelector('.item-category').value,
+                    qty: parseInt(row.querySelector('.item-qty').value) || 1,
+                    unit: row.querySelector('.item-unit').value || 'Unit',
+                    cost: parseFloat(row.querySelector('.item-cost').value) || 0,
+                    notes: row.querySelector('.item-notes').value || '',
+                    photo: row.querySelector('.item-photo-data').value || ''
+                });
+            });
+
+            const newId = `ARQ-2026-${String(appState.requests.length + 1).padStart(3, '0')}`;
+            const payload = { id: newId, division, branch, submissionDate, urgency, status: 'Pending', justification, gaNotes: '', items };
+
+            if (window.db) {
+                try {
+                    const { collection, addDoc } = window.fbDeps;
+                    await addDoc(collection(window.db, "requests"), payload);
+                } catch(err) { console.error("Cloud Save Notice:", err); }
+            } else {
+                appState.requests.unshift(payload);
+                saveLocalState();
+            }
+
+            Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman dan tersinkronisasi.`, 'success');
+            resetForm();
+            switchTab('list');
+        }
+
+        function resetForm() {
+            document.getElementById('newRequestForm').reset();
+            document.getElementById('formSubmissionDate').value = '2026-10-15';
+            document.getElementById('formItemsContainer').innerHTML = '';
+            addFormItemRow();
+            calculateLiveTotal();
+        }
+
+        function getAccessibleRequests() {
+            const user = getCurrentUser();
+            if (!user) return [];
+
+            if (user.role === 'General Affair Manager' || (user.branches && user.branches.includes('ALL'))) {
+                return appState.requests;
+            }
+
+            return appState.requests.filter(r => user.branches && user.branches.includes(r.branch));
+        }
+
+        function renderRequestsTable(dataList = null) {
+            const list = dataList || getAccessibleRequests();
+            const tbody = document.getElementById('requestsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
+                return;
+            }
+
+            list.forEach(req => {
+                const totalCost = req.items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+                const actualIndex = appState.requests.indexOf(req);
+                const session = getCurrentUser();
+                let summaryItems = req.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+
+                let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
+                if (session && session.role === 'General Affair Manager') {
+                    actionButtons += `
+                        <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 pl-4 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
+                        <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
+                        <td class="p-3">${summaryItems}</td>
+                        <td class="p-3 text-right font-mono font-black">${formatRupiah(totalCost)}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-amber-100">${req.urgency}</span></td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-blue-100">${req.status}</span></td>
+                        <td class="p-3 pr-4 text-center whitespace-nowrap">${actionButtons}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function applyTableFilters() {
+            const query = document.getElementById('filterSearch').value.toLowerCase();
+            const branch = document.getElementById('filterBranch').value;
+            const status = document.getElementById('filterStatus').value;
+            const urgency = document.getElementById('filterUrgency').value;
+
+            const filtered = getAccessibleRequests().filter(req => {
+                const matchQuery = req.id.toLowerCase().includes(query) || req.division.toLowerCase().includes(query) || req.items.some(i => i.name.toLowerCase().includes(query));
+                return matchQuery && (!branch || req.branch === branch) && (!status || req.status === status) && (!urgency || req.urgency === urgency);
+            });
+            renderRequestsTable(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterSearch').value = '';
+            document.getElementById('filterBranch').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterUrgency').value = '';
+            renderRequestsTable();
+        }
+
+        function updateMetrics() {
+            const list = getAccessibleRequests();
+            document.getElementById('metric-total').innerText = list.length;
+            
+            const pendingCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'pending').length;
+            const approvedCount = list.filter(r => r.status && (r.status.trim().toLowerCase() === 'approved' || r.status.trim().toLowerCase() === 'proses')).length;
+            const completedCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'completed').length;
+
+            document.getElementById('metric-pending').innerText = pendingCount;
+            document.getElementById('metric-progress').innerText = approvedCount;
+            document.getElementById('metric-completed').innerText = completedCount;
+            
+            let total = 0;
+            list.forEach(r => {
+                if (r.items && Array.isArray(r.items)) {
+                    r.items.forEach(i => total += (parseFloat(i.qty || 0) * parseFloat(i.cost || 0)));
+                }
+            });
+            document.getElementById('metric-budget').innerText = formatRupiah(total);
+            document.getElementById('nav-count-badge').innerText = list.length;
+        }
+
+        function openDetailModal(reqId) {
+            const req = appState.requests.find(r => r.id === reqId);
+            if (!req) return;
+
+            document.getElementById('detailReqId').innerText = `#${req.id}`;
+            document.getElementById('detailDivision').innerText = req.division;
+            document.getElementById('detailBranch').innerText = req.branch;
+            document.getElementById('detailSubmissionDate').innerText = req.submissionDate;
+            document.getElementById('detailJustification').innerText = req.justification;
+            document.getElementById('detailStatusBadge').innerText = `${req.status} (${req.urgency})`;
+
+            const tbody = document.getElementById('detailItemsTableBody');
+            tbody.innerHTML = '';
+            let total = 0;
+            req.items.forEach((item, idx) => {
+                const sub = item.qty * item.cost;
+                total += sub;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
+                        <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category}</span></td>
+                        <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
+                        <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
+                        <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('detailTotalBudget').innerText = formatRupiah(total);
+
+            const photosContainer = document.getElementById('detailPhotosContainer');
+            photosContainer.innerHTML = '';
+            req.items.filter(i => i.photo).forEach(item => {
+                photosContainer.innerHTML += `
+                    <div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}', '${item.name}')">
+                        <img src="${item.photo}" class="w-16 h-16 object-cover border">
+                        <span class="text-[9px] font-mono font-bold block text-center mt-1 truncate w-16">${item.name}</span>
+                    </div>
+                `;
+            });
+
+            openModal('detailModal');
+        }
+
+        function openEditModal(index) {
+            const req = appState.requests[index];
+            if (!req) return;
+            document.getElementById('editReqDocId').value = index;
+            document.getElementById('editModalTitle').innerText = `Edit Status: ${req.id}`;
+            document.getElementById('editStatus').value = req.status;
+            document.getElementById('editUrgency').value = req.urgency;
+            document.getElementById('editGANotes').value = req.gaNotes || '';
+            openModal('editApprovalModal');
+        }
+
+        async function saveEditApproval(e) {
+            e.preventDefault();
+            const index = parseInt(document.getElementById('editReqDocId').value);
+            const req = appState.requests[index];
+            if (!req) return;
+
+            req.status = document.getElementById('editStatus').value;
+            req.urgency = document.getElementById('editUrgency').value;
+            req.gaNotes = document.getElementById('editGANotes').value;
+            
+            if (window.db && req.docId) {
+                try {
+                    const { doc, setDoc } = window.fbDeps;
+                    await setDoc(doc(window.db, "requests", req.docId), req, { merge: true });
+                } catch(err) { console.error("Update Cloud Error:", err); }
+            } else {
+                saveLocalState();
+            }
+
+            closeModal('editApprovalModal');
+            applyTableFilters();
+            updateMetrics();
+            
+            Swal.fire('Berhasil', 'Status pengajuan diperbarui secara real-time.', 'success');
+        }
+
+        async function deleteRequest(index, docId) {
+            Swal.fire({
+                title: 'Hapus pengajuan?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626'
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    if (window.db && docId) {
+                        try {
+                            const { doc, deleteDoc } = window.fbDeps;
+                            await deleteDoc(doc(window.db, "requests", docId));
+                        } catch(e) {}
+                    } else {
+                        appState.requests.splice(index, 1);
+                        saveLocalState();
+                    }
+                    
+                    applyTableFilters();
+                    updateMetrics();
+                    Swal.fire('Terhapus', 'Data dihapus dari sistem.', 'success');
+                }
+            });
+        }
+
+        function openZoomImage(src, cap) {
+            document.getElementById('zoomedImage').src = src;
+            document.getElementById('zoomedImageCaption').innerText = cap;
+            openModal('imageZoomModal');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
+        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+
+        function renderMasterDataView() {
+            renderUserManagementTable();
+            renderMasterReferenceList('categories', 'masterListCategories');
+            renderMasterReferenceList('divisions', 'masterListDivisions');
+            renderMasterReferenceList('branches', 'masterListBranches');
+        }
+
+        function renderUserManagementTable() {
+            const tbody = document.getElementById('masterUserTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = appState.users.map((u, idx) => {
+                const branchText = u.branches.includes('ALL') 
+                    ? 'All Branches (GA)' 
+                    : u.branches.join(', ');
+
+                const roleColorClass = 'text-blue-600 font-mono';
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2.5 border border-slate-300 font-bold text-slate-800">${u.name}</td>
+                        <td class="p-2.5 border border-slate-300 ${roleColorClass}">${u.role}</td>
+                        <td class="p-2.5 border border-slate-300 font-medium">${branchText}</td>
+                        <td class="p-2.5 border border-slate-300 text-center whitespace-nowrap">
+                            <button onclick="promptEditUser(${idx})" class="text-slate-600 hover:text-slate-900 mr-2" title="Edit Akun"><i class="fa-solid fa-pen"></i></button>
+                            ${u.username !== 'admin' ? `<button onclick="deleteUserAccount(${idx})" class="text-rose-600 hover:text-rose-800" title="Hapus Akun"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderMasterReferenceList(key, elementId) {
+            const container = document.getElementById(elementId);
+            if (!container) return;
+            container.innerHTML = appState[key].map((item, idx) => `
+                <div class="flex items-center justify-between bg-slate-50 p-2 neo-border text-xs font-bold">
+                    <span>${item}</span>
+                    <button onclick="deleteMasterItem('${key}', ${idx})" class="text-rose-600 hover:text-rose-800 px-1 font-black">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function promptAddMasterItem(key) {
+            const labelMap = { categories: 'Kategori Aset', divisions: 'Divisi Pemohon', branches: 'Cabang Store / Lokasi' };
+            Swal.fire({
+                title: `Tambah ${labelMap[key]}`,
+                input: 'text',
+                inputPlaceholder: 'Masukkan nama...',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb'
+            }).then((res) => {
+                if (res.isConfirmed && res.value.trim() !== '') {
+                    appState[key].push(res.value.trim());
+                    saveMasterSettings();
+                    renderMasterDataView();
+                    populateDropdowns();
+                    Swal.fire('Berhasil', 'Data ditambahkan dan disinkronkan ke cloud.', 'success');
+                }
+            });
+        }
+
+        function deleteMasterItem(key, index) {
+            appState[key].splice(index, 1);
+            saveMasterSettings();
+            renderMasterDataView();
+            populateDropdowns();
+        }
+
+        function renderBranchCheckboxes(selectedBranches = []) {
+            const container = document.getElementById('branchCheckboxesContainer');
+            if (!container) return;
+            container.innerHTML = appState.branches.map(b => {
+                const isChecked = selectedBranches.includes('ALL') || selectedBranches.includes(b);
+                return `
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" value="${b}" ${isChecked ? 'checked' : ''} class="branch-checkbox w-4 h-4 text-cobalt-600 font-bold focus:ring-amber-500">
+                        <span>${b}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleBranchCheckboxesByRole() {
+            const role = document.getElementById('userFormRole').value;
+            const checkboxes = document.querySelectorAll('.branch-checkbox');
+            if (role === 'General Affair Manager') {
+                checkboxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
+            } else {
+                checkboxes.forEach(cb => { cb.disabled = false; });
+            }
+        }
+
+        function promptAddUser() {
+            document.getElementById('userFormId').value = '';
+            document.getElementById('userModalTitle').innerText = 'Buat Akun Pengguna Baru';
+            document.getElementById('userFormUsername').value = '';
+            document.getElementById('userFormName').value = '';
+            document.getElementById('userFormPassword').value = '123';
+            document.getElementById('userFormRole').value = 'Staff Store';
+            renderBranchCheckboxes([]);
+            toggleBranchCheckboxesByRole();
+            openModal('userModal');
+        }
+
+        function promptEditUser(index) {
+            const u = appState.users[index];
+            if (!u) return;
+            document.getElementById('userFormId').value = index;
+            document.getElementById('userModalTitle').innerText = `Edit Akun: ${u.name}`;
+            document.getElementById('userFormUsername').value = u.username;
+            document.getElementById('userFormName').value = u.name;
+            document.getElementById('userFormPassword').value = u.password;
+            document.getElementById('userFormRole').value = u.role;
+            renderBranchCheckboxes(u.branches || []);
+            toggleBranchCheckboxesByRole();
+            openModal('userModal');
+        }
+
+        function saveUserAccount(e) {
+            e.preventDefault();
+            const indexStr = document.getElementById('userFormId').value;
+            const username = document.getElementById('userFormUsername').value.trim();
+            const name = document.getElementById('userFormName').value.trim();
+            const password = document.getElementById('userFormPassword').value.trim();
+            const role = document.getElementById('userFormRole').value;
+
+            let selectedBranches = [];
+            if (role === 'General Affair Manager') {
+                selectedBranches = ['ALL'];
+            } else {
+                document.querySelectorAll('.branch-checkbox:checked').forEach(cb => {
+                    selectedBranches.push(cb.value);
+                });
+            }
+
+            if (selectedBranches.length === 0) {
+                Swal.fire('Peringatan', 'Pilih minimal 1 cabang penugasan!', 'warning');
+                return;
+            }
+
+            if (indexStr === '') {
+                if (appState.users.some(u => u.username === username)) {
+                    Swal.fire('Error', 'Username sudah terpakai!', 'error');
+                    return;
+                }
+                appState.users.push({ id: 'usr_' + Date.now(), username, name, password, role, branches: selectedBranches });
+            } else {
+                const idx = parseInt(indexStr);
+                appState.users[idx] = { ...appState.users[idx], username, name, password, role, branches: selectedBranches };
+            }
+
+            saveMasterSettings();
+            closeModal('userModal');
+            renderUserManagementTable();
+            Swal.fire('Tersimpan', 'Akun berhasil disimpan dan disinkronkan secara realtime.', 'success');
+        }
+
+        function deleteUserAccount(index) {
+            Swal.fire({
+                title: 'Hapus akun ini?',
+                text: 'User ini tidak akan bisa login lagi.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    appState.users.splice(index, 1);
+                    saveMasterSettings();
+                    renderUserManagementTable();
+                    Swal.fire('Terhapus', 'Akun dihapus.', 'success');
+                }
+            });
+        }
+
+        function exportCSV() {
+            let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Divisi,Cabang,Urgensi,Status,Total\r\n";
+            getAccessibleRequests().forEach(r => {
+                const total = r.items.reduce((s, i) => s + (i.qty * i.cost), 0);
+                csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, total].join(",") + "\r\n";
+            });
+            const link = document.createElement("a");
+            link.href = encodeURI(csv);
+            link.download = `AssetReq_Report.csv`;
+            link.click();
+        }
+
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+        }
+    </script>
+</body>
+</html>
