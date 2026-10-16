@@ -513,7 +513,7 @@
         </div>
     </div>
 
-    <!-- EDIT / APPROVAL MODAL (LENGKAP DENGAN CATATAN & UPLOAD FOTO) -->
+    <!-- EDIT / APPROVAL MODAL -->
     <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
@@ -543,7 +543,6 @@
                     </div>
                 </div>
 
-                <!-- Bagian Edit Baris Item Pengadaan, Catatan & Foto -->
                 <div class="space-y-3 pt-2 border-t-2 border-slate-200">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-black uppercase text-slate-700">Rincian / Baris Item Permintaan & Foto</label>
@@ -590,7 +589,6 @@
             requests: []
         };
 
-        // Simpan master data ke Cloud Firestore & LocalStorage Backup
         async function saveMasterSettings() {
             saveMasterSettingsToLocal();
             if (window.db) {
@@ -641,7 +639,6 @@
             initRealtimeSync();
         });
 
-        // REALTIME SYNC MENGGUNAKAN onSnapshot (Requests & Master Settings)
         function initRealtimeSync() {
             loadLocalState();
             if (!window.db) {
@@ -654,7 +651,6 @@
             try {
                 const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
 
-                // 1. Realtime sync untuk data pengadaan (requests)
                 onSnapshot(collection(window.db, "requests"), (snapshot) => {
                     const cloudData = [];
                     snapshot.forEach(docSnap => {
@@ -671,7 +667,6 @@
                     updateCloudBadge('Offline (Lokal)');
                 });
 
-                // 2. Realtime sync untuk Master Data & Akun Pengguna (settings/master_config)
                 onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
@@ -979,9 +974,8 @@
                 const session = getCurrentUser();
                 let summaryItems = req.items && Array.isArray(req.items) ? req.items.map(i => `${i.qty}x ${i.name}`).join(', ') : '-';
 
-                let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1" title="Lihat Detail"><i class="fa-solid fa-eye"></i></button>`;
+                let actionButtons = `<button onclick="openDetailModal(${actualIndex})" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1" title="Lihat Detail"><i class="fa-solid fa-eye"></i></button>`;
                 
-                // HANYA AKUN GA MANAGER YANG BISA MENGAKSES TOMBOL EDIT & HAPUS
                 if (session && session.role === 'General Affair Manager') {
                     actionButtons += `
                         <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1" title="Edit & Approval"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -1050,16 +1044,23 @@
             if (badgeEl) badgeEl.innerText = list.length;
         }
 
-        function openDetailModal(reqId) {
-            const req = appState.requests.find(r => r.id === reqId);
+        function openDetailModal(reqIdOrIndex) {
+            let req = null;
+            if (typeof reqIdOrIndex === 'number' || !isNaN(reqIdOrIndex)) {
+                const accessibleList = getAccessibleRequests();
+                req = accessibleList[parseInt(reqIdOrIndex)];
+            } else {
+                req = appState.requests.find(r => r.id === reqIdOrIndex);
+            }
+            
             if (!req) return;
 
             document.getElementById('detailReqId').innerText = `#${req.id}`;
             document.getElementById('detailDivision').innerText = req.division;
             document.getElementById('detailBranch').innerText = req.branch;
             document.getElementById('detailSubmissionDate').innerText = req.submissionDate;
-            document.getElementById('detailJustification').innerText = req.justification;
             document.getElementById('detailStatusBadge').innerText = `${req.status} (${req.urgency})`;
+            document.getElementById('detailJustification').innerText = req.justification || '-';
 
             const tbody = document.getElementById('detailItemsTableBody');
             tbody.innerHTML = '';
@@ -1072,7 +1073,7 @@
                         <tr>
                             <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
                             <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category} ${item.notes ? '• ' + item.notes : ''}</span></td>
-                            <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
+                            <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit || 'Unit'}</td>
                             <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
                             <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
                         </tr>
@@ -1097,7 +1098,6 @@
             openModal('detailModal');
         }
 
-        // FUNGSI MODAL EDIT & APPROVAL KHUSUS GA MANAGER (DENGAN EDIT BARIS ITEM, CATATAN, & UPLOAD FOTO)
         function openEditModal(index) {
             const user = getCurrentUser();
             if (!user || user.role !== 'General Affair Manager') {
@@ -1113,7 +1113,6 @@
             document.getElementById('editUrgency').value = req.urgency;
             document.getElementById('editGANotes').value = req.gaNotes || '';
 
-            // Muat rincian item ke dalam form modal edit
             const container = document.getElementById('editModalItemsContainer');
             container.innerHTML = '';
             if (req.items && Array.isArray(req.items)) {
@@ -1202,7 +1201,6 @@
             req.urgency = document.getElementById('editUrgency').value;
             req.gaNotes = document.getElementById('editGANotes').value;
 
-            // Ambil item yang diperbarui beserta catatan dan foto dari modal edit
             let updatedItems = [];
             document.querySelectorAll('.edit-item-row').forEach(row => {
                 updatedItems.push({
