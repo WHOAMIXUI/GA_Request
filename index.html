@@ -589,6 +589,18 @@
             requests: []
         };
 
+        // Event listener penanganan tombol ESC hanya untuk modal aktif
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ['detailModal', 'editApprovalModal', 'userModal', 'imageZoomModal'].forEach(modalId => {
+                    const modalEl = document.getElementById(modalId);
+                    if (modalEl && modalEl.classList.contains('flex')) {
+                        closeModal(modalId);
+                    }
+                });
+            }
+        });
+
         async function saveMasterSettings() {
             saveMasterSettingsToLocal();
             if (window.db) {
@@ -1268,8 +1280,15 @@
             openModal('imageZoomModal');
         }
 
-        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
-        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+        function openModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.replace('hidden', 'flex'); 
+        }
+
+        function closeModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.replace('flex', 'hidden'); 
+        }
 
         function renderMasterDataView() {
             renderUserManagementTable();
