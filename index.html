@@ -166,7 +166,7 @@
                 </div>
                 <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
                     <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
-                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">15 Okt 2026</span></span>
+                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">16 Okt 2026</span></span>
                 </div>
             </div>
 
@@ -564,12 +564,12 @@
             activeTab: 'form',
             users: [
                 { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
-                { id: 'usr_2', username: 'stafbandung', password: '123', name: 'Staf Bandung', role: 'Staff Store', branches: ['Bandung Store - Riau'] },
-                { id: 'usr_3', username: 'stafjakarta', password: '123', name: 'Staf Jakarta', role: 'Staff Store', branches: ['Jakarta Central Flagship'] }
+                { id: 'usr_2', username: 'headstore_cibeunying', password: '123', name: 'HEADSTORE CIBEUNYING', role: 'Staff Store', branches: ['DONAT BAHAGIA CIBEUNYING'] },
+                { id: 'usr_3', username: 'headstore_cilaki', password: '123', name: 'HEADSTORE CILAKI', role: 'Staff Store', branches: ['DONAT BAHAGIA CILAKI'] }
             ],
-            categories: ['IT & Elektronik', 'Mebel & Furnitur', 'Kendaraan & Transportasi', 'Fasilitas & HVAC', 'Peralatan Toko & POS', 'Keamanan & CCTV'],
-            divisions: ['Information Technology', 'General Affair', 'Keuangan & Kasir', 'Operasional Toko', 'SDM / HRD', 'Marketing & Display'],
-            branches: ['Jakarta Central Flagship', 'Bandung Store - Riau', 'Surabaya Regional Hub', 'Medan Store - Plaza', 'Bali Resort Outlet'],
+            categories: ['SUPPORT EQUIPMENT'],
+            divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
+            branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
             requests: []
         };
 
@@ -707,8 +707,8 @@
             loadMasterSettings();
             loadLocalState();
             checkUserSession();
-            document.getElementById('formSubmissionDate').value = '2026-10-15';
-            document.getElementById('clock-date-today').innerText = '15 Okt 2026';
+            document.getElementById('formSubmissionDate').value = '2026-10-16';
+            document.getElementById('clock-date-today').innerText = '16 Okt 2026';
             addFormItemRow();
         });
 
@@ -927,7 +927,7 @@
 
         function resetForm() {
             document.getElementById('newRequestForm').reset();
-            document.getElementById('formSubmissionDate').value = '2026-10-15';
+            document.getElementById('formSubmissionDate').value = '2026-10-16';
             document.getElementById('formItemsContainer').innerHTML = '';
             addFormItemRow();
             calculateLiveTotal();
