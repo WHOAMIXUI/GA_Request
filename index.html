@@ -178,7 +178,7 @@
                 </div>
                 <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
                     <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
-                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">16 Okt 2026</span></span>
+                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">17 Okt 2026</span></span>
                 </div>
             </div>
 
@@ -306,7 +306,7 @@
                 </div>
             </div>
 
-            <!-- Table -->
+            <!-- Table & Pagination Container -->
             <div class="bg-white neo-border neo-shadow overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -323,6 +323,29 @@
                         </thead>
                         <tbody id="requestsTableBody" class="divide-y-2 divide-slate-200 text-xs sm:text-sm font-medium"></tbody>
                     </table>
+                </div>
+
+                <!-- Control Bar Pagination -->
+                <div class="bg-slate-50 p-3 neo-border border-t-2 border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="flex items-center space-x-2 text-xs font-bold text-slate-700">
+                        <span>Tampilkan:</span>
+                        <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-white neo-border px-2 py-1 text-xs font-bold focus:outline-none">
+                            <option value="10" selected>10 baris</option>
+                            <option value="25">25 baris</option>
+                            <option value="50">50 baris</option>
+                        </select>
+                        <span id="paginationInfo" class="text-slate-500 font-mono ml-2">Menampilkan 0-0 dari 0 data</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <button id="btnPrevPage" onclick="prevPage()" class="neo-button bg-white disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold text-xs px-3 py-1 flex items-center">
+                            <i class="fa-solid fa-chevron-left mr-1"></i>Sebelumnya
+                        </button>
+                        <span id="pageNumbersContainer" class="flex items-center space-x-1 font-mono font-bold text-xs px-2"></span>
+                        <button id="btnNextPage" onclick="nextPage()" class="neo-button bg-white disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold text-xs px-3 py-1 flex items-center">
+                            Selanjutnya<i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -472,7 +495,7 @@
         </div>
     </div>
 
-    <!-- DETAIL MODAL (Diperkecil / Kompak agar pas di layar tanpa Zoom Out) -->
+    <!-- DETAIL MODAL -->
     <div id="detailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-auto overflow-hidden">
             <div class="bg-slate-900 text-white px-3 py-2.5 neo-border border-b-2 border-slate-950 flex items-center justify-between no-print">
@@ -598,7 +621,12 @@
             categories: ['SUPPORT EQUIPMENT'],
             divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
             branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
-            requests: []
+            requests: [],
+            pagination: {
+                currentPage: 1,
+                pageSize: 10,
+                filteredData: []
+            }
         };
 
         window.addEventListener('keydown', (e) => {
@@ -666,7 +694,7 @@
             loadLocalState();
             if (!window.db) {
                 updateCloudBadge('Offline (Lokal)');
-                renderRequestsTable();
+                applyTableFilters();
                 updateMetrics();
                 return;
             }
@@ -683,7 +711,7 @@
                     saveLocalState();
                     
                     updateCloudBadge('Cloud Live');
-                    renderRequestsTable();
+                    applyTableFilters();
                     updateMetrics();
                 }, (error) => {
                     console.error("Realtime sync error:", error);
@@ -741,8 +769,8 @@
             loadMasterSettings();
             loadLocalState();
             checkUserSession();
-            document.getElementById('formSubmissionDate').value = '2026-10-16';
-            document.getElementById('clock-date-today').innerText = '16 Okt 2026';
+            document.getElementById('formSubmissionDate').value = '2026-10-17';
+            document.getElementById('clock-date-today').innerText = '17 Okt 2026';
             addFormItemRow();
         });
 
@@ -775,7 +803,7 @@
                 }
 
                 populateDropdowns();
-                renderRequestsTable();
+                applyTableFilters();
                 updateMetrics();
             }
         }
@@ -824,7 +852,7 @@
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
 
-            if (tabId === 'list') { renderRequestsTable(); updateMetrics(); }
+            if (tabId === 'list') { applyTableFilters(); updateMetrics(); }
             else if (tabId === 'master') { renderMasterDataView(); }
         }
 
@@ -961,7 +989,7 @@
 
         function resetForm() {
             document.getElementById('newRequestForm').reset();
-            document.getElementById('formSubmissionDate').value = '2026-10-16';
+            document.getElementById('formSubmissionDate').value = '2026-10-17';
             document.getElementById('formItemsContainer').innerHTML = '';
             addFormItemRow();
             calculateLiveTotal();
@@ -978,18 +1006,34 @@
             return appState.requests.filter(r => user.branches && user.branches.includes(r.branch));
         }
 
-        function renderRequestsTable(dataList = null) {
-            const list = dataList || getAccessibleRequests();
+        /* --- FUNGSI TAMPILAN TABEL TERPAGINASI (PAGINATION) --- */
+        function renderRequestsTable() {
+            const list = appState.pagination.filteredData;
             const tbody = document.getElementById('requestsTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            if (list.length === 0) {
+            const totalData = list.length;
+            if (totalData === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
+                updatePaginationControls(0, 0, 0, 0);
                 return;
             }
 
-            list.forEach(req => {
+            const pageSize = appState.pagination.pageSize;
+            const totalPages = Math.ceil(totalData / pageSize);
+            if (appState.pagination.currentPage > totalPages) {
+                appState.pagination.currentPage = totalPages;
+            }
+            if (appState.pagination.currentPage < 1) {
+                appState.pagination.currentPage = 1;
+            }
+
+            const startIndex = (appState.pagination.currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalData);
+            const pageData = list.slice(startIndex, endIndex);
+
+            pageData.forEach(req => {
                 const totalCost = (req.items && Array.isArray(req.items)) 
                     ? req.items.reduce((sum, item) => sum + ((item.qty || 0) * (item.cost || 0)), 0) 
                     : 0;
@@ -1018,6 +1062,46 @@
                     </tr>
                 `;
             });
+
+            updatePaginationControls(startIndex + 1, endIndex, totalData, totalPages);
+        }
+
+        function updatePaginationControls(start, end, total, totalPages) {
+            const info = document.getElementById('paginationInfo');
+            if (info) {
+                info.innerText = total === 0 ? "Menampilkan 0 data" : `Menampilkan ${start}-${end} dari ${total} data`;
+            }
+
+            const btnPrev = document.getElementById('btnPrevPage');
+            const btnNext = document.getElementById('btnNextPage');
+            if (btnPrev) btnPrev.disabled = (appState.pagination.currentPage <= 1 || total === 0);
+            if (btnNext) btnNext.disabled = (appState.pagination.currentPage >= totalPages || total === 0);
+
+            const pageNumContainer = document.getElementById('pageNumbersContainer');
+            if (pageNumContainer) {
+                pageNumContainer.innerHTML = total === 0 ? '' : `Halaman ${appState.pagination.currentPage} / ${totalPages}`;
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(appState.pagination.filteredData.length / appState.pagination.pageSize);
+            if (appState.pagination.currentPage < totalPages) {
+                appState.pagination.currentPage++;
+                renderRequestsTable();
+            }
+        }
+
+        function prevPage() {
+            if (appState.pagination.currentPage > 1) {
+                appState.pagination.currentPage--;
+                renderRequestsTable();
+            }
+        }
+
+        function changePageSize(newSize) {
+            appState.pagination.pageSize = parseInt(newSize);
+            appState.pagination.currentPage = 1;
+            renderRequestsTable();
         }
 
         function applyTableFilters() {
@@ -1027,12 +1111,14 @@
             const pengajuanType = document.getElementById('filterPengajuanType') ? document.getElementById('filterPengajuanType').value : '';
             const urgency = document.getElementById('filterUrgency').value;
 
-            const filtered = getAccessibleRequests().filter(req => {
+            appState.pagination.filteredData = getAccessibleRequests().filter(req => {
                 const matchQuery = req.id.toLowerCase().includes(query) || req.division.toLowerCase().includes(query) || (req.items && req.items.some(i => i.name.toLowerCase().includes(query)));
                 const matchType = !pengajuanType || (req.justification && req.justification.toLowerCase().includes(pengajuanType.toLowerCase()));
                 return matchQuery && matchType && (!branch || req.branch === branch) && (!status || req.status === status) && (!urgency || req.urgency === urgency);
             });
-            renderRequestsTable(filtered);
+
+            appState.pagination.currentPage = 1;
+            renderRequestsTable();
         }
 
         function clearFilters() {
@@ -1041,7 +1127,7 @@
             document.getElementById('filterStatus').value = '';
             if(document.getElementById('filterPengajuanType')) document.getElementById('filterPengajuanType').value = '';
             document.getElementById('filterUrgency').value = '';
-            renderRequestsTable();
+            applyTableFilters();
         }
 
         function updateMetrics() {
@@ -1070,8 +1156,7 @@
         function openDetailModal(reqIdOrIndex) {
             let req = null;
             if (typeof reqIdOrIndex === 'number' || !isNaN(reqIdOrIndex)) {
-                const accessibleList = getAccessibleRequests();
-                req = accessibleList[parseInt(reqIdOrIndex)];
+                req = appState.requests[parseInt(reqIdOrIndex)];
             } else {
                 req = appState.requests.find(r => r.id === reqIdOrIndex);
             }
