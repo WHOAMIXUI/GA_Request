@@ -265,7 +265,7 @@
 
             <!-- Filter Bar -->
             <div class="bg-white p-4 neo-border neo-shadow flex flex-col md:flex-row justify-between items-center gap-3">
-                <div class="w-full md:w-72 relative">
+                <div class="w-full md:w-64 relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
                     <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
@@ -277,6 +277,12 @@
                         <option value="Approved">Approved</option>
                         <option value="Completed">Completed</option>
                         <option value="Rejected">Rejected</option>
+                    </select>
+                    <!-- Tambahan Select Pengajuan / Filter Kategori Tambahan -->
+                    <select id="filterPengajuanType" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="">Semua Jenis Pengajuan</option>
+                        <option value="Baru">Pengajuan Baru</option>
+                        <option value="Perbaikan">Pengajuan Perbaikan</option>
                     </select>
                     <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                         <option value="">Semua Urgensi</option>
@@ -648,7 +654,7 @@
                     
                     updateCloudBadge('Cloud Live');
                     renderRequestsTable();
-                    updateMetrics();
+                    updateMetrics(); // Dashboard metrik langsung ter-update realtime
                 }, (error) => {
                     console.error("Realtime sync error:", error);
                     updateCloudBadge('Offline (Lokal)');
@@ -669,7 +675,6 @@
                         }
                         populateDropdowns();
                     } else {
-                        // Inisialisasi dokumen master di cloud jika belum ada
                         await setDoc(doc(window.db, "settings", "master_config"), {
                             users: appState.users,
                             categories: appState.categories,
@@ -956,10 +961,12 @@
             }
 
             list.forEach(req => {
-                const totalCost = req.items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+                const totalCost = (req.items && Array.isArray(req.items)) 
+                    ? req.items.reduce((sum, item) => sum + ((item.qty || 0) * (item.cost || 0)), 0) 
+                    : 0;
                 const actualIndex = appState.requests.indexOf(req);
                 const session = getCurrentUser();
-                let summaryItems = req.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+                let summaryItems = req.items && Array.isArray(req.items) ? req.items.map(i => `${i.qty}x ${i.name}`).join(', ') : '-';
 
                 let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
                 if (session && session.role === 'General Affair Manager') {
@@ -987,11 +994,13 @@
             const query = document.getElementById('filterSearch').value.toLowerCase();
             const branch = document.getElementById('filterBranch').value;
             const status = document.getElementById('filterStatus').value;
+            const pengajuanType = document.getElementById('filterPengajuanType') ? document.getElementById('filterPengajuanType').value : '';
             const urgency = document.getElementById('filterUrgency').value;
 
             const filtered = getAccessibleRequests().filter(req => {
-                const matchQuery = req.id.toLowerCase().includes(query) || req.division.toLowerCase().includes(query) || req.items.some(i => i.name.toLowerCase().includes(query));
-                return matchQuery && (!branch || req.branch === branch) && (!status || req.status === status) && (!urgency || req.urgency === urgency);
+                const matchQuery = req.id.toLowerCase().includes(query) || req.division.toLowerCase().includes(query) || (req.items && req.items.some(i => i.name.toLowerCase().includes(query)));
+                const matchType = !pengajuanType || (req.justification && req.justification.toLowerCase().includes(pengajuanType.toLowerCase()));
+                return matchQuery && matchType && (!branch || req.branch === branch) && (!status || req.status === status) && (!urgency || req.urgency === urgency);
             });
             renderRequestsTable(filtered);
         }
@@ -1000,6 +1009,7 @@
             document.getElementById('filterSearch').value = '';
             document.getElementById('filterBranch').value = '';
             document.getElementById('filterStatus').value = '';
+            if(document.getElementById('filterPengajuanType')) document.getElementById('filterPengajuanType').value = '';
             document.getElementById('filterUrgency').value = '';
             renderRequestsTable();
         }
@@ -1023,7 +1033,8 @@
                 }
             });
             document.getElementById('metric-budget').innerText = formatRupiah(total);
-            document.getElementById('nav-count-badge').innerText = list.length;
+            const badgeEl = document.getElementById('nav-count-badge');
+            if (badgeEl) badgeEl.innerText = list.length;
         }
 
         function openDetailModal(reqId) {
@@ -1040,31 +1051,35 @@
             const tbody = document.getElementById('detailItemsTableBody');
             tbody.innerHTML = '';
             let total = 0;
-            req.items.forEach((item, idx) => {
-                const sub = item.qty * item.cost;
-                total += sub;
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
-                        <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category}</span></td>
-                        <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
-                        <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
-                        <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
-                    </tr>
-                `;
-            });
+            if(req.items && Array.isArray(req.items)) {
+                req.items.forEach((item, idx) => {
+                    const sub = (item.qty || 0) * (item.cost || 0);
+                    total += sub;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
+                            <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category}</span></td>
+                            <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
+                            <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
+                            <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
+                        </tr>
+                    `;
+                });
+            }
             document.getElementById('detailTotalBudget').innerText = formatRupiah(total);
 
             const photosContainer = document.getElementById('detailPhotosContainer');
             photosContainer.innerHTML = '';
-            req.items.filter(i => i.photo).forEach(item => {
-                photosContainer.innerHTML += `
-                    <div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}', '${item.name}')">
-                        <img src="${item.photo}" class="w-16 h-16 object-cover border">
-                        <span class="text-[9px] font-mono font-bold block text-center mt-1 truncate w-16">${item.name}</span>
-                    </div>
-                `;
-            });
+            if(req.items && Array.isArray(req.items)) {
+                req.items.filter(i => i.photo).forEach(item => {
+                    photosContainer.innerHTML += `
+                        <div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}', '${item.name}')">
+                            <img src="${item.photo}" class="w-16 h-16 object-cover border">
+                            <span class="text-[9px] font-mono font-bold block text-center mt-1 truncate w-16">${item.name}</span>
+                        </div>
+                    `;
+                });
+            }
 
             openModal('detailModal');
         }
@@ -1317,7 +1332,7 @@
         function exportCSV() {
             let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Divisi,Cabang,Urgensi,Status,Total\r\n";
             getAccessibleRequests().forEach(r => {
-                const total = r.items.reduce((s, i) => s + (i.qty * i.cost), 0);
+                const total = r.items ? r.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
                 csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, total].join(",") + "\r\n";
             });
             const link = document.createElement("a");
