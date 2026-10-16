@@ -278,7 +278,6 @@
                         <option value="Completed">Completed</option>
                         <option value="Rejected">Rejected</option>
                     </select>
-                    <!-- Tambahan Select Pengajuan / Filter Kategori Tambahan -->
                     <select id="filterPengajuanType" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                         <option value="">Semua Jenis Pengajuan</option>
                         <option value="Baru">Pengajuan Baru</option>
@@ -514,11 +513,11 @@
         </div>
     </div>
 
-    <!-- EDIT / APPROVAL MODAL -->
+    <!-- EDIT / APPROVAL MODAL (DENGAN FITUR EDIT BARIS ITEM OLEH GA MANAGER) -->
     <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-8 overflow-hidden">
+        <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
-                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval Pengajuan</h3>
+                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval Pengajuan (GA Manager)</h3>
                 <button onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
             </div>
             <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
@@ -543,9 +542,21 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Bagian Edit Baris Item Pengadaan -->
+                <div class="space-y-3 pt-2 border-t-2 border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-black uppercase text-slate-700">Rincian / Baris Item Permintaan</label>
+                        <button type="button" onclick="addEditModalItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1 flex items-center">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah Baris
+                        </button>
+                    </div>
+                    <div id="editModalItemsContainer" class="space-y-3 max-h-60 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Catatan GA</label>
-                    <textarea id="editGANotes" rows="3" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
+                    <textarea id="editGANotes" rows="2" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
                     <button type="button" onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
@@ -654,7 +665,7 @@
                     
                     updateCloudBadge('Cloud Live');
                     renderRequestsTable();
-                    updateMetrics(); // Dashboard metrik langsung ter-update realtime
+                    updateMetrics();
                 }, (error) => {
                     console.error("Realtime sync error:", error);
                     updateCloudBadge('Offline (Lokal)');
@@ -968,11 +979,13 @@
                 const session = getCurrentUser();
                 let summaryItems = req.items && Array.isArray(req.items) ? req.items.map(i => `${i.qty}x ${i.name}`).join(', ') : '-';
 
-                let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
+                let actionButtons = `<button onclick="openDetailModal('${req.id}')" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1" title="Lihat Detail"><i class="fa-solid fa-eye"></i></button>`;
+                
+                // HANYA AKUN GA MANAGER YANG BISA MENGAKSES TOMBOL EDIT & HAPUS
                 if (session && session.role === 'General Affair Manager') {
                     actionButtons += `
-                        <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1" title="Edit & Approval"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>
                     `;
                 }
 
@@ -1084,15 +1097,73 @@
             openModal('detailModal');
         }
 
+        // FUNGSI MODAL EDIT & APPROVAL KHUSUS GA MANAGER (DENGAN EDIT BARIS ITEM)
         function openEditModal(index) {
+            const user = getCurrentUser();
+            if (!user || user.role !== 'General Affair Manager') {
+                Swal.fire('Akses Dibatasi', 'Hanya akun General Affair Manager yang dapat mengedit pengajuan.', 'warning');
+                return;
+            }
+
             const req = appState.requests[index];
             if (!req) return;
             document.getElementById('editReqDocId').value = index;
-            document.getElementById('editModalTitle').innerText = `Edit Status: ${req.id}`;
+            document.getElementById('editModalTitle').innerText = `Edit & Approval: ${req.id}`;
             document.getElementById('editStatus').value = req.status;
             document.getElementById('editUrgency').value = req.urgency;
             document.getElementById('editGANotes').value = req.gaNotes || '';
+
+            // Muat rincian item ke dalam form modal edit
+            const container = document.getElementById('editModalItemsContainer');
+            container.innerHTML = '';
+            if (req.items && Array.isArray(req.items)) {
+                req.items.forEach(item => {
+                    addEditModalItemRow(item);
+                });
+            } else {
+                addEditModalItemRow();
+            }
+
             openModal('editApprovalModal');
+        }
+
+        function addEditModalItemRow(itemData = null) {
+            const container = document.getElementById('editModalItemsContainer');
+            const rowId = 'edit_item_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const catOptions = appState.categories.map(c => `<option value="${c}" ${itemData && itemData.category === c ? 'selected' : ''}>${c}</option>`).join('');
+
+            const rowHTML = `
+                <div id="${rowId}" class="edit-item-row bg-white p-3 neo-border space-y-2">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-1">
+                        <span class="font-mono font-bold text-[11px] uppercase text-slate-700">Baris Item Aset</span>
+                        <button type="button" onclick="removeEditModalItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                        <div class="sm:col-span-5">
+                            <input type="text" required placeholder="Nama / Tipe Aset..." class="edit-item-name w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold focus:outline-none" value="${itemData ? itemData.name : ''}">
+                        </div>
+                        <div class="sm:col-span-4">
+                            <select class="edit-item-category w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold focus:outline-none">${catOptions}</select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <input type="number" min="1" required class="edit-item-qty w-full bg-slate-50 neo-border px-1 py-1 text-xs font-bold text-center" value="${itemData ? itemData.qty : 1}">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <input type="number" min="0" required class="edit-item-cost w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" placeholder="Harga">
+                        </div>
+                    </div>
+                    <input type="hidden" class="edit-item-photo" value="${itemData && itemData.photo ? itemData.photo : ''}">
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHTML);
+        }
+
+        function removeEditModalItemRow(rowId) {
+            if (document.querySelectorAll('.edit-item-row').length <= 1) {
+                Swal.fire('Peringatan', 'Minimal harus ada 1 baris item dalam pengajuan!', 'warning');
+                return;
+            }
+            document.getElementById(rowId)?.remove();
         }
 
         async function saveEditApproval(e) {
@@ -1104,6 +1175,21 @@
             req.status = document.getElementById('editStatus').value;
             req.urgency = document.getElementById('editUrgency').value;
             req.gaNotes = document.getElementById('editGANotes').value;
+
+            // Ambil item yang diperbarui dari modal edit
+            let updatedItems = [];
+            document.querySelectorAll('.edit-item-row').forEach(row => {
+                updatedItems.push({
+                    name: row.querySelector('.edit-item-name').value,
+                    category: row.querySelector('.edit-item-category').value,
+                    qty: parseInt(row.querySelector('.edit-item-qty').value) || 1,
+                    unit: 'Unit',
+                    cost: parseFloat(row.querySelector('.edit-item-cost').value) || 0,
+                    notes: '',
+                    photo: row.querySelector('.edit-item-photo').value || ''
+                });
+            });
+            req.items = updatedItems;
             
             if (window.db && req.docId) {
                 try {
@@ -1118,10 +1204,16 @@
             applyTableFilters();
             updateMetrics();
             
-            Swal.fire('Berhasil', 'Status pengajuan diperbarui secara real-time.', 'success');
+            Swal.fire('Berhasil', 'Status & rincian item pengajuan diperbarui secara real-time.', 'success');
         }
 
         async function deleteRequest(index, docId) {
+            const user = getCurrentUser();
+            if (!user || user.role !== 'General Affair Manager') {
+                Swal.fire('Akses Dibatasi', 'Hanya General Affair Manager yang dapat menghapus data.', 'warning');
+                return;
+            }
+
             Swal.fire({
                 title: 'Hapus pengajuan?',
                 icon: 'warning',
