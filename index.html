@@ -513,7 +513,7 @@
         </div>
     </div>
 
-    <!-- EDIT / APPROVAL MODAL (DENGAN FITUR EDIT BARIS ITEM OLEH GA MANAGER) -->
+    <!-- EDIT / APPROVAL MODAL (LENGKAP DENGAN CATATAN & UPLOAD FOTO) -->
     <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
@@ -543,15 +543,15 @@
                     </div>
                 </div>
 
-                <!-- Bagian Edit Baris Item Pengadaan -->
+                <!-- Bagian Edit Baris Item Pengadaan, Catatan & Foto -->
                 <div class="space-y-3 pt-2 border-t-2 border-slate-200">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-black uppercase text-slate-700">Rincian / Baris Item Permintaan</label>
+                        <label class="block text-xs font-black uppercase text-slate-700">Rincian / Baris Item Permintaan & Foto</label>
                         <button type="button" onclick="addEditModalItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1 flex items-center">
                             <i class="fa-solid fa-plus mr-1"></i>Tambah Baris
                         </button>
                     </div>
-                    <div id="editModalItemsContainer" class="space-y-3 max-h-60 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
+                    <div id="editModalItemsContainer" class="space-y-3 max-h-80 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
                 </div>
 
                 <div>
@@ -1071,7 +1071,7 @@
                     tbody.innerHTML += `
                         <tr>
                             <td class="p-2 border border-slate-900 text-center">${idx + 1}</td>
-                            <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category}</span></td>
+                            <td class="p-2 border border-slate-900 font-bold">${item.name}<br><span class="text-[10px] text-slate-500">${item.category} ${item.notes ? '• ' + item.notes : ''}</span></td>
                             <td class="p-2 border border-slate-900 text-center">${item.qty} ${item.unit}</td>
                             <td class="p-2 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
                             <td class="p-2 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
@@ -1097,7 +1097,7 @@
             openModal('detailModal');
         }
 
-        // FUNGSI MODAL EDIT & APPROVAL KHUSUS GA MANAGER (DENGAN EDIT BARIS ITEM)
+        // FUNGSI MODAL EDIT & APPROVAL KHUSUS GA MANAGER (DENGAN EDIT BARIS ITEM, CATATAN, & UPLOAD FOTO)
         function openEditModal(index) {
             const user = getCurrentUser();
             if (!user || user.role !== 'General Affair Manager') {
@@ -1136,7 +1136,7 @@
                 <div id="${rowId}" class="edit-item-row bg-white p-3 neo-border space-y-2">
                     <div class="flex justify-between items-center border-b border-slate-200 pb-1">
                         <span class="font-mono font-bold text-[11px] uppercase text-slate-700">Baris Item Aset</span>
-                        <button type="button" onclick="removeEditModalItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus</button>
+                        <button type="button" onclick="removeEditModalItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus Baris</button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
                         <div class="sm:col-span-5">
@@ -1152,10 +1152,36 @@
                             <input type="number" min="0" required class="edit-item-cost w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" placeholder="Harga">
                         </div>
                     </div>
-                    <input type="hidden" class="edit-item-photo" value="${itemData && itemData.photo ? itemData.photo : ''}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <input type="text" placeholder="Catatan spesifikasi..." class="edit-item-notes w-full bg-slate-50 neo-border px-2 py-1 text-xs" value="${itemData ? (itemData.notes || '') : ''}">
+                        <div class="flex items-center space-x-2">
+                            <label class="neo-button bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-1 cursor-pointer flex items-center shrink-0">
+                                <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
+                                <input type="file" accept="image/*" class="hidden" onchange="handleEditPhotoUpload(this, '${rowId}')">
+                            </label>
+                            <input type="hidden" class="edit-item-photo" value="${itemData ? (itemData.photo || '') : ''}">
+                            <div class="edit-photo-preview-box text-[10px] font-mono text-slate-500 truncate italic flex-1">${itemData && itemData.photo ? '✓ Foto Terlampir' : 'Belum ada foto'}</div>
+                        </div>
+                    </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', rowHTML);
+        }
+
+        function handleEditPhotoUpload(input, rowId) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) { Swal.fire('Error', 'Maksimal ukuran foto 2MB.', 'error'); return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const row = document.getElementById(rowId);
+                    if (row) {
+                        row.querySelector('.edit-item-photo').value = e.target.result;
+                        row.querySelector('.edit-photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${file.name})</span>`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         function removeEditModalItemRow(rowId) {
@@ -1176,7 +1202,7 @@
             req.urgency = document.getElementById('editUrgency').value;
             req.gaNotes = document.getElementById('editGANotes').value;
 
-            // Ambil item yang diperbarui dari modal edit
+            // Ambil item yang diperbarui beserta catatan dan foto dari modal edit
             let updatedItems = [];
             document.querySelectorAll('.edit-item-row').forEach(row => {
                 updatedItems.push({
@@ -1185,7 +1211,7 @@
                     qty: parseInt(row.querySelector('.edit-item-qty').value) || 1,
                     unit: 'Unit',
                     cost: parseFloat(row.querySelector('.edit-item-cost').value) || 0,
-                    notes: '',
+                    notes: row.querySelector('.edit-item-notes').value || '',
                     photo: row.querySelector('.edit-item-photo').value || ''
                 });
             });
@@ -1204,7 +1230,7 @@
             applyTableFilters();
             updateMetrics();
             
-            Swal.fire('Berhasil', 'Status & rincian item pengajuan diperbarui secara real-time.', 'success');
+            Swal.fire('Berhasil', 'Status, rincian item, foto, & catatan diperbarui secara real-time.', 'success');
         }
 
         async function deleteRequest(index, docId) {
