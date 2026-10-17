@@ -16,20 +16,9 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        slate: {
-                            850: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
-                        },
-                        amber: {
-                            500: '#f59e0b',
-                            600: '#d97706',
-                        },
-                        cobalt: {
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
+                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        amber: { 500: '#f59e0b', 600: '#d97706' },
+                        cobalt: { 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
                     }
                 }
             }
@@ -44,6 +33,9 @@
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Chart.js (Untuk Visualisasi Data) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
     <script type="module">
@@ -71,42 +63,28 @@
     </script>
 
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f1f5f9;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
         .neo-border { border: 2px solid #0f172a; }
         .neo-shadow { box-shadow: 4px 4px 0px #0f172a; }
         .neo-shadow-sm { box-shadow: 2px 2px 0px #0f172a; }
         .neo-shadow-lg { box-shadow: 6px 6px 0px #0f172a; }
-        .neo-button {
-            border: 2px solid #0f172a;
-            box-shadow: 3px 3px 0px #0f172a;
-            transition: all 0.1s ease;
-        }
+        .neo-button { border: 2px solid #0f172a; box-shadow: 3px 3px 0px #0f172a; transition: all 0.1s ease; }
         .neo-button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #0f172a; }
         .neo-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #0f172a; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #e2e8f0; border-left: 2px solid #0f172a; }
         ::-webkit-scrollbar-thumb { background: #0f172a; }
 
-        /* Konfigurasi Print PDF yang Bersih dan Terisolasi */
+        /* Konfigurasi Print PDF */
         @media print {
             body * { visibility: hidden !important; }
             #printable-area, #printable-area * { visibility: visible !important; }
-            #printable-area { 
-                position: absolute !important; 
-                left: 0 !important; 
-                top: 0 !important; 
-                width: 100% !important; 
-                margin: 0 !important; 
-                padding: 10px !important;
-                background: white !important;
-                box-shadow: none !important;
-                border: none !important;
-            }
+            #printable-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 10px !important; background: white !important; box-shadow: none !important; border: none !important; }
             .no-print { display: none !important; }
         }
+        
+        /* Cursor untuk Header Tabel (Sorting) */
+        th.sortable:hover { background-color: #1e293b; cursor: pointer; color: #f59e0b; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-900">
@@ -142,21 +120,41 @@
                 </button>
             </nav>
 
-            <div class="flex items-center space-x-2">
-                <button onclick="exportCSV()" title="Export CSV" class="hidden lg:flex neo-button bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 items-center">
-                    <i class="fa-solid fa-file-csv mr-1.5 text-amber-500"></i>Export CSV
-                </button>
-                <button onclick="syncDataFromCloud(true)" title="Sinkronisasi Cloud" class="neo-button bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3 py-2 flex items-center">
-                    <i class="fa-solid fa-rotate mr-1.5"></i>Sync
+            <div class="flex items-center space-x-3 relative">
+                <!-- Notifikasi Bell -->
+                <button onclick="toggleNotifMenu()" class="text-white hover:text-amber-400 relative p-2 transition-colors">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span id="notifBadge" class="hidden absolute top-0 right-0 bg-rose-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center neo-border">0</span>
                 </button>
 
-                <div id="userSessionInfo" class="hidden items-center space-x-3 bg-slate-800 px-3 py-1.5 neo-border">
+                <!-- Menu Notifikasi Dropdown -->
+                <div id="notifMenu" class="hidden absolute top-full right-10 mt-2 w-64 bg-white neo-border neo-shadow-lg z-50 overflow-hidden">
+                    <div class="bg-slate-900 text-white font-bold text-xs px-3 py-2 border-b-2 border-slate-900 flex justify-between items-center">
+                        <span>Pemberitahuan</span>
+                    </div>
+                    <div id="notifList" class="max-h-60 overflow-y-auto p-2 space-y-2 text-xs">
+                        <p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>
+                    </div>
+                </div>
+
+                <div class="h-6 w-0.5 bg-slate-700 hidden sm:block"></div>
+
+                <!-- User Menu Profile -->
+                <div id="userSessionInfo" class="hidden relative items-center cursor-pointer bg-slate-800 px-3 py-1.5 neo-border hover:bg-slate-700" onclick="toggleUserMenu()">
                     <div class="text-left">
                         <span id="displayUserName" class="text-xs font-black text-amber-400 block truncate max-w-[100px] sm:max-w-[140px]">User</span>
                         <span id="displayUserRole" class="text-[10px] text-slate-300 font-mono block">Role</span>
                     </div>
-                    <button onclick="handleLogout()" title="Keluar" class="neo-button bg-rose-600 text-white text-xs px-2 py-1">
-                        <i class="fa-solid fa-power-off"></i>
+                    <i class="fa-solid fa-caret-down text-slate-400 ml-2"></i>
+                </div>
+
+                <!-- User Dropdown Menu -->
+                <div id="userMenuDropdown" class="hidden absolute top-full right-0 mt-2 w-48 bg-white neo-border neo-shadow-lg z-50 text-sm font-bold flex flex-col">
+                    <button onclick="openModal('passwordModal')" class="text-left px-4 py-3 hover:bg-slate-100 text-slate-700 flex items-center border-b-2 border-slate-200">
+                        <i class="fa-solid fa-key w-5 text-cobalt-600"></i> Ubah Password
+                    </button>
+                    <button onclick="handleLogout()" class="text-left px-4 py-3 hover:bg-rose-50 text-rose-600 flex items-center">
+                        <i class="fa-solid fa-power-off w-5"></i> Keluar (Logout)
                     </button>
                 </div>
             </div>
@@ -183,6 +181,7 @@
             </div>
 
             <form id="newRequestForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                <!-- Data Pemohon -->
                 <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
                     <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center">
                         <i class="fa-solid fa-circle-info text-cobalt-600 mr-2"></i>1. Informasi Unit & Divisi Pemohon
@@ -218,6 +217,7 @@
                     </div>
                 </div>
 
+                <!-- Rincian Aset -->
                 <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-900 pb-2">
                         <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 flex items-center">
@@ -252,57 +252,70 @@
 
         <!-- TAB 2: LIST & METRICS -->
         <section id="view-list" class="hidden space-y-6">
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div class="bg-white p-4 neo-border neo-shadow-sm flex flex-col justify-between">
-                    <span class="text-[11px] font-black uppercase text-slate-500">Total Pengajuan</span>
-                    <span id="metric-total" class="font-mono font-black text-2xl text-slate-900 mt-2">0</span>
+            
+            <!-- Metrics & Graphic Dashboard -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="lg:col-span-2 bg-white p-4 neo-border neo-shadow flex flex-col">
+                    <h3 class="font-black text-xs uppercase text-slate-700 border-b-2 border-slate-900 pb-2 mb-3"><i class="fa-solid fa-chart-simple mr-2"></i>Estimasi Anggaran per Cabang</h3>
+                    <div class="flex-1 min-h-[150px] w-full relative">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
                 </div>
-                <div class="bg-amber-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
-                    <span class="text-[11px] font-black uppercase text-amber-900">Menunggu (Pending)</span>
-                    <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950 mt-2">0</span>
-                </div>
-                <div class="bg-blue-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
-                    <span class="text-[11px] font-black uppercase text-blue-900">Disetujui / Proses</span>
-                    <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950 mt-2">0</span>
-                </div>
-                <div class="bg-emerald-100 p-4 neo-border neo-shadow-sm flex flex-col justify-between">
-                    <span class="text-[11px] font-black uppercase text-emerald-900">Selesai (Completed)</span>
-                    <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950 mt-2">0</span>
-                </div>
-                <div class="bg-slate-900 text-white p-4 neo-border neo-shadow-sm col-span-2 lg:col-span-1 flex flex-col justify-between">
-                    <span class="text-[11px] font-black uppercase text-slate-300">Total Nilai Anggaran</span>
-                    <span id="metric-budget" class="font-mono font-black text-base sm:text-lg text-amber-400 mt-2 truncate">Rp 0</span>
+                
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div class="bg-amber-100 p-4 neo-border neo-shadow flex flex-col justify-between">
+                        <span class="text-[11px] font-black uppercase text-amber-900">Pending</span>
+                        <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950 mt-2">0</span>
+                    </div>
+                    <div class="bg-blue-100 p-4 neo-border neo-shadow flex flex-col justify-between">
+                        <span class="text-[11px] font-black uppercase text-blue-900">Approved</span>
+                        <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950 mt-2">0</span>
+                    </div>
+                    <div class="bg-emerald-100 p-4 neo-border neo-shadow flex flex-col justify-between">
+                        <span class="text-[11px] font-black uppercase text-emerald-900">Completed</span>
+                        <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950 mt-2">0</span>
+                    </div>
+                    <div class="bg-slate-900 text-white p-4 neo-border neo-shadow flex flex-col justify-between">
+                        <span class="text-[11px] font-black uppercase text-slate-300">Total Nilai</span>
+                        <span id="metric-budget" class="font-mono font-black text-base lg:text-lg text-amber-400 mt-2 truncate">Rp 0</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Filter Bar -->
-            <div class="bg-white p-4 neo-border neo-shadow flex flex-col md:flex-row justify-between items-center gap-3">
-                <div class="w-full md:w-64 relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <!-- Filter Bar Terpadu (Ditambah Filter Rentang Waktu) -->
+            <div class="bg-white p-4 neo-border neo-shadow flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+                    <!-- Search Text -->
+                    <div class="w-full sm:w-64 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <!-- Date Range -->
+                    <div class="flex items-center space-x-2 bg-slate-50 neo-border px-2">
+                        <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
+                        <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
+                        <span class="text-slate-400 font-bold">-</span>
+                        <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
+                    </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-                    <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+
+                <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                    <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                    <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                         <option value="">Semua Status</option>
                         <option value="Pending">Pending</option>
                         <option value="Approved">Approved</option>
                         <option value="Completed">Completed</option>
                         <option value="Rejected">Rejected</option>
                     </select>
-                    <select id="filterPengajuanType" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Semua Jenis Pengajuan</option>
-                        <option value="Baru">Pengajuan Baru</option>
-                        <option value="Perbaikan">Pengajuan Perbaikan</option>
-                    </select>
-                    <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                         <option value="">Semua Urgensi</option>
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
                         <option value="Critical">Critical</option>
                     </select>
-                    <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-3 py-2">Reset</button>
+                    <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5">Reset</button>
                 </div>
             </div>
 
@@ -311,14 +324,14 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-900 text-white font-mono text-xs uppercase border-b-2 border-slate-950">
+                            <tr class="bg-slate-900 text-white font-mono text-xs uppercase border-b-2 border-slate-950 select-none">
                                 <th class="p-3 pl-4 w-10 text-center">No</th>
-                                <th class="p-3">ID & Tanggal</th>
-                                <th class="p-3">Divisi & Cabang</th>
+                                <th class="p-3 sortable" onclick="handleSort('id')">ID & Tanggal <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-id"></i></th>
+                                <th class="p-3 sortable" onclick="handleSort('division')">Divisi & Cabang <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-division"></i></th>
                                 <th class="p-3">Ringkasan Item</th>
-                                <th class="p-3 text-right">Est. Cost Total</th>
-                                <th class="p-3 text-center">Urgensi</th>
-                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-right sortable" onclick="handleSort('totalCost')">Est. Cost Total <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-totalCost"></i></th>
+                                <th class="p-3 text-center sortable" onclick="handleSort('urgency')">Urgensi <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-urgency"></i></th>
+                                <th class="p-3 text-center sortable" onclick="handleSort('status')">Status <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-status"></i></th>
                                 <th class="p-3 pr-4 text-center">Aksi / Kontrol</th>
                             </tr>
                         </thead>
@@ -357,7 +370,6 @@
                 <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
             </div>
 
-            <!-- BOX MANAJEMEN AKUN PENGGUNA TERDAFTAR -->
             <div class="bg-white p-5 neo-border neo-shadow space-y-4">
                 <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
                     <h3 class="font-black text-xs uppercase tracking-wider text-slate-900 flex items-center">
@@ -382,9 +394,7 @@
                 </div>
             </div>
 
-            <!-- 3 KOLOM REFERENSI -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- 1. KATEGORI ASET -->
                 <div class="bg-white p-4 neo-border neo-shadow space-y-3">
                     <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
                         <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">1. KATEGORI ASET</h4>
@@ -395,7 +405,6 @@
                     <div id="masterListCategories" class="space-y-2"></div>
                 </div>
 
-                <!-- 2. DIVISI PEMOHON -->
                 <div class="bg-white p-4 neo-border neo-shadow space-y-3">
                     <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
                         <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">2. DIVISI PEMOHON</h4>
@@ -406,7 +415,6 @@
                     <div id="masterListDivisions" class="space-y-2"></div>
                 </div>
 
-                <!-- 3. CABANG STORE / LOKASI -->
                 <div class="bg-white p-4 neo-border neo-shadow space-y-3">
                     <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
                         <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">3. CABANG STORE / LOKASI</h4>
@@ -423,75 +431,78 @@
     <!-- MODALS -->
     <!-- LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xs flex items-center justify-center p-4">
+        <!-- Struktur sama dengan aslinya -->
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full p-6 space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-12 h-12 bg-amber-500 border-2 border-slate-900 mx-auto flex items-center justify-center text-slate-900 font-black text-2xl neo-shadow-sm">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-black text-slate-900 uppercase">Login GA X DOBAH</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang terdaftar di sistem.</p>
+                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang terdaftar.</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username <span class="text-rose-600">*</span></label>
-                    <input type="text" id="loginUsername" required placeholder="Username..." class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <input type="text" id="loginUsername" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password <span class="text-rose-600">*</span></label>
-                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <input type="password" id="loginPassword" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
-                
                 <div id="loginErrorMsg" class="hidden text-rose-600 text-xs font-bold bg-rose-50 p-2 neo-border border-rose-600">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau password salah!
                 </div>
-
                 <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm py-3">
                     <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk ke Sistem
                 </button>
             </form>
-            <div class="text-[11px] text-slate-400 text-center font-medium">
-                *Akun tersinkronisasi cloud secara realtime.
+        </div>
+    </div>
+
+    <!-- PASSWORD MODAL (Fitur Baru) -->
+    <div id="passwordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4">
+        <div class="bg-white neo-border neo-shadow-lg max-w-sm w-full p-5 space-y-4">
+            <div class="flex justify-between items-center border-b-2 border-slate-900 pb-2">
+                <h3 class="font-black text-sm uppercase font-mono">Ubah Password</h3>
+                <button onclick="closeModal('passwordModal')" class="text-rose-600 font-bold hover:text-rose-800">&times;</button>
             </div>
+            <form onsubmit="handleChangePassword(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Lama</label>
+                    <input type="password" id="oldPasswordInput" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Baru</label>
+                    <input type="password" id="newPasswordInput" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                </div>
+                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-xs py-2 mt-2">Simpan Password</button>
+            </form>
         </div>
     </div>
 
     <!-- MODAL EDIT / TAMBAH USER -->
     <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <!-- (Struktur Sama dengan asli) -->
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
-                <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Pengguna Baru</h3>
+                <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Baru</h3>
                 <button onclick="closeModal('userModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
             </div>
             <form id="userForm" onsubmit="saveUserAccount(event)" class="p-6 space-y-4">
                 <input type="hidden" id="userFormId">
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username Login <span class="text-rose-600">*</span></label>
-                    <input type="text" id="userFormUsername" required placeholder="misal: taufik_bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Nama Pengguna Lengkap <span class="text-rose-600">*</span></label>
-                    <input type="text" id="userFormName" required placeholder="misal: Staf Bandung" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Akun <span class="text-rose-600">*</span></label>
-                    <input type="text" id="userFormPassword" required placeholder="Masukkan password..." class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none font-mono">
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Role / Hak Akses <span class="text-rose-600">*</span></label>
-                    <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
+                <div><label class="block text-xs font-black uppercase mb-1">Username Login</label><input type="text" id="userFormUsername" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold"></div>
+                <div><label class="block text-xs font-black uppercase mb-1">Nama Pengguna</label><input type="text" id="userFormName" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold"></div>
+                <div><label class="block text-xs font-black uppercase mb-1">Password</label><input type="text" id="userFormPassword" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold font-mono"></div>
+                <div><label class="block text-xs font-black uppercase mb-1">Role / Hak Akses</label>
+                    <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold">
                         <option value="Staff Store">Staff Store</option>
                         <option value="General Affair Manager">General Affair Manager</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Cabang Penugasan / Akses <span class="text-rose-600">*</span></label>
-                    <p class="text-[11px] text-slate-500 mb-2 font-medium">Pilih cabang mana saja yang boleh diakses oleh user ini:</p>
-                    <div id="branchCheckboxesContainer" class="space-y-2 bg-slate-50 p-3 neo-border text-xs font-bold"></div>
+                <div><label class="block text-xs font-black uppercase mb-1">Cabang Akses</label>
+                    <div id="branchCheckboxesContainer" class="space-y-2 bg-slate-50 p-3 neo-border text-xs font-bold max-h-32 overflow-y-auto"></div>
                 </div>
-                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
-                    <button type="button" onclick="closeModal('userModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
-                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Akun</button>
-                </div>
+                <div class="flex justify-end space-x-2 pt-3"><button type="button" onclick="closeModal('userModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button><button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan</button></div>
             </form>
         </div>
     </div>
@@ -500,21 +511,16 @@
     <div id="detailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-auto overflow-hidden">
             <div class="bg-slate-900 text-white px-3 py-2.5 neo-border border-b-2 border-slate-950 flex items-center justify-between no-print">
-                <h3 class="font-black text-xs sm:text-sm uppercase font-mono">Detail Dokumen Permintaan</h3>
+                <h3 class="font-black text-xs sm:text-sm uppercase font-mono">Detail Dokumen</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="window.print()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1"><i class="fa-solid fa-print mr-1"></i>Cetak PDF</button>
+                    <button onclick="window.print()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1"><i class="fa-solid fa-print mr-1"></i>Cetak</button>
                     <button onclick="closeModal('detailModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-6 h-6 flex items-center justify-center">&times;</button>
                 </div>
             </div>
             <div id="printable-area" class="p-4 sm:p-5 space-y-3.5 text-slate-900 bg-white max-h-[82vh] overflow-y-auto">
                 <div class="border-b-2 border-slate-900 pb-2.5 flex justify-between items-start">
-                    <div>
-                        <h2 class="font-black text-base sm:text-lg uppercase">DONAT BAHAGIA</h2>
-                        <p class="text-[11px] font-semibold text-slate-600">Departemen General Affair & Aset Perusahaan</p>
-                    </div>
-                    <div class="text-right">
-                        <span id="detailReqId" class="font-mono font-black text-xs sm:text-sm text-slate-900">#ARQ-000</span>
-                    </div>
+                    <div><h2 class="font-black text-base sm:text-lg uppercase">DONAT BAHAGIA</h2><p class="text-[11px] font-semibold text-slate-600">Departemen General Affair & Aset Perusahaan</p></div>
+                    <div class="text-right"><span id="detailReqId" class="font-mono font-black text-xs sm:text-sm text-slate-900">#ARQ-000</span></div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-2.5 neo-border text-[11px]">
                     <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Divisi:</span><span id="detailDivision" class="font-bold truncate block"></span></div>
@@ -527,24 +533,17 @@
                     <p id="detailJustification" class="text-[11px] bg-slate-50 p-2 neo-border italic"></p>
                 </div>
                 <table class="w-full text-left border-collapse border-2 border-slate-900 text-[11px]">
-                    <thead>
-                        <tr class="bg-slate-900 text-white font-mono uppercase text-[10px]">
-                            <th class="p-1.5 border border-slate-900 text-center w-7">No</th>
-                            <th class="p-1.5 border border-slate-900">Item</th>
-                            <th class="p-1.5 border border-slate-900 text-center">Qty</th>
-                            <th class="p-1.5 border border-slate-900 text-right">Harga</th>
-                            <th class="p-1.5 border border-slate-900 text-right">Subtotal</th>
-                        </tr>
-                    </thead>
+                    <thead><tr class="bg-slate-900 text-white font-mono uppercase text-[10px]"><th class="p-1.5 border border-slate-900 text-center w-7">No</th><th class="p-1.5 border border-slate-900">Item</th><th class="p-1.5 border border-slate-900 text-center">Qty</th><th class="p-1.5 border border-slate-900 text-right">Harga</th><th class="p-1.5 border border-slate-900 text-right">Subtotal</th></tr></thead>
                     <tbody id="detailItemsTableBody" class="divide-y border-2 border-slate-900"></tbody>
-                    <tfoot>
-                        <tr class="bg-slate-100 font-bold border-t-2 border-slate-900 text-xs">
-                            <td colspan="4" class="p-1.5 text-right uppercase font-black">Total:</td>
-                            <td id="detailTotalBudget" class="p-1.5 text-right font-mono font-black text-cobalt-700">Rp 0</td>
-                        </tr>
-                    </tfoot>
+                    <tfoot><tr class="bg-slate-100 font-bold border-t-2 border-slate-900 text-xs"><td colspan="4" class="p-1.5 text-right uppercase font-black">Total:</td><td id="detailTotalBudget" class="p-1.5 text-right font-mono font-black text-cobalt-700">Rp 0</td></tr></tfoot>
                 </table>
-                <div id="detailPhotosContainer" class="flex flex-wrap gap-2 pt-1"></div>
+                <div id="detailPhotosContainer" class="flex flex-wrap gap-2 pt-1 mb-3"></div>
+                
+                <!-- Audit Trail Box -->
+                <div class="bg-slate-50 neo-border p-3 mt-4 no-print">
+                    <h4 class="font-black text-[10px] uppercase text-slate-600 mb-2 border-b border-slate-300 pb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Riwayat Persetujuan (Audit Trail)</h4>
+                    <ul id="detailAuditTrail" class="space-y-1.5 text-[10px] font-medium text-slate-700"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -553,7 +552,7 @@
     <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
-                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval Pengajuan (GA Manager)</h3>
+                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval</h3>
                 <button onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
             </div>
             <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
@@ -578,17 +577,10 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="space-y-3 pt-2 border-t-2 border-slate-200">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-black uppercase text-slate-700">Rincian / Baris Item Permintaan & Foto</label>
-                        <button type="button" onclick="addEditModalItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1 flex items-center">
-                            <i class="fa-solid fa-plus mr-1"></i>Tambah Baris
-                        </button>
-                    </div>
-                    <div id="editModalItemsContainer" class="space-y-3 max-h-80 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
+                    <div class="flex items-center justify-between"><label class="block text-xs font-black uppercase text-slate-700">Rincian Item</label><button type="button" onclick="addEditModalItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button></div>
+                    <div id="editModalItemsContainer" class="space-y-3 max-h-60 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1">Catatan GA</label>
                     <textarea id="editGANotes" rows="2" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
@@ -606,7 +598,6 @@
         <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 p-2 neo-border" onclick="event.stopPropagation()">
             <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 neo-button bg-rose-600 text-white font-black text-sm w-8 h-8 flex items-center justify-center z-10">&times;</button>
             <img id="zoomedImage" src="" alt="Zoom" class="max-h-[80vh] w-auto mx-auto object-contain neo-border">
-            <p id="zoomedImageCaption" class="text-center font-mono text-xs text-amber-400 mt-2 font-bold"></p>
         </div>
     </div>
 
@@ -623,38 +614,33 @@
             divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
             branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
             requests: [],
-            pagination: {
-                currentPage: 1,
-                pageSize: 10,
-                filteredData: []
-            }
+            pagination: { currentPage: 1, pageSize: 10, filteredData: [] },
+            sortConfig: { key: 'id', direction: 'desc' } // Konfigurasi Sorting
         };
+
+        let chartInstance = null; // Menyimpan instance Chart.js
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                ['detailModal', 'editApprovalModal', 'userModal', 'imageZoomModal'].forEach(modalId => {
+                ['detailModal', 'editApprovalModal', 'userModal', 'imageZoomModal', 'passwordModal'].forEach(modalId => {
                     const modalEl = document.getElementById(modalId);
-                    if (modalEl && modalEl.classList.contains('flex')) {
-                        closeModal(modalId);
-                    }
+                    if (modalEl && modalEl.classList.contains('flex')) closeModal(modalId);
                 });
+                document.getElementById('userMenuDropdown').classList.add('hidden');
+                document.getElementById('notifMenu').classList.add('hidden');
             }
         });
 
+        /* --- DATA PERSISTENCE --- */
         async function saveMasterSettings() {
             saveMasterSettingsToLocal();
             if (window.db) {
                 try {
                     const { doc, setDoc } = window.fbDeps;
                     await setDoc(doc(window.db, "settings", "master_config"), {
-                        users: appState.users,
-                        categories: appState.categories,
-                        divisions: appState.divisions,
-                        branches: appState.branches
+                        users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
                     }, { merge: true });
-                } catch(err) {
-                    console.error("Gagal simpan master data ke cloud:", err);
-                }
+                } catch(err) { console.error("Gagal simpan master data:", err); }
             }
         }
 
@@ -666,58 +652,32 @@
         }
 
         function loadMasterSettings() {
-            const u = localStorage.getItem('assetReqUsersData');
-            if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
-            const c = localStorage.getItem('assetReqCategoriesData');
-            if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
-            const d = localStorage.getItem('assetReqDivisionsData');
-            if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
-            const b = localStorage.getItem('assetReqBranchesData');
-            if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
+            const u = localStorage.getItem('assetReqUsersData'); if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
+            const c = localStorage.getItem('assetReqCategoriesData'); if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
+            const d = localStorage.getItem('assetReqDivisionsData'); if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
+            const b = localStorage.getItem('assetReqBranchesData'); if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
         }
 
-        function saveLocalState() {
-            localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests));
-        }
+        function saveLocalState() { localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests)); }
+        function loadLocalState() { const local = localStorage.getItem('assetReqLocalData'); if (local) { try { appState.requests = JSON.parse(local); } catch(e) {} } }
 
-        function loadLocalState() {
-            const local = localStorage.getItem('assetReqLocalData');
-            if (local) {
-                try { appState.requests = JSON.parse(local); } catch(e) {}
-            }
-        }
-
-        window.addEventListener('firebase-ready', () => {
-            initRealtimeSync();
-        });
+        window.addEventListener('firebase-ready', () => initRealtimeSync());
 
         function initRealtimeSync() {
             loadLocalState();
-            if (!window.db) {
-                updateCloudBadge('Offline (Lokal)');
-                applyTableFilters();
-                updateMetrics();
-                return;
-            }
-
+            if (!window.db) { updateCloudBadge('Offline (Lokal)'); applyTableFilters(); updateMetrics(); updateNotifications(); return; }
             try {
                 const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
-
                 onSnapshot(collection(window.db, "requests"), (snapshot) => {
                     const cloudData = [];
-                    snapshot.forEach(docSnap => {
-                        cloudData.push({ docId: docSnap.id, ...docSnap.data() });
-                    });
+                    snapshot.forEach(docSnap => cloudData.push({ docId: docSnap.id, ...docSnap.data() }));
                     appState.requests = cloudData;
                     saveLocalState();
-                    
                     updateCloudBadge('Cloud Live');
                     applyTableFilters();
                     updateMetrics();
-                }, (error) => {
-                    console.error("Realtime sync error:", error);
-                    updateCloudBadge('Offline (Lokal)');
-                });
+                    updateNotifications();
+                }, () => updateCloudBadge('Offline (Lokal)'));
 
                 onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
                     if (docSnap.exists()) {
@@ -726,125 +686,128 @@
                         if (data.categories) appState.categories = data.categories;
                         if (data.divisions) appState.divisions = data.divisions;
                         if (data.branches) appState.branches = data.branches;
-                        
                         saveMasterSettingsToLocal();
-                        if (appState.activeTab === 'master') {
-                            renderMasterDataView();
-                        }
+                        if (appState.activeTab === 'master') renderMasterDataView();
                         populateDropdowns();
-                    } else {
-                        await setDoc(doc(window.db, "settings", "master_config"), {
-                            users: appState.users,
-                            categories: appState.categories,
-                            divisions: appState.divisions,
-                            branches: appState.branches
-                        });
                     }
-                }, (error) => {
-                    console.error("Master Data Sync Error:", error);
                 });
-
-            } catch (e) {
-                console.error("Firebase Realtime Warning:", e);
-                updateCloudBadge('Offline (Lokal)');
-            }
-        }
-
-        async function syncDataFromCloud(manualTrigger = false) {
-            if (manualTrigger) {
-                Swal.fire('Tersinkronisasi!', 'Data pengadaan & master data terhubung secara real-time dengan Cloud.', 'success');
-            }
+            } catch (e) { updateCloudBadge('Offline (Lokal)'); }
         }
 
         function updateCloudBadge(statusText) {
             const badge = document.getElementById('cloudStatusBadge');
             if (badge) {
                 badge.innerText = statusText;
-                badge.className = statusText.includes('Live') 
-                    ? "bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase"
-                    : "bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase";
+                badge.className = statusText.includes('Live') ? "bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase" : "bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase";
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadMasterSettings();
-            loadLocalState();
-            checkUserSession();
-            document.getElementById('formSubmissionDate').value = '2026-10-17';
-            document.getElementById('clock-date-today').innerText = '17 Okt 2026';
+            loadMasterSettings(); loadLocalState(); checkUserSession();
+            document.getElementById('formSubmissionDate').value = new Date().toISOString().split('T')[0]; // Set Hari Ini
             addFormItemRow();
         });
 
-        function getCurrentUser() {
-            const session = localStorage.getItem('assetReqUserSession');
-            return session ? JSON.parse(session) : null;
-        }
+        /* --- AUTENTIKASI --- */
+        function getCurrentUser() { const session = localStorage.getItem('assetReqUserSession'); return session ? JSON.parse(session) : null; }
 
         function checkUserSession() {
             const user = getCurrentUser();
             const loginModal = document.getElementById('loginModal');
             const userInfo = document.getElementById('userSessionInfo');
-
             if (!user) {
-                loginModal.classList.remove('hidden');
-                loginModal.classList.add('flex');
+                loginModal.classList.remove('hidden'); loginModal.classList.add('flex');
                 if (userInfo) userInfo.classList.add('hidden');
             } else {
-                loginModal.classList.remove('flex');
-                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex'); loginModal.classList.add('hidden');
                 if (userInfo) userInfo.classList.replace('hidden', 'flex');
                 document.getElementById('displayUserName').innerText = user.name;
-                document.getElementById('displayUserRole').innerText = user.role === 'Staff Store' ? `Staff Store` : user.role;
-
+                document.getElementById('displayUserRole').innerText = user.role;
+                
                 const tabMaster = document.getElementById('tab-master');
-                if (user.role === 'Staff Store') {
-                    if (tabMaster) tabMaster.style.display = 'none';
-                } else {
-                    if (tabMaster) tabMaster.style.display = 'flex';
-                }
+                if (user.role === 'Staff Store') { if (tabMaster) tabMaster.style.display = 'none'; } 
+                else { if (tabMaster) tabMaster.style.display = 'flex'; }
 
-                populateDropdowns();
-                applyTableFilters();
-                updateMetrics();
+                populateDropdowns(); applyTableFilters(); updateMetrics(); updateNotifications();
             }
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            const usernameInput = document.getElementById('loginUsername').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const uInput = document.getElementById('loginUsername').value.trim();
+            const pInput = document.getElementById('loginPassword').value.trim();
             const errBox = document.getElementById('loginErrorMsg');
-
-            const found = appState.users.find(u => u.username === usernameInput && u.password === passwordInput);
-
+            const found = appState.users.find(u => u.username === uInput && u.password === pInput);
             if (found) {
                 errBox.classList.add('hidden');
-                localStorage.setItem('assetReqUserSession', JSON.stringify({
-                    id: found.id,
-                    username: found.username,
-                    name: found.name,
-                    role: found.role,
-                    branches: found.branches || []
-                }));
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('loginPassword').value = '';
+                localStorage.setItem('assetReqUserSession', JSON.stringify({ id: found.id, username: found.username, name: found.name, role: found.role, branches: found.branches || [] }));
+                document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = '';
                 checkUserSession();
+            } else { errBox.classList.remove('hidden'); }
+        }
+
+        function handleLogout() { localStorage.removeItem('assetReqUserSession'); location.reload(); }
+
+        /* --- UX: User Dropdown & Notification --- */
+        function toggleUserMenu() {
+            document.getElementById('userMenuDropdown').classList.toggle('hidden');
+            document.getElementById('notifMenu').classList.add('hidden');
+        }
+
+        function toggleNotifMenu() {
+            document.getElementById('notifMenu').classList.toggle('hidden');
+            document.getElementById('userMenuDropdown').classList.add('hidden');
+        }
+
+        function handleChangePassword(e) {
+            e.preventDefault();
+            const user = getCurrentUser();
+            const oldP = document.getElementById('oldPasswordInput').value;
+            const newP = document.getElementById('newPasswordInput').value;
+            
+            const userIndex = appState.users.findIndex(u => u.id === user.id);
+            if(userIndex > -1 && appState.users[userIndex].password === oldP) {
+                appState.users[userIndex].password = newP;
+                saveMasterSettings();
+                closeModal('passwordModal');
+                Swal.fire('Berhasil', 'Password telah diubah!', 'success');
+                document.getElementById('oldPasswordInput').value = '';
+                document.getElementById('newPasswordInput').value = '';
             } else {
-                errBox.classList.remove('hidden');
+                Swal.fire('Gagal', 'Password lama salah!', 'error');
             }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('assetReqUserSession');
-            location.reload();
+        function updateNotifications() {
+            const user = getCurrentUser();
+            if(!user) return;
+            const requests = getAccessibleRequests();
+            const notifList = document.getElementById('notifList');
+            const badge = document.getElementById('notifBadge');
+            
+            let notifications = [];
+            if(user.role === 'General Affair Manager') {
+                const pending = requests.filter(r => r.status === 'Pending');
+                if(pending.length > 0) notifications.push(`Ada ${pending.length} pengajuan berstatus Pending menunggu proses Anda.`);
+            } else {
+                const approved = requests.filter(r => r.status === 'Approved' || r.status === 'Completed');
+                if(approved.length > 0) notifications.push(`Anda memiliki ${approved.length} pengajuan yang disetujui/selesai.`);
+            }
+
+            if(notifications.length > 0) {
+                badge.innerText = notifications.length;
+                badge.classList.remove('hidden');
+                notifList.innerHTML = notifications.map(n => `<div class="p-2 bg-amber-50 neo-border border-amber-300 font-bold text-slate-700">${n}</div>`).join('');
+            } else {
+                badge.classList.add('hidden');
+                notifList.innerHTML = `<p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>`;
+            }
         }
 
+        /* --- NAVIGATION --- */
         function switchTab(tabId) {
-            const session = getCurrentUser();
-            if (session && session.role === 'Staff Store' && tabId === 'master') {
-                Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk Manager General Affair.', 'warning');
-                return;
-            }
+            const s = getCurrentUser();
+            if (s && s.role === 'Staff Store' && tabId === 'master') { Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk GA Manager.', 'warning'); return; }
             appState.activeTab = tabId;
             ['form', 'list', 'master'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
@@ -852,322 +815,306 @@
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
-
-            if (tabId === 'list') { applyTableFilters(); updateMetrics(); }
-            else if (tabId === 'master') { renderMasterDataView(); }
+            if (tabId === 'list') { applyTableFilters(); updateMetrics(); } else if (tabId === 'master') { renderMasterDataView(); }
         }
 
         function populateDropdowns() {
-            const user = getCurrentUser();
-            const userBranches = (user && user.branches && !user.branches.includes('ALL')) 
-                ? user.branches 
-                : appState.branches;
-
+            const u = getCurrentUser();
+            const ub = (u && u.branches && !u.branches.includes('ALL')) ? u.branches : appState.branches;
             const divEl = document.getElementById('formDivision');
             const branchEl = document.getElementById('formBranch');
             const filtBranchEl = document.getElementById('filterBranch');
-
             if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-            if (branchEl) branchEl.innerHTML = userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
-            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="">Semua Cabang (Akses)</option>` + userBranches.map(b => `<option value="${b}">${b}</option>`).join('');
+            if (branchEl) branchEl.innerHTML = ub.map(b => `<option value="${b}">${b}</option>`).join('');
+            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="">Semua Cabang (Akses)</option>` + ub.map(b => `<option value="${b}">${b}</option>`).join('');
         }
 
+        /* --- FORM HANDLING --- */
         function addFormItemRow(itemData = null) {
-            const container = document.getElementById('formItemsContainer');
-            const rowId = 'item_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-            const catOptions = appState.categories.map(c => `<option value="${c}" ${itemData && itemData.category === c ? 'selected' : ''}>${c}</option>`).join('');
-
-            const rowHTML = `
+            const c = document.getElementById('formItemsContainer');
+            const rowId = 'item_' + Date.now();
+            const catOpts = appState.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            const html = `
                 <div id="${rowId}" class="item-row bg-slate-50 p-4 neo-border space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-300 pb-2">
                         <span class="font-mono font-black text-xs uppercase text-slate-700"><i class="fa-solid fa-cube text-amber-500 mr-1.5"></i>Baris Aset</span>
                         <button type="button" onclick="removeFormItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[11px] px-2 py-0.5">Hapus Baris</button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
-                        <div class="lg:col-span-4">
-                            <input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none" value="${itemData ? itemData.name : ''}">
-                        </div>
-                        <div class="lg:col-span-3">
-                            <select class="item-category w-full bg-white neo-border px-3 py-1.5 text-xs font-bold focus:outline-none">${catOptions}</select>
-                        </div>
-                        <div class="lg:col-span-1">
-                            <input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.qty : 1}" oninput="calculateLiveTotal()">
-                        </div>
-                        <div class="lg:col-span-1">
-                            <input type="text" required class="item-unit w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="${itemData ? itemData.unit : 'Unit'}">
-                        </div>
-                        <div class="lg:col-span-3">
-                            <input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" oninput="calculateLiveTotal()">
-                        </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                        <div class="lg:col-span-4"><input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold"></div>
+                        <div class="lg:col-span-3"><select class="item-category w-full bg-white neo-border px-3 py-1.5 text-xs font-bold">${catOpts}</select></div>
+                        <div class="lg:col-span-1"><input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="1" oninput="calculateLiveTotal()"></div>
+                        <div class="lg:col-span-1"><input type="text" required class="item-unit w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="Unit"></div>
+                        <div class="lg:col-span-3"><input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="0" oninput="calculateLiveTotal()"></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full bg-white neo-border px-3 py-1 text-xs" value="${itemData ? itemData.notes : ''}">
+                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full bg-white neo-border px-3 py-1 text-xs">
                         <div class="flex items-center space-x-2">
                             <label class="neo-button bg-slate-200 text-slate-800 text-[11px] font-bold px-2.5 py-1 cursor-pointer flex items-center shrink-0">
                                 <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
                                 <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rowId}')">
                             </label>
-                            <input type="hidden" class="item-photo-data" value="${itemData ? itemData.photo || '' : ''}">
-                            <div class="photo-preview-box text-[11px] font-mono text-slate-500 truncate italic flex-1">${itemData && itemData.photo ? '✓ Foto Terlampir' : 'Belum ada foto'}</div>
+                            <input type="hidden" class="item-photo-data">
+                            <div class="photo-preview-box text-[11px] font-mono text-slate-500 truncate flex-1">Belum ada foto</div>
                         </div>
                     </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', rowHTML);
-            calculateLiveTotal();
+                </div>`;
+            c.insertAdjacentHTML('beforeend', html); calculateLiveTotal();
         }
-
-        function removeFormItemRow(rowId) {
-            if (document.querySelectorAll('.item-row').length <= 1) return;
-            document.getElementById(rowId)?.remove();
-            calculateLiveTotal();
-        }
-
-        function handlePhotoUpload(input, rowId) {
+        function removeFormItemRow(id) { if (document.querySelectorAll('.item-row').length > 1) document.getElementById(id).remove(); calculateLiveTotal(); }
+        function handlePhotoUpload(input, id) {
             if (input.files && input.files[0]) {
-                const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) { Swal.fire('Error', 'Maksimal ukuran foto 2MB.', 'error'); return; }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const row = document.getElementById(rowId);
-                    if (row) {
-                        row.querySelector('.item-photo-data').value = e.target.result;
-                        row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${file.name})</span>`;
-                    }
+                const f = input.files[0]; if (f.size > 2*1024*1024) return Swal.fire('Error', 'Maksimal ukuran 2MB', 'error');
+                const r = new FileReader();
+                r.onload = e => {
+                    const row = document.getElementById(id);
+                    if(row) { row.querySelector('.item-photo-data').value = e.target.result; row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${f.name})</span>`; }
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(f);
             }
         }
-
         function calculateLiveTotal() {
-            let total = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-                const cost = parseFloat(row.querySelector('.item-cost').value) || 0;
-                total += (qty * cost);
-            });
-            document.getElementById('formLiveTotalBudget').innerText = formatRupiah(total);
+            let t = 0;
+            document.querySelectorAll('.item-row').forEach(r => t += (parseFloat(r.querySelector('.item-qty').value)||0) * (parseFloat(r.querySelector('.item-cost').value)||0));
+            document.getElementById('formLiveTotalBudget').innerText = formatRupiah(t);
         }
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            const division = document.getElementById('formDivision').value;
-            const branch = document.getElementById('formBranch').value;
-            const submissionDate = document.getElementById('formSubmissionDate').value;
-            const urgency = document.getElementById('formUrgency').value;
-            const justification = document.getElementById('formJustification').value;
-
             let items = [];
             document.querySelectorAll('.item-row').forEach(row => {
                 items.push({
-                    name: row.querySelector('.item-name').value,
-                    category: row.querySelector('.item-category').value,
-                    qty: parseInt(row.querySelector('.item-qty').value) || 1,
-                    unit: row.querySelector('.item-unit').value || 'Unit',
-                    cost: parseFloat(row.querySelector('.item-cost').value) || 0,
-                    notes: row.querySelector('.item-notes').value || '',
-                    photo: row.querySelector('.item-photo-data').value || ''
+                    name: row.querySelector('.item-name').value, category: row.querySelector('.item-category').value,
+                    qty: parseInt(row.querySelector('.item-qty').value)||1, unit: row.querySelector('.item-unit').value||'Unit',
+                    cost: parseFloat(row.querySelector('.item-cost').value)||0, notes: row.querySelector('.item-notes').value||'',
+                    photo: row.querySelector('.item-photo-data').value||''
                 });
             });
 
-            const newId = `ARQ-2026-${String(appState.requests.length + 1).padStart(3, '0')}`;
-            const payload = { id: newId, division, branch, submissionDate, urgency, status: 'Pending', justification, gaNotes: '', items };
+            const usr = getCurrentUser();
+            const timeNow = new Date().toLocaleString('id-ID');
+            // Menambahkan Audit Trail (Riwayat Pembuatan)
+            const auditTrail = [{
+                actor: usr.name, role: usr.role,
+                action: 'Membuat Pengajuan', timestamp: timeNow
+            }];
 
-            if (window.db) {
-                try {
-                    const { collection, addDoc } = window.fbDeps;
-                    await addDoc(collection(window.db, "requests"), payload);
-                } catch(err) { console.error("Cloud Save Notice:", err); }
-            } else {
-                appState.requests.unshift(payload);
-                saveLocalState();
-            }
+            const p = { 
+                id: `ARQ-${new Date().getFullYear()}-${String(appState.requests.length+1).padStart(3,'0')}`, 
+                division: document.getElementById('formDivision').value, branch: document.getElementById('formBranch').value, 
+                submissionDate: document.getElementById('formSubmissionDate').value, urgency: document.getElementById('formUrgency').value, 
+                status: 'Pending', justification: document.getElementById('formJustification').value, gaNotes: '', items, audit: auditTrail
+            };
 
-            Swal.fire('Berhasil!', `Dokumen ${newId} tersimpan aman dan tersinkronisasi.`, 'success');
-            resetForm();
+            if (window.db) { try { await window.fbDeps.addDoc(window.fbDeps.collection(window.db, "requests"), p); } catch(err){} } 
+            else { appState.requests.unshift(p); saveLocalState(); }
+
+            Swal.fire('Berhasil!', `Dokumen tersimpan aman.`, 'success');
+            document.getElementById('newRequestForm').reset(); document.getElementById('formItemsContainer').innerHTML = ''; addFormItemRow();
             switchTab('list');
         }
 
-        function resetForm() {
-            document.getElementById('newRequestForm').reset();
-            document.getElementById('formSubmissionDate').value = '2026-10-17';
-            document.getElementById('formItemsContainer').innerHTML = '';
-            addFormItemRow();
-            calculateLiveTotal();
-        }
-
         function getAccessibleRequests() {
-            const user = getCurrentUser();
-            if (!user) return [];
-
-            if (user.role === 'General Affair Manager' || (user.branches && user.branches.includes('ALL'))) {
-                return appState.requests;
-            }
-
-            return appState.requests.filter(r => user.branches && user.branches.includes(r.branch));
+            const u = getCurrentUser(); if (!u) return [];
+            return (u.role === 'General Affair Manager' || u.branches.includes('ALL')) ? appState.requests : appState.requests.filter(r => u.branches.includes(r.branch));
         }
 
-        /* --- FUNGSI TAMPILAN TABEL TERPAGINASI (PAGINATION) --- */
-        function renderRequestsTable() {
-            const list = appState.pagination.filteredData;
-            const tbody = document.getElementById('requestsTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const totalData = list.length;
-            if (totalData === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
-                updatePaginationControls(0, 0, 0, 0);
-                return;
-            }
-
-            const pageSize = appState.pagination.pageSize;
-            const totalPages = Math.ceil(totalData / pageSize);
-            if (appState.pagination.currentPage > totalPages) {
-                appState.pagination.currentPage = totalPages;
-            }
-            if (appState.pagination.currentPage < 1) {
-                appState.pagination.currentPage = 1;
-            }
-
-            const startIndex = (appState.pagination.currentPage - 1) * pageSize;
-            const endIndex = Math.min(startIndex + pageSize, totalData);
-            const pageData = list.slice(startIndex, endIndex);
-
-            pageData.forEach((req, index) => {
-                // Hitung nomor urut berdasarkan pagination
-                const rowNumber = startIndex + index + 1; 
-
-                const totalCost = (req.items && Array.isArray(req.items)) 
-                    ? req.items.reduce((sum, item) => sum + ((item.qty || 0) * (item.cost || 0)), 0) 
-                    : 0;
-                const actualIndex = appState.requests.indexOf(req);
-                const session = getCurrentUser();
-                let summaryItems = req.items && Array.isArray(req.items) ? req.items.map(i => `${i.qty}x ${i.name}`).join(', ') : '-';
-
-                let actionButtons = `<button onclick="openDetailModal(${actualIndex})" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1" title="Lihat Detail"><i class="fa-solid fa-eye"></i></button>`;
-                
-                if (session && session.role === 'General Affair Manager') {
-                    actionButtons += `
-                        <button onclick="openEditModal(${actualIndex})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1" title="Edit & Approval"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteRequest(${actualIndex}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                    `;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 pl-4 text-center font-bold text-slate-500">${rowNumber}</td>
-                        <td class="p-3 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
-                        <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
-                        <td class="p-3">${summaryItems}</td>
-                        <td class="p-3 text-right font-mono font-black">${formatRupiah(totalCost)}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-amber-100">${req.urgency}</span></td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border bg-blue-100">${req.status}</span></td>
-                        <td class="p-3 pr-4 text-center whitespace-nowrap">${actionButtons}</td>
-                    </tr>
-                `;
+        /* --- UX: SORTING LOGIC --- */
+        function handleSort(key) {
+            // Reset icons
+            document.querySelectorAll('th.sortable i').forEach(icon => {
+                icon.className = 'fa-solid fa-sort ml-1 text-slate-500';
             });
 
-            updatePaginationControls(startIndex + 1, endIndex, totalData, totalPages);
-        }
-
-        function updatePaginationControls(start, end, total, totalPages) {
-            const info = document.getElementById('paginationInfo');
-            if (info) {
-                info.innerText = total === 0 ? "Menampilkan 0 data" : `Menampilkan ${start}-${end} dari ${total} data`;
+            if (appState.sortConfig.key === key) {
+                appState.sortConfig.direction = appState.sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                appState.sortConfig.key = key;
+                appState.sortConfig.direction = 'asc';
             }
 
-            const btnPrev = document.getElementById('btnPrevPage');
-            const btnNext = document.getElementById('btnNextPage');
-            if (btnPrev) btnPrev.disabled = (appState.pagination.currentPage <= 1 || total === 0);
-            if (btnNext) btnNext.disabled = (appState.pagination.currentPage >= totalPages || total === 0);
-
-            const pageNumContainer = document.getElementById('pageNumbersContainer');
-            if (pageNumContainer) {
-                pageNumContainer.innerHTML = total === 0 ? '' : `Halaman ${appState.pagination.currentPage} / ${totalPages}`;
+            // Update Icon
+            const activeIcon = document.getElementById(`sortIcon-${key}`);
+            if (activeIcon) {
+                activeIcon.className = appState.sortConfig.direction === 'asc' 
+                    ? 'fa-solid fa-sort-up ml-1 text-amber-500' 
+                    : 'fa-solid fa-sort-down ml-1 text-amber-500';
             }
-        }
-
-        function nextPage() {
-            const totalPages = Math.ceil(appState.pagination.filteredData.length / appState.pagination.pageSize);
-            if (appState.pagination.currentPage < totalPages) {
-                appState.pagination.currentPage++;
-                renderRequestsTable();
-            }
-        }
-
-        function prevPage() {
-            if (appState.pagination.currentPage > 1) {
-                appState.pagination.currentPage--;
-                renderRequestsTable();
-            }
-        }
-
-        function changePageSize(newSize) {
-            appState.pagination.pageSize = parseInt(newSize);
-            appState.pagination.currentPage = 1;
-            renderRequestsTable();
-        }
-
-        function applyTableFilters() {
-            const query = document.getElementById('filterSearch').value.toLowerCase();
-            const branch = document.getElementById('filterBranch').value;
-            const status = document.getElementById('filterStatus').value;
-            const pengajuanType = document.getElementById('filterPengajuanType') ? document.getElementById('filterPengajuanType').value : '';
-            const urgency = document.getElementById('filterUrgency').value;
-
-            appState.pagination.filteredData = getAccessibleRequests().filter(req => {
-                const matchQuery = req.id.toLowerCase().includes(query) || req.division.toLowerCase().includes(query) || (req.items && req.items.some(i => i.name.toLowerCase().includes(query)));
-                const matchType = !pengajuanType || (req.justification && req.justification.toLowerCase().includes(pengajuanType.toLowerCase()));
-                return matchQuery && matchType && (!branch || req.branch === branch) && (!status || req.status === status) && (!urgency || req.urgency === urgency);
-            });
-
-            appState.pagination.currentPage = 1;
-            renderRequestsTable();
-        }
-
-        function clearFilters() {
-            document.getElementById('filterSearch').value = '';
-            document.getElementById('filterBranch').value = '';
-            document.getElementById('filterStatus').value = '';
-            if(document.getElementById('filterPengajuanType')) document.getElementById('filterPengajuanType').value = '';
-            document.getElementById('filterUrgency').value = '';
             applyTableFilters();
         }
 
-        function updateMetrics() {
-            const list = getAccessibleRequests();
-            document.getElementById('metric-total').innerText = list.length;
-            
-            const pendingCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'pending').length;
-            const approvedCount = list.filter(r => r.status && (r.status.trim().toLowerCase() === 'approved' || r.status.trim().toLowerCase() === 'proses')).length;
-            const completedCount = list.filter(r => r.status && r.status.trim().toLowerCase() === 'completed').length;
-
-            document.getElementById('metric-pending').innerText = pendingCount;
-            document.getElementById('metric-progress').innerText = approvedCount;
-            document.getElementById('metric-completed').innerText = completedCount;
-            
-            let total = 0;
-            list.forEach(r => {
-                if (r.items && Array.isArray(r.items)) {
-                    r.items.forEach(i => total += (parseFloat(i.qty || 0) * parseFloat(i.cost || 0)));
+        function sortDataList(dataList) {
+            const { key, direction } = appState.sortConfig;
+            return dataList.sort((a, b) => {
+                let valA, valB;
+                if (key === 'id') { valA = a.id; valB = b.id; }
+                else if (key === 'division') { valA = a.division; valB = b.division; }
+                else if (key === 'status') { valA = a.status; valB = b.status; }
+                else if (key === 'urgency') {
+                    const urgMap = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+                    valA = urgMap[a.urgency] || 0; valB = urgMap[b.urgency] || 0;
                 }
+                else if (key === 'totalCost') {
+                    valA = a.items ? a.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
+                    valB = b.items ? b.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
             });
-            document.getElementById('metric-budget').innerText = formatRupiah(total);
-            const badgeEl = document.getElementById('nav-count-badge');
-            if (badgeEl) badgeEl.innerText = list.length;
         }
 
-        function openDetailModal(reqIdOrIndex) {
-            let req = null;
-            if (typeof reqIdOrIndex === 'number' || !isNaN(reqIdOrIndex)) {
-                req = appState.requests[parseInt(reqIdOrIndex)];
-            } else {
-                req = appState.requests.find(r => r.id === reqIdOrIndex);
-            }
-            
-            if (!req) return;
+        /* --- TABEL & FILTERS (Termasuk Date Filter) --- */
+        function applyTableFilters() {
+            const q = document.getElementById('filterSearch').value.toLowerCase();
+            const b = document.getElementById('filterBranch').value;
+            const s = document.getElementById('filterStatus').value;
+            const u = document.getElementById('filterUrgency').value;
+            const dStart = document.getElementById('filterStartDate').value;
+            const dEnd = document.getElementById('filterEndDate').value;
 
+            let filtered = getAccessibleRequests().filter(r => {
+                const matchQ = r.id.toLowerCase().includes(q) || r.division.toLowerCase().includes(q) || (r.items && r.items.some(i => i.name.toLowerCase().includes(q)));
+                
+                // Filter Date Range
+                let matchDate = true;
+                if (dStart) matchDate = matchDate && (r.submissionDate >= dStart);
+                if (dEnd) matchDate = matchDate && (r.submissionDate <= dEnd);
+
+                return matchQ && matchDate && (!b || r.branch === b) && (!s || r.status === s) && (!u || r.urgency === u);
+            });
+
+            // Terapkan sorting setelah difilter
+            appState.pagination.filteredData = sortDataList(filtered);
+            appState.pagination.currentPage = 1;
+            renderRequestsTable();
+        }
+
+        function renderRequestsTable() {
+            const list = appState.pagination.filteredData;
+            const tbody = document.getElementById('requestsTableBody');
+            if (!tbody) return; tbody.innerHTML = '';
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-bold">Tidak ada data sesuai filter.</td></tr>`;
+                updatePaginationControls(0, 0, 0, 0); return;
+            }
+
+            const ps = appState.pagination.pageSize;
+            const tp = Math.ceil(list.length / ps);
+            if (appState.pagination.currentPage > tp) appState.pagination.currentPage = tp;
+            if (appState.pagination.currentPage < 1) appState.pagination.currentPage = 1;
+
+            const startIdx = (appState.pagination.currentPage - 1) * ps;
+            const pageData = list.slice(startIdx, startIdx + ps);
+
+            pageData.forEach((req, idx) => {
+                const rowNo = startIdx + idx + 1;
+                const cost = req.items ? req.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
+                const actIdx = appState.requests.indexOf(req);
+                const role = getCurrentUser().role;
+                let btns = `<button onclick="openDetailModal(${actIdx})" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
+                if (role === 'General Affair Manager') {
+                    btns += `<button onclick="openEditModal(${actIdx})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>`;
+                }
+                const statClass = req.status === 'Pending' ? 'bg-amber-100 text-amber-900' : (req.status === 'Completed' ? 'bg-emerald-100 text-emerald-900' : (req.status === 'Rejected' ? 'bg-rose-100 text-rose-900' : 'bg-blue-100 text-blue-900'));
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 pl-4 text-center font-bold text-slate-500">${rowNo}</td>
+                        <td class="p-3 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
+                        <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
+                        <td class="p-3">${req.items ? req.items.map(i=>`${i.qty}x${i.name}`).join(', ') : '-'}</td>
+                        <td class="p-3 text-right font-mono font-black">${formatRupiah(cost)}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border ${req.urgency === 'Critical' ? 'bg-rose-100 text-rose-900' : 'bg-white'}">${req.urgency}</span></td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border ${statClass}">${req.status}</span></td>
+                        <td class="p-3 pr-4 text-center whitespace-nowrap">${btns}</td>
+                    </tr>`;
+            });
+            updatePaginationControls(startIdx + 1, Math.min(startIdx + ps, list.length), list.length, tp);
+        }
+
+        function updatePaginationControls(s, e, t, tp) {
+            document.getElementById('paginationInfo').innerText = t === 0 ? "Menampilkan 0 data" : `Menampilkan ${s}-${e} dari ${t} data`;
+            document.getElementById('btnPrevPage').disabled = (appState.pagination.currentPage <= 1 || t === 0);
+            document.getElementById('btnNextPage').disabled = (appState.pagination.currentPage >= tp || t === 0);
+            document.getElementById('pageNumbersContainer').innerHTML = t === 0 ? '' : `Hal ${appState.pagination.currentPage} / ${tp}`;
+        }
+        function nextPage() { if(appState.pagination.currentPage < Math.ceil(appState.pagination.filteredData.length / appState.pagination.pageSize)) { appState.pagination.currentPage++; renderRequestsTable(); } }
+        function prevPage() { if(appState.pagination.currentPage > 1) { appState.pagination.currentPage--; renderRequestsTable(); } }
+        function changePageSize(sz) { appState.pagination.pageSize = parseInt(sz); appState.pagination.currentPage = 1; renderRequestsTable(); }
+        function clearFilters() { 
+            document.getElementById('filterSearch').value = ''; document.getElementById('filterBranch').value = ''; 
+            document.getElementById('filterStatus').value = ''; document.getElementById('filterUrgency').value = ''; 
+            document.getElementById('filterStartDate').value = ''; document.getElementById('filterEndDate').value = ''; 
+            applyTableFilters(); 
+        }
+
+        /* --- DASHBOARD & METRICS --- */
+        function updateMetrics() {
+            const list = getAccessibleRequests();
+            document.getElementById('metric-pending').innerText = list.filter(r => r.status === 'Pending').length;
+            document.getElementById('metric-progress').innerText = list.filter(r => r.status === 'Approved').length;
+            document.getElementById('metric-completed').innerText = list.filter(r => r.status === 'Completed').length;
+            let tot = 0; list.forEach(r => r.items && r.items.forEach(i => tot += (i.qty * i.cost)));
+            document.getElementById('metric-budget').innerText = formatRupiah(tot);
+            
+            if (document.getElementById('nav-count-badge')) document.getElementById('nav-count-badge').innerText = list.length;
+            renderBudgetChart(list);
+        }
+
+        function renderBudgetChart(dataList) {
+            const ctx = document.getElementById('budgetChart');
+            if(!ctx) return;
+
+            // Kelompokkan total cost per cabang
+            let branchBudgets = {};
+            dataList.forEach(req => {
+                const b = req.branch;
+                const cost = req.items ? req.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
+                if(!branchBudgets[b]) branchBudgets[b] = 0;
+                branchBudgets[b] += cost;
+            });
+
+            const labels = Object.keys(branchBudgets);
+            const dataValues = Object.values(branchBudgets);
+
+            if(chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Estimasi Anggaran (Rp)',
+                        data: dataValues,
+                        backgroundColor: '#f59e0b', // amber-500
+                        borderColor: '#0f172a', // slate-900
+                        borderWidth: 2,
+                        borderRadius: 2,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { callback: function(value) { return 'Rp ' + (value/1000000) + 'Jt'; }, font: { family: "'JetBrains Mono', monospace", size: 10 } }
+                        },
+                        x: { ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        /* --- MODALS LOGIC --- */
+        function openDetailModal(idx) {
+            const req = appState.requests[idx]; if (!req) return;
             document.getElementById('detailReqId').innerText = `#${req.id}`;
             document.getElementById('detailDivision').innerText = req.division;
             document.getElementById('detailBranch').innerText = req.branch;
@@ -1175,411 +1122,162 @@
             document.getElementById('detailStatusBadge').innerText = `${req.status} (${req.urgency})`;
             document.getElementById('detailJustification').innerText = req.justification || '-';
 
-            const tbody = document.getElementById('detailItemsTableBody');
-            tbody.innerHTML = '';
-            let total = 0;
-            if(req.items && Array.isArray(req.items)) {
-                req.items.forEach((item, idx) => {
-                    const sub = (item.qty || 0) * (item.cost || 0);
-                    total += sub;
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="p-1.5 border border-slate-900 text-center">${idx + 1}</td>
-                            <td class="p-1.5 border border-slate-900 font-bold">${item.name}<br><span class="text-[9px] text-slate-500">${item.category} ${item.notes ? '• ' + item.notes : ''}</span></td>
-                            <td class="p-1.5 border border-slate-900 text-center">${item.qty} ${item.unit || 'Unit'}</td>
-                            <td class="p-1.5 border border-slate-900 text-right">${formatRupiah(item.cost)}</td>
-                            <td class="p-1.5 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td>
-                        </tr>
-                    `;
+            const tb = document.getElementById('detailItemsTableBody'); tb.innerHTML = ''; let tot = 0;
+            if(req.items) {
+                req.items.forEach((item, i) => {
+                    const sub = item.qty * item.cost; tot += sub;
+                    tb.innerHTML += `<tr><td class="p-1.5 border border-slate-900 text-center">${i+1}</td><td class="p-1.5 border border-slate-900 font-bold">${item.name}<br><span class="text-[9px] text-slate-500">${item.category} ${item.notes?'• '+item.notes:''}</span></td><td class="p-1.5 border border-slate-900 text-center">${item.qty} ${item.unit}</td><td class="p-1.5 border border-slate-900 text-right">${formatRupiah(item.cost)}</td><td class="p-1.5 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td></tr>`;
                 });
             }
-            document.getElementById('detailTotalBudget').innerText = formatRupiah(total);
-
-            const photosContainer = document.getElementById('detailPhotosContainer');
-            photosContainer.innerHTML = '';
-            if(req.items && Array.isArray(req.items)) {
+            document.getElementById('detailTotalBudget').innerText = formatRupiah(tot);
+            
+            const pc = document.getElementById('detailPhotosContainer'); pc.innerHTML = '';
+            if(req.items) {
                 req.items.filter(i => i.photo).forEach(item => {
-                    photosContainer.innerHTML += `
-                        <div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}', '${item.name}')">
-                            <img src="${item.photo}" class="w-12 h-12 object-cover border">
-                            <span class="text-[8px] font-mono font-bold block text-center mt-0.5 truncate w-12">${item.name}</span>
-                        </div>
-                    `;
+                    pc.innerHTML += `<div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}')"><img src="${item.photo}" class="w-12 h-12 object-cover border"><span class="text-[8px] font-mono font-bold block text-center mt-0.5 truncate w-12">${item.name}</span></div>`;
                 });
+            }
+
+            // Tampilkan Audit Trail
+            const auditUl = document.getElementById('detailAuditTrail');
+            if (req.audit && req.audit.length > 0) {
+                auditUl.innerHTML = req.audit.map(a => `<li><span class="font-bold text-slate-900">${a.timestamp}</span> - ${a.actor} (${a.role}) : <span class="italic">${a.action}</span></li>`).join('');
+            } else {
+                auditUl.innerHTML = `<li class="italic text-slate-500">Tidak ada riwayat.</li>`;
             }
 
             openModal('detailModal');
         }
 
-        function openEditModal(index) {
-            const user = getCurrentUser();
-            if (!user || user.role !== 'General Affair Manager') {
-                Swal.fire('Akses Dibatasi', 'Hanya akun General Affair Manager yang dapat mengedit pengajuan.', 'warning');
-                return;
-            }
-
-            const req = appState.requests[index];
-            if (!req) return;
-            document.getElementById('editReqDocId').value = index;
-            document.getElementById('editModalTitle').innerText = `Edit & Approval: ${req.id}`;
-            document.getElementById('editStatus').value = req.status;
-            document.getElementById('editUrgency').value = req.urgency;
-            document.getElementById('editGANotes').value = req.gaNotes || '';
-
-            const container = document.getElementById('editModalItemsContainer');
-            container.innerHTML = '';
-            if (req.items && Array.isArray(req.items)) {
-                req.items.forEach(item => {
-                    addEditModalItemRow(item);
-                });
-            } else {
-                addEditModalItemRow();
-            }
-
+        function openEditModal(idx) {
+            const u = getCurrentUser(); if (u.role !== 'General Affair Manager') return Swal.fire('Akses Dibatasi', 'Hanya GA Manager.', 'warning');
+            const r = appState.requests[idx]; if (!r) return;
+            document.getElementById('editReqDocId').value = idx;
+            document.getElementById('editStatus').value = r.status; document.getElementById('editUrgency').value = r.urgency; document.getElementById('editGANotes').value = r.gaNotes||'';
+            const c = document.getElementById('editModalItemsContainer'); c.innerHTML = '';
+            if(r.items) { r.items.forEach(i => addEditModalItemRow(i)); } else { addEditModalItemRow(); }
             openModal('editApprovalModal');
         }
 
-        function addEditModalItemRow(itemData = null) {
-            const container = document.getElementById('editModalItemsContainer');
-            const rowId = 'edit_item_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-            const catOptions = appState.categories.map(c => `<option value="${c}" ${itemData && itemData.category === c ? 'selected' : ''}>${c}</option>`).join('');
-
-            const rowHTML = `
-                <div id="${rowId}" class="edit-item-row bg-white p-3 neo-border space-y-2">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-1">
-                        <span class="font-mono font-bold text-[11px] uppercase text-slate-700">Baris Item Aset</span>
-                        <button type="button" onclick="removeEditModalItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus Baris</button>
-                    </div>
+        function addEditModalItemRow(data=null) {
+            const c = document.getElementById('editModalItemsContainer'); const rid = 'edit_item_'+Date.now();
+            const co = appState.categories.map(c => `<option value="${c}" ${data&&data.category===c?'selected':''}>${c}</option>`).join('');
+            const h = `
+                <div id="${rid}" class="edit-item-row bg-white p-3 neo-border space-y-2">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-1"><span class="font-mono font-bold text-[11px] uppercase text-slate-700">Baris Item Aset</span><button type="button" onclick="removeEditModalItemRow('${rid}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus Baris</button></div>
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                        <div class="sm:col-span-5">
-                            <input type="text" required placeholder="Nama / Tipe Aset..." class="edit-item-name w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold focus:outline-none" value="${itemData ? itemData.name : ''}">
-                        </div>
-                        <div class="sm:col-span-4">
-                            <select class="edit-item-category w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold focus:outline-none">${catOptions}</select>
-                        </div>
-                        <div class="sm:col-span-1">
-                            <input type="number" min="1" required class="edit-item-qty w-full bg-slate-50 neo-border px-1 py-1 text-xs font-bold text-center" value="${itemData ? itemData.qty : 1}">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <input type="number" min="0" required class="edit-item-cost w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold font-mono" value="${itemData ? itemData.cost : 0}" placeholder="Harga">
-                        </div>
+                        <div class="sm:col-span-5"><input type="text" required class="edit-item-name w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold" value="${data?data.name:''}"></div>
+                        <div class="sm:col-span-4"><select class="edit-item-category w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold">${co}</select></div>
+                        <div class="sm:col-span-1"><input type="number" min="1" required class="edit-item-qty w-full bg-slate-50 neo-border px-1 py-1 text-xs font-bold text-center" value="${data?data.qty:1}"></div>
+                        <div class="sm:col-span-2"><input type="number" min="0" required class="edit-item-cost w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold font-mono" value="${data?data.cost:0}"></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <input type="text" placeholder="Catatan spesifikasi..." class="edit-item-notes w-full bg-slate-50 neo-border px-2 py-1 text-xs" value="${itemData ? (itemData.notes || '') : ''}">
-                        <div class="flex items-center space-x-2">
-                            <label class="neo-button bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-1 cursor-pointer flex items-center shrink-0">
-                                <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
-                                <input type="file" accept="image/*" class="hidden" onchange="handleEditPhotoUpload(this, '${rowId}')">
-                            </label>
-                            <input type="hidden" class="edit-item-photo" value="${itemData ? (itemData.photo || '') : ''}">
-                            <div class="edit-photo-preview-box text-[10px] font-mono text-slate-500 truncate italic flex-1">${itemData && itemData.photo ? '✓ Foto Terlampir' : 'Belum ada foto'}</div>
-                        </div>
+                        <input type="text" placeholder="Catatan spesifikasi..." class="edit-item-notes w-full bg-slate-50 neo-border px-2 py-1 text-xs" value="${data?data.notes||'':''}">
+                        <div class="flex items-center space-x-2"><label class="neo-button bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-1 cursor-pointer flex items-center shrink-0"><i class="fa-solid fa-camera mr-1"></i>Upload <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rid}')"></label><input type="hidden" class="item-photo-data" value="${data?data.photo||'':''}"><div class="photo-preview-box text-[10px] font-mono text-slate-500 truncate flex-1">${data&&data.photo?'✓ Foto Terlampir':'Belum ada foto'}</div></div>
                     </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', rowHTML);
+                </div>`;
+            c.insertAdjacentHTML('beforeend', h);
         }
-
-        function handleEditPhotoUpload(input, rowId) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) { Swal.fire('Error', 'Maksimal ukuran foto 2MB.', 'error'); return; }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const row = document.getElementById(rowId);
-                    if (row) {
-                        row.querySelector('.edit-item-photo').value = e.target.result;
-                        row.querySelector('.edit-photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${file.name})</span>`;
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function removeEditModalItemRow(rowId) {
-            if (document.querySelectorAll('.edit-item-row').length <= 1) {
-                Swal.fire('Peringatan', 'Minimal harus ada 1 baris item dalam pengajuan!', 'warning');
-                return;
-            }
-            document.getElementById(rowId)?.remove();
-        }
+        function removeEditModalItemRow(id) { if (document.querySelectorAll('.edit-item-row').length > 1) document.getElementById(id).remove(); }
 
         async function saveEditApproval(e) {
             e.preventDefault();
-            const index = parseInt(document.getElementById('editReqDocId').value);
-            const req = appState.requests[index];
-            if (!req) return;
-
-            req.status = document.getElementById('editStatus').value;
-            req.urgency = document.getElementById('editUrgency').value;
+            const idx = parseInt(document.getElementById('editReqDocId').value); const req = appState.requests[idx]; if (!req) return;
+            const usr = getCurrentUser();
+            
+            const oldStatus = req.status;
+            const newStatus = document.getElementById('editStatus').value;
+            
+            req.status = newStatus; 
+            req.urgency = document.getElementById('editUrgency').value; 
             req.gaNotes = document.getElementById('editGANotes').value;
 
-            let updatedItems = [];
-            document.querySelectorAll('.edit-item-row').forEach(row => {
-                updatedItems.push({
-                    name: row.querySelector('.edit-item-name').value,
-                    category: row.querySelector('.edit-item-category').value,
-                    qty: parseInt(row.querySelector('.edit-item-qty').value) || 1,
-                    unit: 'Unit',
-                    cost: parseFloat(row.querySelector('.edit-item-cost').value) || 0,
-                    notes: row.querySelector('.edit-item-notes').value || '',
-                    photo: row.querySelector('.edit-item-photo').value || ''
-                });
-            });
-            req.items = updatedItems;
-            
-            if (window.db && req.docId) {
-                try {
-                    const { doc, setDoc } = window.fbDeps;
-                    await setDoc(doc(window.db, "requests", req.docId), req, { merge: true });
-                } catch(err) { console.error("Update Cloud Error:", err); }
-            } else {
-                saveLocalState();
-            }
+            let upd = []; document.querySelectorAll('.edit-item-row').forEach(r => { upd.push({ name: r.querySelector('.edit-item-name').value, category: r.querySelector('.edit-item-category').value, qty: parseInt(r.querySelector('.edit-item-qty').value)||1, unit: 'Unit', cost: parseFloat(r.querySelector('.edit-item-cost').value)||0, notes: r.querySelector('.edit-item-notes').value||'', photo: r.querySelector('.item-photo-data').value||'' }); });
+            req.items = upd;
 
-            closeModal('editApprovalModal');
-            applyTableFilters();
-            updateMetrics();
+            // Tambah Audit Trail
+            if(!req.audit) req.audit = [];
+            let actionText = `Memperbarui Data & Rincian.`;
+            if (oldStatus !== newStatus) actionText = `Ubah status: ${oldStatus} ➔ ${newStatus}. Catatan GA: ${req.gaNotes || '-'}`;
             
-            Swal.fire('Berhasil', 'Status, rincian item, foto, & catatan diperbarui secara real-time.', 'success');
+            req.audit.push({
+                actor: usr.name, role: usr.role,
+                action: actionText, timestamp: new Date().toLocaleString('id-ID')
+            });
+
+            if (window.db && req.docId) { try { await window.fbDeps.setDoc(window.fbDeps.doc(window.db, "requests", req.docId), req, { merge: true }); } catch(err){} } 
+            else { saveLocalState(); }
+            closeModal('editApprovalModal'); applyTableFilters(); updateMetrics(); Swal.fire('Berhasil', 'Pembaruan disimpan.', 'success');
         }
 
-        async function deleteRequest(index, docId) {
-            const user = getCurrentUser();
-            if (!user || user.role !== 'General Affair Manager') {
-                Swal.fire('Akses Dibatasi', 'Hanya General Affair Manager yang dapat menghapus data.', 'warning');
-                return;
-            }
-
-            Swal.fire({
-                title: 'Hapus pengajuan?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626'
-            }).then(async (res) => {
-                if (res.isConfirmed) {
-                    if (window.db && docId) {
-                        try {
-                            const { doc, deleteDoc } = window.fbDeps;
-                            await deleteDoc(doc(window.db, "requests", docId));
-                        } catch(e) {}
-                    } else {
-                        appState.requests.splice(index, 1);
-                        saveLocalState();
-                    }
-                    
-                    applyTableFilters();
-                    updateMetrics();
-                    Swal.fire('Terhapus', 'Data dihapus dari sistem.', 'success');
+        async function deleteRequest(idx, did) {
+            Swal.fire({ title: 'Hapus pengajuan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626' }).then(async (res) => {
+                if(res.isConfirmed) {
+                    if (window.db && did) { try { await window.fbDeps.deleteDoc(window.fbDeps.doc(window.db, "requests", did)); } catch(e){} } 
+                    else { appState.requests.splice(idx, 1); saveLocalState(); }
+                    applyTableFilters(); updateMetrics(); Swal.fire('Terhapus', 'Data dihapus.', 'success');
                 }
             });
         }
+        function openZoomImage(src) { document.getElementById('zoomedImage').src = src; openModal('imageZoomModal'); }
+        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
+        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
 
-        function openZoomImage(src, cap) {
-            document.getElementById('zoomedImage').src = src;
-            document.getElementById('zoomedImageCaption').innerText = cap;
-            openModal('imageZoomModal');
-        }
-
-        function openModal(id) { 
-            const el = document.getElementById(id);
-            if (el) el.classList.replace('hidden', 'flex'); 
-        }
-
-        function closeModal(id) { 
-            const el = document.getElementById(id);
-            if (el) el.classList.replace('flex', 'hidden'); 
-        }
-
+        /* --- MASTER DATA LOGIC --- */
         function renderMasterDataView() {
-            renderUserManagementTable();
-            renderMasterReferenceList('categories', 'masterListCategories');
-            renderMasterReferenceList('divisions', 'masterListDivisions');
-            renderMasterReferenceList('branches', 'masterListBranches');
-        }
-
-        function renderUserManagementTable() {
-            const tbody = document.getElementById('masterUserTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = appState.users.map((u, idx) => {
-                const branchText = u.branches.includes('ALL') 
-                    ? 'All Branches (GA)' 
-                    : u.branches.join(', ');
-
-                const roleColorClass = 'text-blue-600 font-mono';
-
-                return `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-2.5 border border-slate-300 font-bold text-slate-800">${u.name}</td>
-                        <td class="p-2.5 border border-slate-300 ${roleColorClass}">${u.role}</td>
-                        <td class="p-2.5 border border-slate-300 font-medium">${branchText}</td>
-                        <td class="p-2.5 border border-slate-300 text-center whitespace-nowrap">
-                            <button onclick="promptEditUser(${idx})" class="text-slate-600 hover:text-slate-900 mr-2" title="Edit Akun"><i class="fa-solid fa-pen"></i></button>
-                            ${u.username !== 'admin' ? `<button onclick="deleteUserAccount(${idx})" class="text-rose-600 hover:text-rose-800" title="Hapus Akun"><i class="fa-solid fa-trash"></i></button>` : ''}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderMasterReferenceList(key, elementId) {
-            const container = document.getElementById(elementId);
-            if (!container) return;
-            container.innerHTML = appState[key].map((item, idx) => `
-                <div class="flex items-center justify-between bg-slate-50 p-2 neo-border text-xs font-bold">
-                    <span>${item}</span>
-                    <button onclick="deleteMasterItem('${key}', ${idx})" class="text-rose-600 hover:text-rose-800 px-1 font-black">&times;</button>
-                </div>
-            `).join('');
-        }
-
-        function promptAddMasterItem(key) {
-            const labelMap = { categories: 'Kategori Aset', divisions: 'Divisi Pemohon', branches: 'Cabang Store / Lokasi' };
-            Swal.fire({
-                title: `Tambah ${labelMap[key]}`,
-                input: 'text',
-                inputPlaceholder: 'Masukkan nama...',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb'
-            }).then((res) => {
-                if (res.isConfirmed && res.value.trim() !== '') {
-                    appState[key].push(res.value.trim());
-                    saveMasterSettings();
-                    renderMasterDataView();
-                    populateDropdowns();
-                    Swal.fire('Berhasil', 'Data ditambahkan dan disinkronkan ke cloud.', 'success');
-                }
+            const tb = document.getElementById('masterUserTableBody'); if (!tb) return;
+            tb.innerHTML = appState.users.map((u, i) => `<tr class="hover:bg-slate-50"><td class="p-2.5 border border-slate-300 font-bold">${u.name}</td><td class="p-2.5 border border-slate-300 text-blue-600 font-mono">${u.role}</td><td class="p-2.5 border border-slate-300 font-medium">${u.branches.includes('ALL')?'All Branches':u.branches.join(', ')}</td><td class="p-2.5 border border-slate-300 text-center"><button onclick="promptEditUser(${i})" class="text-slate-600 mr-2"><i class="fa-solid fa-pen"></i></button>${u.username!=='admin'?`<button onclick="deleteUserAccount(${i})" class="text-rose-600"><i class="fa-solid fa-trash"></i></button>`:''}</td></tr>`).join('');
+            ['categories','divisions','branches'].forEach(k => {
+                const el = document.getElementById('masterList' + k.charAt(0).toUpperCase() + k.slice(1));
+                if(el) el.innerHTML = appState[k].map((item, idx) => `<div class="flex items-center justify-between bg-slate-50 p-2 neo-border text-xs font-bold"><span>${item}</span><button onclick="deleteMasterItem('${k}', ${idx})" class="text-rose-600 hover:text-rose-800 px-1 font-black">&times;</button></div>`).join('');
             });
         }
-
-        function deleteMasterItem(key, index) {
-            appState[key].splice(index, 1);
-            saveMasterSettings();
-            renderMasterDataView();
-            populateDropdowns();
+        function promptAddMasterItem(k) {
+            Swal.fire({ title: `Tambah Data`, input: 'text', showCancelButton: true, confirmButtonColor: '#2563eb' }).then(r => {
+                if(r.isConfirmed && r.value.trim()!=='') { appState[k].push(r.value.trim()); saveMasterSettings(); renderMasterDataView(); populateDropdowns(); }
+            });
         }
+        function deleteMasterItem(k, i) { appState[k].splice(i, 1); saveMasterSettings(); renderMasterDataView(); populateDropdowns(); }
 
-        function renderBranchCheckboxes(selectedBranches = []) {
-            const container = document.getElementById('branchCheckboxesContainer');
-            if (!container) return;
-            container.innerHTML = appState.branches.map(b => {
-                const isChecked = selectedBranches.includes('ALL') || selectedBranches.includes(b);
-                return `
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" value="${b}" ${isChecked ? 'checked' : ''} class="branch-checkbox w-4 h-4 text-cobalt-600 font-bold focus:ring-amber-500">
-                        <span>${b}</span>
-                    </label>
-                `;
-            }).join('');
+        function renderBranchCheckboxes(sel=[]) {
+            const c = document.getElementById('branchCheckboxesContainer'); if (!c) return;
+            c.innerHTML = appState.branches.map(b => `<label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="${b}" ${sel.includes('ALL')||sel.includes(b)?'checked':''} class="branch-checkbox w-4 h-4 text-cobalt-600 font-bold"><span>${b}</span></label>`).join('');
         }
-
         function toggleBranchCheckboxesByRole() {
-            const role = document.getElementById('userFormRole').value;
-            const checkboxes = document.querySelectorAll('.branch-checkbox');
-            if (role === 'General Affair Manager') {
-                checkboxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
-            } else {
-                checkboxes.forEach(cb => { cb.disabled = false; });
-            }
+            const r = document.getElementById('userFormRole').value;
+            document.querySelectorAll('.branch-checkbox').forEach(cb => { if(r==='General Affair Manager'){ cb.checked=true; cb.disabled=true; } else { cb.disabled=false; } });
         }
-
-        function promptAddUser() {
-            document.getElementById('userFormId').value = '';
-            document.getElementById('userModalTitle').innerText = 'Buat Akun Pengguna Baru';
-            document.getElementById('userFormUsername').value = '';
-            document.getElementById('userFormName').value = '';
-            document.getElementById('userFormPassword').value = '123';
-            document.getElementById('userFormRole').value = 'Staff Store';
-            renderBranchCheckboxes([]);
-            toggleBranchCheckboxesByRole();
-            openModal('userModal');
+        function promptAddUser() { document.getElementById('userForm').reset(); document.getElementById('userFormId').value=''; document.getElementById('userModalTitle').innerText='Buat Akun Baru'; renderBranchCheckboxes([]); toggleBranchCheckboxesByRole(); openModal('userModal'); }
+        function promptEditUser(i) {
+            const u = appState.users[i]; document.getElementById('userFormId').value = i; document.getElementById('userModalTitle').innerText = 'Edit: '+u.name;
+            document.getElementById('userFormUsername').value = u.username; document.getElementById('userFormName').value = u.name; document.getElementById('userFormPassword').value = u.password; document.getElementById('userFormRole').value = u.role;
+            renderBranchCheckboxes(u.branches||[]); toggleBranchCheckboxesByRole(); openModal('userModal');
         }
-
-        function promptEditUser(index) {
-            const u = appState.users[index];
-            if (!u) return;
-            document.getElementById('userFormId').value = index;
-            document.getElementById('userModalTitle').innerText = `Edit Akun: ${u.name}`;
-            document.getElementById('userFormUsername').value = u.username;
-            document.getElementById('userFormName').value = u.name;
-            document.getElementById('userFormPassword').value = u.password;
-            document.getElementById('userFormRole').value = u.role;
-            renderBranchCheckboxes(u.branches || []);
-            toggleBranchCheckboxesByRole();
-            openModal('userModal');
-        }
-
         function saveUserAccount(e) {
-            e.preventDefault();
-            const indexStr = document.getElementById('userFormId').value;
-            const username = document.getElementById('userFormUsername').value.trim();
-            const name = document.getElementById('userFormName').value.trim();
-            const password = document.getElementById('userFormPassword').value.trim();
-            const role = document.getElementById('userFormRole').value;
-
-            let selectedBranches = [];
-            if (role === 'General Affair Manager') {
-                selectedBranches = ['ALL'];
+            e.preventDefault(); const idStr = document.getElementById('userFormId').value;
+            const uname = document.getElementById('userFormUsername').value.trim(); const nm = document.getElementById('userFormName').value.trim(); const pwd = document.getElementById('userFormPassword').value.trim(); const rl = document.getElementById('userFormRole').value;
+            let br = []; if (rl === 'General Affair Manager') { br = ['ALL']; } else { document.querySelectorAll('.branch-checkbox:checked').forEach(cb => br.push(cb.value)); }
+            if (br.length===0) return Swal.fire('Peringatan', 'Pilih minimal 1 cabang!', 'warning');
+            
+            if (idStr==='') {
+                if (appState.users.some(u=>u.username===uname)) return Swal.fire('Error', 'Username terpakai!', 'error');
+                appState.users.push({ id:'usr_'+Date.now(), username:uname, name:nm, password:pwd, role:rl, branches:br });
             } else {
-                document.querySelectorAll('.branch-checkbox:checked').forEach(cb => {
-                    selectedBranches.push(cb.value);
-                });
+                appState.users[parseInt(idStr)] = { ...appState.users[parseInt(idStr)], username:uname, name:nm, password:pwd, role:rl, branches:br };
             }
-
-            if (selectedBranches.length === 0) {
-                Swal.fire('Peringatan', 'Pilih minimal 1 cabang penugasan!', 'warning');
-                return;
-            }
-
-            if (indexStr === '') {
-                if (appState.users.some(u => u.username === username)) {
-                    Swal.fire('Error', 'Username sudah terpakai!', 'error');
-                    return;
-                }
-                appState.users.push({ id: 'usr_' + Date.now(), username, name, password, role, branches: selectedBranches });
-            } else {
-                const idx = parseInt(indexStr);
-                appState.users[idx] = { ...appState.users[idx], username, name, password, role, branches: selectedBranches };
-            }
-
-            saveMasterSettings();
-            closeModal('userModal');
-            renderUserManagementTable();
-            Swal.fire('Tersimpan', 'Akun berhasil disimpan dan disinkronkan secara realtime.', 'success');
+            saveMasterSettings(); closeModal('userModal'); renderMasterDataView(); Swal.fire('Tersimpan', '', 'success');
         }
-
-        function deleteUserAccount(index) {
-            Swal.fire({
-                title: 'Hapus akun ini?',
-                text: 'User ini tidak akan bisa login lagi.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    appState.users.splice(index, 1);
-                    saveMasterSettings();
-                    renderUserManagementTable();
-                    Swal.fire('Terhapus', 'Akun dihapus.', 'success');
-                }
+        function deleteUserAccount(i) {
+            Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626' }).then(r => {
+                if(r.isConfirmed) { appState.users.splice(i, 1); saveMasterSettings(); renderMasterDataView(); Swal.fire('Terhapus', '', 'success'); }
             });
         }
-
         function exportCSV() {
             let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Divisi,Cabang,Urgensi,Status,Total\r\n";
-            getAccessibleRequests().forEach(r => {
-                const total = r.items ? r.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, total].join(",") + "\r\n";
-            });
-            const link = document.createElement("a");
-            link.href = encodeURI(csv);
-            link.download = `AssetReq_Report.csv`;
-            link.click();
+            getAccessibleRequests().forEach(r => { const t = r.items ? r.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0; csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, t].join(",") + "\r\n"; });
+            const link = document.createElement("a"); link.href = encodeURI(csv); link.download = `AssetReq_Report.csv`; link.click();
         }
-
-        function formatRupiah(amount) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
-        }
+        function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
     </script>
 </body>
 </html>
