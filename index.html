@@ -282,41 +282,45 @@
                 </div>
             </div>
 
-            <!-- Filter Bar Terpadu (Ditambah Filter Rentang Waktu) -->
-            <div class="bg-white p-4 neo-border neo-shadow flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-                <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-                    <!-- Search Text -->
-                    <div class="w-full sm:w-64 relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-                        <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    </div>
-                    <!-- Date Range -->
-                    <div class="flex items-center space-x-2 bg-slate-50 neo-border px-2">
-                        <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
-                        <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
-                        <span class="text-slate-400 font-bold">-</span>
-                        <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
-                    </div>
+            <!-- Filter Bar Terpadu -->
+            <div class="bg-white p-4 neo-border neo-shadow flex flex-wrap items-center gap-3">
+                
+                <!-- Search Text -->
+                <div class="w-full md:w-64 relative flex-shrink-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2 text-slate-400 text-sm"></i>
+                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                
+                <!-- Date Range -->
+                <div class="flex items-center space-x-2 bg-slate-50 neo-border px-2 flex-shrink-0">
+                    <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
+                    <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
+                    <span class="text-slate-400 font-bold">-</span>
+                    <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-                    <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-                    <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Semua Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                    <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="">Semua Urgensi</option>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Critical">Critical</option>
-                    </select>
-                    <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5">Reset</button>
-                </div>
+                <!-- Dropdown Filters -->
+                <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-1 min-w-[150px]"></select>
+                
+                <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-shrink-0">
+                    <option value="">Semua Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                
+                <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-shrink-0">
+                    <option value="">Semua Urgensi</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
+                
+                <!-- Reset Button -->
+                <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-1.5 flex-shrink-0">Reset</button>
+                
             </div>
 
             <!-- Table & Pagination Container -->
@@ -431,7 +435,6 @@
     <!-- MODALS -->
     <!-- LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xs flex items-center justify-center p-4">
-        <!-- Struktur sama dengan aslinya -->
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full p-6 space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-12 h-12 bg-amber-500 border-2 border-slate-900 mx-auto flex items-center justify-center text-slate-900 font-black text-2xl neo-shadow-sm">
@@ -482,7 +485,6 @@
 
     <!-- MODAL EDIT / TAMBAH USER -->
     <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-        <!-- (Struktur Sama dengan asli) -->
         <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
             <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
                 <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Baru</h3>
