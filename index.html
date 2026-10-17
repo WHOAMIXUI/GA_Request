@@ -312,7 +312,8 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-900 text-white font-mono text-xs uppercase border-b-2 border-slate-950">
-                                <th class="p-3 pl-4">ID & Tanggal</th>
+                                <th class="p-3 pl-4 w-10 text-center">No</th>
+                                <th class="p-3">ID & Tanggal</th>
                                 <th class="p-3">Divisi & Cabang</th>
                                 <th class="p-3">Ringkasan Item</th>
                                 <th class="p-3 text-right">Est. Cost Total</th>
@@ -1015,7 +1016,7 @@
 
             const totalData = list.length;
             if (totalData === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-bold">Tidak ada data permintaan pengadaan di cabang yang diakses.</td></tr>`;
                 updatePaginationControls(0, 0, 0, 0);
                 return;
             }
@@ -1033,7 +1034,10 @@
             const endIndex = Math.min(startIndex + pageSize, totalData);
             const pageData = list.slice(startIndex, endIndex);
 
-            pageData.forEach(req => {
+            pageData.forEach((req, index) => {
+                // Hitung nomor urut berdasarkan pagination
+                const rowNumber = startIndex + index + 1; 
+
                 const totalCost = (req.items && Array.isArray(req.items)) 
                     ? req.items.reduce((sum, item) => sum + ((item.qty || 0) * (item.cost || 0)), 0) 
                     : 0;
@@ -1052,7 +1056,8 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 pl-4 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
+                        <td class="p-3 pl-4 text-center font-bold text-slate-500">${rowNumber}</td>
+                        <td class="p-3 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
                         <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
                         <td class="p-3">${summaryItems}</td>
                         <td class="p-3 text-right font-mono font-black">${formatRupiah(totalCost)}</td>
