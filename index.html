@@ -1,1285 +1,1696 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-100">
+<html lang="id" class="h-full bg-slate-900/5">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GA X DOBAH - Created By : DIVISI GA</title>
-    
+    <title>GA MAINTENANCE - Sistem Pengajuan Maintenance & Perbaikan Aset</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
-                        amber: { 500: '#f59e0b', 600: '#d97706' },
-                        cobalt: { 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Chart.js (Untuk Visualisasi Data) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
-            authDomain: "assetreqpro-a67d7.firebaseapp.com",
-            projectId: "assetreqpro-a67d7",
-            storageBucket: "assetreqpro-a67d7.firebasestorage.app",
-            messagingSenderId: "319679123678",
-            appId: "1:319679123678:web:a0fcedfa4178ade4e8b24f"
-        };
-
-        try {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            window.db = db;
-            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot };
-            window.dispatchEvent(new Event('firebase-ready'));
-        } catch (err) {
-            console.error("Gagal Inisialisasi Firebase:", err);
-        }
-    </script>
-
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
-        .neo-border { border: 2px solid #0f172a; }
-        .neo-shadow { box-shadow: 4px 4px 0px #0f172a; }
-        .neo-shadow-sm { box-shadow: 2px 2px 0px #0f172a; }
-        .neo-shadow-lg { box-shadow: 6px 6px 0px #0f172a; }
-        .neo-button { border: 2px solid #0f172a; box-shadow: 3px 3px 0px #0f172a; transition: all 0.1s ease; }
-        .neo-button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #0f172a; }
-        .neo-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #0f172a; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #e2e8f0; border-left: 2px solid #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #0f172a; }
-
-        /* Konfigurasi Print PDF */
-        @media print {
-            body * { visibility: hidden !important; }
-            #printable-area, #printable-area * { visibility: visible !important; }
-            #printable-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 10px !important; background: white !important; box-shadow: none !important; border: none !important; }
-            .no-print { display: none !important; }
-        }
-        
-        /* Cursor untuk Header Tabel (Sorting) */
-        th.sortable:hover { background-color: #1e293b; cursor: pointer; color: #f59e0b; }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .view-section { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-900">
+<body class="h-full text-slate-800 antialiased overflow-hidden flex flex-col bg-slate-100/70">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-slate-900 text-white border-b-4 border-slate-950 sticky top-0 z-40 px-4 sm:px-6 py-3.5 no-print">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-amber-500 border-2 border-white flex items-center justify-center text-slate-900 font-black text-xl neo-shadow-sm">
-                        <i class="fa-solid fa-boxes-packing"></i>
+    <!-- ==================== SCREEN 1: LOGIN ==================== -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative">
+            <!-- Header Login -->
+            <div class="bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900 p-8 text-white text-center relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl"></div>
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-md border border-white/20 shadow-inner">
+                    <i data-lucide="wrench" class="w-8 h-8 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-black tracking-tight">GA MAINTENANCE</h2>
+                <p class="text-blue-200 text-xs mt-1 font-medium">Sistem Pengajuan Maintenance & Perbaikan Aset</p>
+                <div class="inline-flex items-center gap-1.5 mt-3 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] px-3 py-1 rounded-full font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Mode Online Cloud Firestore
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="w-5 h-5 absolute left-3.5 top-3 text-slate-400"></i>
+                            <input type="text" id="login-username" required placeholder="Masukkan username" class="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all">
+                        </div>
                     </div>
                     <div>
-                        <div class="flex items-center space-x-2">
-                            <h1 class="font-black text-xl tracking-tight text-white font-mono uppercase">GA X <span class="text-amber-500">DOBAH</span></h1>
-                            <span id="cloudStatusBadge" class="bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase tracking-wider">Syncing...</span>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-5 h-5 absolute left-3.5 top-3 text-slate-400"></i>
+                            <input type="password" id="login-password" required placeholder="Masukkan password" class="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all">
                         </div>
-                        <p class="text-[11px] text-slate-400 font-medium tracking-wide uppercase">Created By : DIVISI GA</p>
                     </div>
-                </div>
-            </div>
-
-            <nav class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                <button onclick="switchTab('form')" id="tab-form" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
-                    <i class="fa-solid fa-pen-to-square mr-2"></i>Buat Permintaan
-                </button>
-                <button onclick="switchTab('list')" id="tab-list" class="neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
-                    <i class="fa-solid fa-list-check mr-2"></i>Daftar & Status
-                    <span id="nav-count-badge" class="ml-2 bg-cobalt-600 text-white text-[10px] font-mono px-1.5 py-0.5 border border-slate-900">0</span>
-                </button>
-                <button onclick="switchTab('master')" id="tab-master" class="neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap">
-                    <i class="fa-solid fa-database mr-2"></i>Master Data & Akun
-                </button>
-            </nav>
-
-            <div class="flex items-center space-x-3 relative">
-                <!-- Notifikasi Bell -->
-                <button onclick="toggleNotifMenu()" class="text-white hover:text-amber-400 relative p-2 transition-colors">
-                    <i class="fa-solid fa-bell text-lg"></i>
-                    <span id="notifBadge" class="hidden absolute top-0 right-0 bg-rose-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center neo-border">0</span>
-                </button>
-
-                <!-- Menu Notifikasi Dropdown -->
-                <div id="notifMenu" class="hidden absolute top-full right-10 mt-2 w-64 bg-white neo-border neo-shadow-lg z-50 overflow-hidden">
-                    <div class="bg-slate-900 text-white font-bold text-xs px-3 py-2 border-b-2 border-slate-900 flex justify-between items-center">
-                        <span>Pemberitahuan</span>
-                    </div>
-                    <div id="notifList" class="max-h-60 overflow-y-auto p-2 space-y-2 text-xs">
-                        <p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>
-                    </div>
-                </div>
-
-                <div class="h-6 w-0.5 bg-slate-700 hidden sm:block"></div>
-
-                <!-- User Menu Profile -->
-                <div id="userSessionInfo" class="hidden relative items-center cursor-pointer bg-slate-800 px-3 py-1.5 neo-border hover:bg-slate-700" onclick="toggleUserMenu()">
-                    <div class="text-left">
-                        <span id="displayUserName" class="text-xs font-black text-amber-400 block truncate max-w-[100px] sm:max-w-[140px]">User</span>
-                        <span id="displayUserRole" class="text-[10px] text-slate-300 font-mono block">Role</span>
-                    </div>
-                    <i class="fa-solid fa-caret-down text-slate-400 ml-2"></i>
-                </div>
-
-                <!-- User Dropdown Menu -->
-                <div id="userMenuDropdown" class="hidden absolute top-full right-0 mt-2 w-48 bg-white neo-border neo-shadow-lg z-50 text-sm font-bold flex flex-col">
-                    <button onclick="openModal('passwordModal')" class="text-left px-4 py-3 hover:bg-slate-100 text-slate-700 flex items-center border-b-2 border-slate-200">
-                        <i class="fa-solid fa-key w-5 text-cobalt-600"></i> Ubah Password
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Masuk ke Sistem
                     </button>
-                    <button onclick="handleLogout()" class="text-left px-4 py-3 hover:bg-rose-50 text-rose-600 flex items-center">
-                        <i class="fa-solid fa-power-off w-5"></i> Keluar (Logout)
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Workspace -->
-    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6 no-print">
 
-        <!-- TAB 1: FORM -->
-        <section id="view-form" class="space-y-6">
-            <div class="bg-white p-5 sm:p-6 neo-border neo-shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <div class="inline-block bg-amber-500 text-slate-900 font-black text-xs px-2.5 py-0.5 border border-slate-900 uppercase mb-2">
-                        FORMULIR PENGADAAN RESMI (REALTIME CLOUD SYNC)
+    <!-- ==================== SCREEN 2: MAIN DASHBOARD ==================== -->
+    <div id="app-screen" class="h-full flex overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="bg-slate-900 text-slate-300 w-64 flex-shrink-0 flex flex-col transition-transform duration-300 fixed z-30 h-full md:relative md:translate-x-0 -translate-x-full border-r border-slate-800">
+            <!-- Sidebar Header -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-800/80 justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30 font-bold">
+                        <i data-lucide="wrench" class="w-5 h-5"></i>
                     </div>
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Pengajuan Permintaan Aset Baru / Perbaikan</h2>
-                    <p class="text-xs sm:text-sm text-slate-600 font-medium">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
+                    <div>
+                        <span class="font-extrabold text-white text-base tracking-tight">GA <span class="text-blue-400">MAINTENANCE</span></span>
+                        <p class="text-[10px] text-slate-400 leading-none">CREATED BY DIVISI GA</p>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-2 text-xs font-mono font-bold bg-slate-100 p-2.5 neo-border">
-                    <i class="fa-solid fa-calendar-day text-cobalt-600"></i>
-                    <span>HARI INI: <span id="clock-date-today" class="text-slate-900">17 Okt 2026</span></span>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1.5">
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Menu Utama</p>
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Tiket
+                </button>
+                <button onclick="switchView('form')" id="nav-form" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Buat Pengajuan Baru
+                </button>
+
+                <!-- Manager Only Section -->
+                <div id="nav-manager-section" class="pt-5 hidden">
+                    <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Manajemen & Master Data</p>
+                    <button onclick="switchView('cabang')" id="nav-cabang" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i data-lucide="building-2" class="w-4 h-4"></i> Kelola Cabang
+                    </button>
+                    <button onclick="switchView('kategori')" id="nav-kategori" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i data-lucide="tags" class="w-4 h-4"></i> Kelola Kategori
+                    </button>
+                    <button onclick="switchView('users')" id="nav-users" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i data-lucide="users" class="w-4 h-4"></i> Kelola Pengguna
+                    </button>
+                </div>
+            </nav>
+
+            <!-- User Profile Sidebar Footer -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+                <div class="flex items-center gap-3">
+                    <div id="user-avatar" class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 font-bold flex items-center justify-center text-xs shadow-sm">
+                        U
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p id="user-display-name" class="text-xs font-bold text-white truncate">User Name</p>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span id="user-role-badge" class="px-1.5 py-0.2 rounded text-[9px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">Role</span>
+                            <span id="user-branch-display" class="text-[10px] text-slate-400 truncate">Cabang</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Mobile Overlay -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 z-20 hidden md:hidden backdrop-blur-sm"></div>
+
+        <!-- Main Workspace Area -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
+            
+            <!-- Topbar Header -->
+            <header class="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-10 shrink-0">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-800">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <h1 id="page-title" class="text-base font-bold text-slate-800">Dashboard Pengajuan</h1>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200/80 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-slate-600 font-medium" id="system-status-indicator">Menghubungkan Firestore...</span>
+                    </div>
+
+                    <button onclick="logout()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <!-- Scrollable Views Container -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                <div class="max-w-7xl mx-auto space-y-6">
+
+                    <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+                    <section id="view-dashboard" class="view-section space-y-6">
+                        <!-- Stat Cards Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <!-- Card Total Tiket -->
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Tiket</p>
+                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                                        <i data-lucide="ticket" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h3 id="stat-total-tickets" class="text-3xl font-black text-slate-900">0</h3>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Pengajuan Terdaftar</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Menunggu -->
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Menunggu</p>
+                                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center relative">
+                                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                                        <i data-lucide="clock" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h3 id="stat-pending-tickets" class="text-3xl font-black text-amber-600">0</h3>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Menunggu Respons</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Dalam Proses -->
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diproses</p>
+                                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                                        <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h3 id="stat-process-tickets" class="text-3xl font-black text-indigo-600">0</h3>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Sedang Diperbaiki</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Selesai -->
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selesai</p>
+                                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h3 id="stat-completed-tickets" class="text-3xl font-black text-emerald-600">0</h3>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Telah Ditangani</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Emergency Items -->
+                            <div class="bg-gradient-to-br from-rose-500 to-red-600 text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-bold text-rose-100 uppercase tracking-wider">Item Darurat/Tinggi</p>
+                                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h3 id="stat-emergency-items" class="text-3xl font-black">0</h3>
+                                    <p class="text-[11px] text-rose-100 mt-0.5">Item Membutuhkan Penanganan Cepat</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter & Search Section -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <!-- Status Tabs -->
+                            <div class="flex items-center bg-slate-100/80 p-1 rounded-xl w-full sm:w-auto overflow-x-auto text-xs font-semibold">
+                                <button onclick="setDashboardFilter('ALL')" id="filter-tab-ALL" class="px-4 py-2 rounded-lg transition-all bg-white text-slate-800 shadow-sm font-bold">Semua</button>
+                                <button onclick="setDashboardFilter('Menunggu')" id="filter-tab-Menunggu" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 font-semibold">Menunggu</button>
+                                <button onclick="setDashboardFilter('Diproses')" id="filter-tab-Diproses" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 font-semibold">Diproses</button>
+                                <button onclick="setDashboardFilter('Selesai')" id="filter-tab-Selesai" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 font-semibold">Selesai</button>
+                            </div>
+
+                            <!-- Search & Branch Filter -->
+                            <div class="flex items-center gap-2 w-full sm:w-auto flex-1 justify-end">
+                                <select id="filter-branch-select" onchange="handleSearchOrFilter()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    <option value="ALL">Semua Cabang</option>
+                                </select>
+
+                                <div class="relative w-full sm:w-64">
+                                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-2.5 text-slate-400"></i>
+                                    <input type="text" id="search-ticket-input" onkeyup="handleSearchOrFilter()" placeholder="Cari Kode, Pemohon, Detail..." class="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tickets Data Table -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200">
+                                            <th class="p-4">Kode Tiket & Tanggal</th>
+                                            <th class="p-4">Pemohon & Cabang</th>
+                                            <th class="p-4 text-center">Jumlah Item</th>
+                                            <th class="p-4">Progress Perbaikan</th>
+                                            <th class="p-4 text-center">Status Tiket</th>
+                                            <th class="p-4 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tickets-tbody" class="divide-y divide-slate-100">
+                                        <!-- Rendered dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination Footer -->
+                            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-600">
+                                <div class="flex items-center gap-2">
+                                    <span>Tampilkan per halaman:</span>
+                                    <select id="items-per-page-select" onchange="changeItemsPerPage(this.value)" class="px-2.5 py-1 border border-slate-200 rounded-lg bg-white outline-none font-bold text-slate-700">
+                                        <option value="5">5</option>
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                    </select>
+                                    <span id="pagination-info" class="text-slate-500 text-[11px] ml-2">Menampilkan 0-0 dari 0 data</span>
+                                </div>
+                                <div id="pagination-controls" class="flex items-center gap-1">
+                                    <!-- Dynamic Pagination Buttons -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ==================== VIEW 2: FORM BATCH SUBMISSION ==================== -->
+                    <section id="view-form" class="view-section hidden">
+                        <form id="form-batch-pengajuan" class="space-y-6 max-w-4xl mx-auto">
+                            <!-- Card Header Batch -->
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                                    <div>
+                                        <h2 class="text-lg font-bold text-slate-800">Form Pengajuan Perbaikan Aset (Batch)</h2>
+                                        <p class="text-xs text-slate-500 mt-0.5">Anda dapat menambahkan beberapa item kerusakan sekaligus dalam 1 kali pengajuan tiket.</p>
+                                    </div>
+                                    <div class="bg-blue-50 text-blue-700 font-mono font-bold text-xs px-3 py-1.5 rounded-xl border border-blue-100" id="ticket-code-preview">
+                                        #TKT-AUTO
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Pemohon</label>
+                                        <input type="text" id="batch-pemohon-nama" readonly class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs bg-slate-100 text-slate-600 font-medium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Pengajuan</label>
+                                        <input type="date" id="batch-tanggal" required class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Cabang / Outlet <span class="text-red-500">*</span></label>
+                                        <select id="batch-cabang" required class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- List Item Kerusakan Container -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i> Daftar Item Perbaikan Kerusakan
+                                    </h3>
+                                    <span id="draft-item-count-badge" class="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-0.5 rounded-full">1 Item</span>
+                                </div>
+
+                                <div id="draft-items-container" class="space-y-4">
+                                    <!-- Dynamic Item Cards Rendered Here -->
+                                </div>
+
+                                <button type="button" onclick="addDraftItem()" class="w-full py-3 border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 text-blue-700 rounded-2xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> + Tambah Item Perbaikan Lainnya
+                                </button>
+                            </div>
+
+                            <!-- Form Submission Buttons -->
+                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                                <button type="button" onclick="switchView('dashboard')" class="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
+                                <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs shadow-lg shadow-blue-500/25 flex items-center gap-2">
+                                    <i data-lucide="send" class="w-4 h-4"></i> Kirim Semua Pengajuan
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+
+                    <!-- ==================== VIEW 3: KELOLA CABANG (MANAGER) ==================== -->
+                    <section id="view-cabang" class="view-section hidden space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-base">Kelola Master Data Cabang</h2>
+                                <p class="text-xs text-slate-500">Daftar cabang/outlet lokasi aset berada. Gunakan tombol panah untuk mengatur urutan susunan.</p>
+                            </div>
+                            <button onclick="openModalCabang()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Cabang
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+                                    <tr>
+                                        <th class="p-4 text-center w-24">Urutan</th>
+                                        <th class="p-4">Nama Cabang / Outlet</th>
+                                        <th class="p-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cabang-tbody" class="divide-y divide-slate-100">
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+
+                    <!-- ==================== VIEW 4: KELOLA KATEGORI (MANAGER) ==================== -->
+                    <section id="view-kategori" class="view-section hidden space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-base">Kelola Master Kategori</h2>
+                                <p class="text-xs text-slate-500">Kategori jenis perbaikan & perlakuan maintenance. Gunakan tombol panah untuk mengatur urutan susunan.</p>
+                            </div>
+                            <button onclick="openModalKategori()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kategori
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+                                    <tr>
+                                        <th class="p-4 text-center w-24">Urutan</th>
+                                        <th class="p-4">Nama Kategori</th>
+                                        <th class="p-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kategori-tbody" class="divide-y divide-slate-100">
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+
+                    <!-- ==================== VIEW 5: KELOLA USER (MANAGER) ==================== -->
+                    <section id="view-users" class="view-section hidden space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-base">Kelola Akun Pengguna</h2>
+                                <p class="text-xs text-slate-500">Daftar pengguna dengan role Manager atau Staff beserta hak akses cabang.</p>
+                            </div>
+                            <button onclick="openModalUser()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-1.5">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User Baru
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+                                    <tr>
+                                        <th class="p-4">Nama Pengguna</th>
+                                        <th class="p-4">Username</th>
+                                        <th class="p-4">Role</th>
+                                        <th class="p-4">Cabang Akses</th>
+                                        <th class="p-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-tbody" class="divide-y divide-slate-100">
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Modal Detail Tiket Batch & Updates -->
+    <div id="modal-ticket-detail" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center font-bold">
+                        <i data-lucide="ticket" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="modal-ticket-code" class="font-extrabold text-slate-900 text-base">#TKT-000</h3>
+                            <span id="modal-ticket-overall-status" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold">Status</span>
+                        </div>
+                        <p id="modal-ticket-meta" class="text-xs text-slate-500 mt-0.5">Pemohon: - | Cabang: -</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-ticket-detail')" class="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-200/50 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content Scrollable -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- Overall Progress Bar -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/70">
+                    <div class="flex justify-between items-center text-xs font-bold mb-2">
+                        <span class="text-slate-700">Progress Penanganan Tiket</span>
+                        <span id="modal-ticket-progress-text" class="text-blue-600">0 dari 0 Item Selesai (0%)</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div id="modal-ticket-progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Items Detail List -->
+                <div>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-3">Daftar Item Kerusakan</h4>
+                    <div id="modal-ticket-items-list" class="space-y-4">
+                        <!-- Dynamic Item Details -->
+                    </div>
                 </div>
             </div>
 
-            <form id="newRequestForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
-                <!-- Data Pemohon -->
-                <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
-                    <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 border-b-2 border-slate-900 pb-2 flex items-center">
-                        <i class="fa-solid fa-circle-info text-cobalt-600 mr-2"></i>1. Informasi Unit & Divisi Pemohon
-                    </h3>
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                <button onclick="closeModal('modal-ticket-detail')" class="px-5 py-2.5 bg-slate-800 text-white hover:bg-slate-900 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <!-- Modal Detail Foto Enlarge -->
+    <div id="modal-image-preview" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-4 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm">Foto Kerusakan Aset</h3>
+                <button onclick="closeModal('modal-image-preview')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <img id="enlarged-image-src" src="" class="w-full max-h-[75vh] object-contain rounded-2xl bg-slate-900/5">
+        </div>
+    </div>
+
+
+    <!-- Modal Master Cabang -->
+    <div id="modal-cabang" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <h3 id="modal-cabang-title" class="font-bold text-slate-800 text-base">Tambah Cabang</h3>
+            <form id="form-cabang-master" class="space-y-3">
+                <input type="hidden" id="cabang-edit-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Cabang / Outlet</label>
+                    <input type="text" id="cabang-nama" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-cabang')" class="px-4 py-2 border rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal Master Kategori -->
+    <div id="modal-kategori" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <h3 id="modal-kategori-title" class="font-bold text-slate-800 text-base">Tambah Kategori</h3>
+            <form id="form-kategori-master" class="space-y-3">
+                <input type="hidden" id="kategori-edit-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Kategori</label>
+                    <input type="text" id="kategori-nama" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-kategori')" class="px-4 py-2 border rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal Master User -->
+    <div id="modal-user" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
+            <h3 id="modal-user-title" class="font-bold text-slate-800 text-base">Tambah User Baru</h3>
+            <form id="form-user" class="space-y-3">
+                <input type="hidden" id="user-edit-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap</label>
+                    <input type="text" id="user-nama" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Username</label>
+                    <input type="text" id="user-username" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+                    <input type="password" id="user-password" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Role Akses</label>
+                    <select id="user-role" required class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                        <option value="staff">Staff (Pengaju)</option>
+                        <option value="manager">Manager (All Access)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Hak Akses Cabang (Bisa Pilih Beberapa)</label>
+                    <div id="user-branches-checkboxes" class="max-h-36 overflow-y-auto p-2.5 border rounded-xl space-y-2 bg-slate-50 text-xs">
+                        <!-- Rendered Checkboxes -->
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-user')" class="px-4 py-2 border rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal Confirm Delete -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-base">Konfirmasi Hapus</h3>
+                <p id="modal-confirm-text" class="text-xs text-slate-500 mt-1">Apakah Anda yakin ingin menghapus data ini?</p>
+            </div>
+            <div class="flex justify-center gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-confirm')" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50">Batal</button>
+                <button type="button" id="btn-confirm-act" class="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-semibold hover:bg-red-700">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl translate-y-20 opacity-0 transition-all duration-300 text-xs font-medium">
+        <i data-lucide="info" id="toast-icon" class="w-4 h-4 text-blue-400"></i>
+        <span id="toast-msg">Notifikasi</span>
+    </div>
+
+
+    <!-- ==================== LOGIC & CLOUD FIRESTORE SCRIPT ==================== -->
+    <script>
+        // =========================================================================
+        // CLOUD FIRESTORE CONFIGURATION
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBc0yCgB6z-uzLx5Ej6J7PggK5viIxZxsc",
+            authDomain: "ga-maintenance-7b25c.firebaseapp.com",
+            projectId: "ga-maintenance-7b25c",
+            storageBucket: "ga-maintenance-7b25c.firebasestorage.app",
+            messagingSenderId: "187937810835",
+            appId: "1:187937810835:web:80f1c4b1fb0c56c6ee6066"
+        };
+
+        // Initialize Firebase & Firestore
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Seed Data Awal
+        const defaultUsers = [
+            { id: 'u1', name: 'Hendra Wijaya', username: 'manager', password: '123', role: 'manager', branches: ['Cilaki', 'Cibeunying', 'Maskumambang', 'Cipete', 'Bintaro', 'Bekasi', 'Bogor', 'Surabaya Musi', 'Surabaya Barat'] },
+            { id: 'u2', name: 'Budi Santoso', username: 'staff', password: '123', role: 'staff', branches: ['Cilaki'] }
+        ];
+
+        const defaultBranches = [
+            { id: 'b1', name: 'Cilaki', order: 1 },
+            { id: 'b2', name: 'Cibeunying', order: 2 },
+            { id: 'b3', name: 'Maskumambang', order: 3 },
+            { id: 'b4', name: 'Cipete', order: 4 },
+            { id: 'b5', name: 'Bintaro', order: 5 },
+            { id: 'b6', name: 'Bekasi', order: 6 },
+            { id: 'b7', name: 'Bogor', order: 7 },
+            { id: 'b8', name: 'Surabaya Musi', order: 8 },
+            { id: 'b9', name: 'Surabaya Barat', order: 9 }
+        ];
+
+        const defaultCategories = [
+            { id: 'c1', name: 'Bangunan & Plafon', order: 1 },
+            { id: 'c2', name: 'Kelistrikan', order: 2 },
+            { id: 'c3', name: 'Saluran Air & Plumbing', order: 3 },
+            { id: 'c4', name: 'Mesin & Peralatan', order: 4 },
+            { id: 'c5', name: 'Furniture & Interior', order: 5 },
+            { id: 'c6', name: 'Lainnya', order: 6 }
+        ];
+
+        // Global State Variables
+        let currentUser = null;
+        let currentDashboardFilter = 'ALL';
+        let draftItems = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+
+        // Memory Buffers (Firestore Data)
+        let dbUsers = [];
+        let dbBranches = [];
+        let dbCategories = [];
+        let dbTickets = [];
+
+        // Toast Helper
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+
+            if (isError) {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-red-950 border border-red-800 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs transition-all duration-300 font-medium";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs transition-all duration-300 font-medium";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // Modal Helpers
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.add('hidden');
+        };
+
+        window.toggleSidebar = function(force) {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            if (force === false || !sb.classList.contains('-translate-x-full')) {
+                sb.classList.add('-translate-x-full');
+                ov.classList.add('hidden');
+            } else {
+                sb.classList.remove('-translate-x-full');
+                ov.classList.remove('hidden');
+            }
+        };
+
+        // Authentication Logic
+        function doLogin(user, saveSession = true) {
+            currentUser = user;
+            if (saveSession) {
+                localStorage.setItem('ga_active_user', JSON.stringify(user));
+            }
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('user-display-name').innerText = user.name;
+            document.getElementById('user-role-badge').innerText = user.role;
+            
+            const userBranches = user.branches || (user.branch ? [user.branch] : []);
+            document.getElementById('user-branch-display').innerText = userBranches.length > 0 ? userBranches.join(', ') : 'Semua Cabang';
+            document.getElementById('user-avatar').innerText = user.name.charAt(0).toUpperCase();
+
+            const managerSection = document.getElementById('nav-manager-section');
+            if (user.role === 'manager') {
+                managerSection.classList.remove('hidden');
+            } else {
+                managerSection.classList.add('hidden');
+            }
+
+            populateMasterDropdowns();
+            switchView('dashboard');
+        }
+
+        function checkSavedSession() {
+            const savedUser = localStorage.getItem('ga_active_user');
+            if (savedUser) {
+                try {
+                    const parsedUser = JSON.parse(savedUser);
+                    doLogin(parsedUser, false);
+                } catch (e) {
+                    localStorage.removeItem('ga_active_user');
+                }
+            }
+        }
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const found = dbUsers.find(user => user.username.toLowerCase() === u.toLowerCase() && user.password === p);
+
+            if (found) {
+                doLogin(found);
+                showToast(`Selamat datang, ${found.name}!`);
+            } else {
+                showToast("Username atau Password salah!", true);
+            }
+        });
+
+        window.logout = function() {
+            currentUser = null;
+            localStorage.removeItem('ga_active_user');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showToast("Berhasil logout");
+        };
+
+        // Navigation Switcher
+        window.switchView = function(viewName) {
+            // Protected routes for manager only
+            const managerOnlyViews = ['cabang', 'kategori', 'users'];
+            if (managerOnlyViews.includes(viewName) && (!currentUser || currentUser.role !== 'manager')) {
+                showToast("Akses ditolak! Menu ini khusus akun Manager.", true);
+                switchView('dashboard');
+                return;
+            }
+
+            const views = ['dashboard', 'form', 'cabang', 'kategori', 'users'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (v === viewName) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) {
+                    if (v === viewName) {
+                        navBtn.className = "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-sm transition-all bg-blue-600/15 text-blue-400 border border-blue-500/20";
+                    } else {
+                        navBtn.className = "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-slate-400 hover:bg-slate-800 hover:text-white";
+                    }
+                }
+            });
+
+            const titles = {
+                dashboard: 'Dashboard & Status Pengajuan Tiket',
+                form: 'Buat Pengajuan Perbaikan Aset (Batch)',
+                cabang: 'Kelola Master Data Cabang',
+                kategori: 'Kelola Master Data Kategori',
+                users: 'Kelola Akun Pengguna'
+            };
+            document.getElementById('page-title').innerText = titles[viewName] || 'Dashboard';
+
+            if (viewName === 'dashboard') {
+                currentPage = 1;
+                renderDashboardTickets();
+            }
+            if (viewName === 'form') initBatchForm();
+            if (viewName === 'cabang') renderCabangTable();
+            if (viewName === 'kategori') renderKategoriTable();
+            if (viewName === 'users') renderUsersTable();
+
+            if (window.innerWidth < 768) toggleSidebar(false);
+            lucide.createIcons();
+        };
+
+        // Populate Dropdowns based on User Accessible Branches
+        function populateMasterDropdowns() {
+            const filterBranchSelect = document.getElementById('filter-branch-select');
+            const batchCabangSelect = document.getElementById('batch-cabang');
+
+            let allowedBranches = dbBranches;
+            if (currentUser && currentUser.role !== 'manager') {
+                const userBranches = currentUser.branches || (currentUser.branch ? [currentUser.branch] : []);
+                allowedBranches = dbBranches.filter(b => userBranches.includes(b.name));
+            }
+
+            const branchOpts = allowedBranches.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+            
+            filterBranchSelect.innerHTML = `<option value="ALL">Semua Cabang (Akses)</option>` + branchOpts;
+            batchCabangSelect.innerHTML = branchOpts;
+        }
+
+
+        // ==================== BATCH FORM LOGIC ====================
+        function initBatchForm() {
+            if (!currentUser) return;
+            document.getElementById('batch-pemohon-nama').value = currentUser.name;
+            document.getElementById('batch-tanggal').valueAsDate = new Date();
+            
+            const randomCode = '#TKT-' + new Date().getFullYear() + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + Math.floor(100 + Math.random() * 900);
+            document.getElementById('ticket-code-preview').innerText = randomCode;
+
+            draftItems = [
+                {
+                    id: Date.now(),
+                    itemName: '',
+                    category: '',
+                    priority: 'Sedang',
+                    description: '',
+                    photoBase64: ''
+                }
+            ];
+            renderDraftItems();
+        }
+
+        window.addDraftItem = function() {
+            draftItems.push({
+                id: Date.now() + Math.random(),
+                itemName: '',
+                category: '',
+                priority: 'Sedang',
+                description: '',
+                photoBase64: ''
+            });
+            renderDraftItems();
+            showToast("Item perbaikan ditambahkan ke draf");
+        };
+
+        window.removeDraftItem = function(index) {
+            if (draftItems.length <= 1) {
+                showToast("Minimal harus ada 1 item perbaikan dalam pengajuan!", true);
+                return;
+            }
+            draftItems.splice(index, 1);
+            renderDraftItems();
+        };
+
+        function renderDraftItems() {
+            const container = document.getElementById('draft-items-container');
+            document.getElementById('draft-item-count-badge').innerText = `${draftItems.length} Item`;
+
+            container.innerHTML = draftItems.map((item, idx) => `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4 relative">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <span class="text-xs font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">Item #${idx + 1} Kerusakan</span>
+                        ${draftItems.length > 1 ? `
+                            <button type="button" onclick="removeDraftItem(${idx})" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Item
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Divisi Pemohon <span class="text-rose-600">*</span></label>
-                            <select id="formDivision" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Item / Area Kerusakan <span class="text-red-500">*</span></label>
+                            <input type="text" required placeholder="Contoh: Plafon bocor / Kran Patah" value="${item.itemName}" onchange="updateDraftField(${idx}, 'itemName', this.value)" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
                         </div>
                         <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Cabang / Lokasi Store <span class="text-rose-600">*</span></label>
-                            <select id="formBranch" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tanggal Pengajuan <span class="text-rose-600">*</span></label>
-                            <input type="date" id="formSubmissionDate" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tingkat Urgensi <span class="text-rose-600">*</span></label>
-                            <select id="formUrgency" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                                <option value="Low">Low - Biasa (Rutin)</option>
-                                <option value="Medium" selected>Medium - Sedang</option>
-                                <option value="High">High - Penting (Operasional Termacet)</option>
-                                <option value="Critical">Critical - Darurat (Mempengaruhi Omset)</option>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Perbaikan <span class="text-red-500">*</span></label>
+                            <select required onchange="updateDraftField(${idx}, 'category', this.value)" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">
+                                <option value="">-- Pilih Kategori --</option>
+                                ${dbCategories.map(c => `<option value="${c.name}" ${item.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Alasan / Justifikasi Pengajuan <span class="text-rose-600">*</span></label>
-                        <textarea id="formJustification" rows="2" required placeholder="Jelaskan kebutuhan pengadaan atau alasan perbaikan aset ini secara ringkas..." class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-                    </div>
-                </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Tingkat Prioritas Penanganan</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            ${['Rendah', 'Sedang', 'Tinggi', 'Darurat'].map(p => {
+                                let badgeColor = 'peer-checked:bg-slate-100 peer-checked:text-slate-800 peer-checked:border-slate-400';
+                                if (p === 'Rendah') badgeColor = 'peer-checked:bg-emerald-50 peer-checked:text-emerald-700 peer-checked:border-emerald-500';
+                                if (p === 'Sedang') badgeColor = 'peer-checked:bg-amber-50 peer-checked:text-amber-700 peer-checked:border-amber-500';
+                                if (p === 'Tinggi') badgeColor = 'peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-500';
+                                if (p === 'Darurat') badgeColor = 'peer-checked:bg-rose-50 peer-checked:text-rose-700 peer-checked:border-rose-500';
 
-                <!-- Rincian Aset -->
-                <div class="bg-white p-5 sm:p-6 neo-border neo-shadow space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-slate-900 pb-2">
-                        <h3 class="font-black text-sm uppercase tracking-wider text-slate-900 flex items-center">
-                            <i class="fa-solid fa-boxes-stacked text-amber-500 mr-2"></i>2. Rincian Aset yang Diminta
-                        </h3>
-                        <button type="button" onclick="addFormItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-3 py-1.5 flex items-center">
-                            <i class="fa-solid fa-plus mr-1.5"></i>Tambah Baris Aset
-                        </button>
-                    </div>
-
-                    <div id="formItemsContainer" class="space-y-4"></div>
-
-                    <div class="bg-slate-900 text-white p-4 neo-border flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-calculator text-amber-500 text-lg"></i>
-                            <span class="font-black text-xs uppercase tracking-wider">TOTAL ESTIMASI ANGGARAN PENGADAAN:</span>
+                                return `
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="priority-${idx}" value="${p}" ${item.priority === p ? 'checked' : ''} onchange="updateDraftField(${idx}, 'priority', '${p}')" class="peer sr-only">
+                                        <div class="py-2 text-center rounded-xl border border-slate-200 text-xs font-bold text-slate-600 transition-all ${badgeColor}">
+                                            ${p}
+                                        </div>
+                                    </label>
+                                `;
+                            }).join('')}
                         </div>
-                        <div id="formLiveTotalBudget" class="font-mono font-black text-xl text-amber-400">Rp 0</div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="resetForm()" class="neo-button bg-slate-200 text-slate-800 font-bold text-sm px-5 py-2.5">
-                        <i class="fa-solid fa-eraser mr-2"></i>Reset Form
-                    </button>
-                    <button type="submit" class="neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm px-6 py-2.5">
-                        <i class="fa-solid fa-paper-plane mr-2"></i>Kirim Pengajuan
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <!-- TAB 2: LIST & METRICS -->
-        <section id="view-list" class="hidden space-y-6">
-            
-            <!-- Metrics & Graphic Dashboard -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div class="lg:col-span-2 bg-white p-4 neo-border neo-shadow flex flex-col">
-                    <h3 class="font-black text-xs uppercase text-slate-700 border-b-2 border-slate-900 pb-2 mb-3"><i class="fa-solid fa-chart-simple mr-2"></i>Estimasi Anggaran per Cabang</h3>
-                    <div class="flex-1 min-h-[150px] w-full relative">
-                        <canvas id="budgetChart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div class="bg-amber-100 p-4 neo-border neo-shadow flex flex-col justify-between">
-                        <span class="text-[11px] font-black uppercase text-amber-900">Pending</span>
-                        <span id="metric-pending" class="font-mono font-black text-2xl text-amber-950 mt-2">0</span>
-                    </div>
-                    <div class="bg-blue-100 p-4 neo-border neo-shadow flex flex-col justify-between">
-                        <span class="text-[11px] font-black uppercase text-blue-900">Approved</span>
-                        <span id="metric-progress" class="font-mono font-black text-2xl text-blue-950 mt-2">0</span>
-                    </div>
-                    <div class="bg-emerald-100 p-4 neo-border neo-shadow flex flex-col justify-between">
-                        <span class="text-[11px] font-black uppercase text-emerald-900">Completed</span>
-                        <span id="metric-completed" class="font-mono font-black text-2xl text-emerald-950 mt-2">0</span>
-                    </div>
-                    <div class="bg-slate-900 text-white p-4 neo-border neo-shadow flex flex-col justify-between">
-                        <span class="text-[11px] font-black uppercase text-slate-300">Total Nilai</span>
-                        <span id="metric-budget" class="font-mono font-black text-base lg:text-lg text-amber-400 mt-2 truncate">Rp 0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filter Bar Terpadu -->
-            <div class="bg-white p-4 neo-border neo-shadow flex flex-wrap items-center gap-3">
-                
-                <!-- Search Text -->
-                <div class="w-full md:w-64 relative flex-shrink-0">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2 text-slate-400 text-sm"></i>
-                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 neo-border text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                </div>
-                
-                <!-- Date Range -->
-                <div class="flex items-center space-x-2 bg-slate-50 neo-border px-2 flex-shrink-0">
-                    <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
-                    <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
-                    <span class="text-slate-400 font-bold">-</span>
-                    <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1.5 text-xs font-bold focus:outline-none">
-                </div>
-
-                <!-- Dropdown Filters -->
-                <select id="filterBranch" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-1 min-w-[150px]"></select>
-                
-                <select id="filterStatus" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-shrink-0">
-                    <option value="">Semua Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-                
-                <select id="filterUrgency" onchange="applyTableFilters()" class="bg-slate-50 neo-border px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 flex-shrink-0">
-                    <option value="">Semua Urgensi</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                </select>
-                
-                <!-- Reset Button -->
-                <button onclick="clearFilters()" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-1.5 flex-shrink-0">Reset</button>
-                
-            </div>
-
-            <!-- Table & Pagination Container -->
-            <div class="bg-white neo-border neo-shadow overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-900 text-white font-mono text-xs uppercase border-b-2 border-slate-950 select-none">
-                                <th class="p-3 pl-4 w-10 text-center">No</th>
-                                <th class="p-3 sortable" onclick="handleSort('id')">ID & Tanggal <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-id"></i></th>
-                                <th class="p-3 sortable" onclick="handleSort('division')">Divisi & Cabang <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-division"></i></th>
-                                <th class="p-3">Ringkasan Item</th>
-                                <th class="p-3 text-right sortable" onclick="handleSort('totalCost')">Est. Cost Total <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-totalCost"></i></th>
-                                <th class="p-3 text-center sortable" onclick="handleSort('urgency')">Urgensi <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-urgency"></i></th>
-                                <th class="p-3 text-center sortable" onclick="handleSort('status')">Status <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-status"></i></th>
-                                <th class="p-3 pr-4 text-center">Aksi / Kontrol</th>
-                            </tr>
-                        </thead>
-                        <tbody id="requestsTableBody" class="divide-y-2 divide-slate-200 text-xs sm:text-sm font-medium"></tbody>
-                    </table>
-                </div>
-
-                <!-- Control Bar Pagination -->
-                <div class="bg-slate-50 p-3 neo-border border-t-2 border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <div class="flex items-center space-x-2 text-xs font-bold text-slate-700">
-                        <span>Tampilkan:</span>
-                        <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-white neo-border px-2 py-1 text-xs font-bold focus:outline-none">
-                            <option value="10" selected>10 baris</option>
-                            <option value="25">25 baris</option>
-                            <option value="50">50 baris</option>
-                        </select>
-                        <span id="paginationInfo" class="text-slate-500 font-mono ml-2">Menampilkan 0-0 dari 0 data</span>
                     </div>
 
-                    <div class="flex items-center space-x-1.5">
-                        <button id="btnPrevPage" onclick="prevPage()" class="neo-button bg-white disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold text-xs px-3 py-1 flex items-center">
-                            <i class="fa-solid fa-chevron-left mr-1"></i>Sebelumnya
-                        </button>
-                        <span id="pageNumbersContainer" class="flex items-center space-x-1 font-mono font-bold text-xs px-2"></span>
-                        <button id="btnNextPage" onclick="nextPage()" class="neo-button bg-white disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold text-xs px-3 py-1 flex items-center">
-                            Selanjutnya<i class="fa-solid fa-chevron-right ml-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: MASTER DATA -->
-        <section id="view-master" class="hidden space-y-6">
-            <div class="bg-white p-4 neo-border neo-shadow">
-                <p class="text-xs text-slate-600 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
-            </div>
-
-            <div class="bg-white p-5 neo-border neo-shadow space-y-4">
-                <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
-                    <h3 class="font-black text-xs uppercase tracking-wider text-slate-900 flex items-center">
-                        <i class="fa-solid fa-users-gear text-cobalt-600 mr-2"></i>MANAJEMEN AKUN PENGGUNA TERDAFTAR
-                    </h3>
-                    <button onclick="promptAddUser()" class="neo-button bg-amber-500 text-slate-900 font-black text-xs px-3.5 py-2 flex items-center">
-                        <i class="fa-solid fa-user-plus mr-1.5"></i>Tambah Akun Baru
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="bg-slate-900 text-white font-mono uppercase">
-                                <th class="p-2.5 border border-slate-900">NAMA PENGGUNA</th>
-                                <th class="p-2.5 border border-slate-900">ROLE / HAK AKSES</th>
-                                <th class="p-2.5 border border-slate-900">CABANG PENUGASAN</th>
-                                <th class="p-2.5 border border-slate-900 text-center w-20">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="masterUserTableBody" class="divide-y border border-slate-300 font-medium"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
-                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
-                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">1. KATEGORI ASET</h4>
-                        <button onclick="promptAddMasterItem('categories')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
-                            <i class="fa-solid fa-plus mr-1"></i>Tambah
-                        </button>
-                    </div>
-                    <div id="masterListCategories" class="space-y-2"></div>
-                </div>
-
-                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
-                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
-                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">2. DIVISI PEMOHON</h4>
-                        <button onclick="promptAddMasterItem('divisions')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
-                            <i class="fa-solid fa-plus mr-1"></i>Tambah
-                        </button>
-                    </div>
-                    <div id="masterListDivisions" class="space-y-2"></div>
-                </div>
-
-                <div class="bg-white p-4 neo-border neo-shadow space-y-3">
-                    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
-                        <h4 class="font-black text-xs uppercase tracking-wider text-slate-900">3. CABANG STORE / LOKASI</h4>
-                        <button onclick="promptAddMasterItem('branches')" class="neo-button bg-amber-500 text-slate-900 font-bold text-xs px-2.5 py-1 flex items-center">
-                            <i class="fa-solid fa-plus mr-1"></i>Tambah
-                        </button>
-                    </div>
-                    <div id="masterListBranches" class="space-y-2"></div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- MODALS -->
-    <!-- LOGIN MODAL -->
-    <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white neo-border neo-shadow-lg max-w-md w-full p-6 space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 bg-amber-500 border-2 border-slate-900 mx-auto flex items-center justify-center text-slate-900 font-black text-2xl neo-shadow-sm">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <h2 class="text-xl font-black text-slate-900 uppercase">Login GA X DOBAH</h2>
-                <p class="text-xs text-slate-500 font-medium">Masukkan Username & Password yang terdaftar.</p>
-            </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Username <span class="text-rose-600">*</span></label>
-                    <input type="text" id="loginUsername" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password <span class="text-rose-600">*</span></label>
-                    <input type="password" id="loginPassword" required class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                </div>
-                <div id="loginErrorMsg" class="hidden text-rose-600 text-xs font-bold bg-rose-50 p-2 neo-border border-rose-600">
-                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau password salah!
-                </div>
-                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-sm py-3">
-                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk ke Sistem
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- PASSWORD MODAL (Fitur Baru) -->
-    <div id="passwordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4">
-        <div class="bg-white neo-border neo-shadow-lg max-w-sm w-full p-5 space-y-4">
-            <div class="flex justify-between items-center border-b-2 border-slate-900 pb-2">
-                <h3 class="font-black text-sm uppercase font-mono">Ubah Password</h3>
-                <button onclick="closeModal('passwordModal')" class="text-rose-600 font-bold hover:text-rose-800">&times;</button>
-            </div>
-            <form onsubmit="handleChangePassword(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Lama</label>
-                    <input type="password" id="oldPasswordInput" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Password Baru</label>
-                    <input type="password" id="newPasswordInput" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold focus:outline-none">
-                </div>
-                <button type="submit" class="w-full neo-button bg-cobalt-600 hover:bg-cobalt-700 text-white font-black text-xs py-2 mt-2">Simpan Password</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL EDIT / TAMBAH USER -->
-    <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white neo-border neo-shadow-lg max-w-md w-full my-8 overflow-hidden">
-            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
-                <h3 id="userModalTitle" class="font-black text-sm uppercase font-mono">Buat Akun Baru</h3>
-                <button onclick="closeModal('userModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
-            </div>
-            <form id="userForm" onsubmit="saveUserAccount(event)" class="p-6 space-y-4">
-                <input type="hidden" id="userFormId">
-                <div><label class="block text-xs font-black uppercase mb-1">Username Login</label><input type="text" id="userFormUsername" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold"></div>
-                <div><label class="block text-xs font-black uppercase mb-1">Nama Pengguna</label><input type="text" id="userFormName" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold"></div>
-                <div><label class="block text-xs font-black uppercase mb-1">Password</label><input type="text" id="userFormPassword" required class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold font-mono"></div>
-                <div><label class="block text-xs font-black uppercase mb-1">Role / Hak Akses</label>
-                    <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full bg-slate-50 neo-border px-3 py-2 text-xs font-bold">
-                        <option value="Staff Store">Staff Store</option>
-                        <option value="General Affair Manager">General Affair Manager</option>
-                    </select>
-                </div>
-                <div><label class="block text-xs font-black uppercase mb-1">Cabang Akses</label>
-                    <div id="branchCheckboxesContainer" class="space-y-2 bg-slate-50 p-3 neo-border text-xs font-bold max-h-32 overflow-y-auto"></div>
-                </div>
-                <div class="flex justify-end space-x-2 pt-3"><button type="button" onclick="closeModal('userModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button><button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan</button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- DETAIL MODAL -->
-    <div id="detailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
-        <div class="bg-white neo-border neo-shadow-lg max-w-2xl w-full my-auto overflow-hidden">
-            <div class="bg-slate-900 text-white px-3 py-2.5 neo-border border-b-2 border-slate-950 flex items-center justify-between no-print">
-                <h3 class="font-black text-xs sm:text-sm uppercase font-mono">Detail Dokumen</h3>
-                <div class="flex items-center space-x-2">
-                    <button onclick="window.print()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1"><i class="fa-solid fa-print mr-1"></i>Cetak</button>
-                    <button onclick="closeModal('detailModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-6 h-6 flex items-center justify-center">&times;</button>
-                </div>
-            </div>
-            <div id="printable-area" class="p-4 sm:p-5 space-y-3.5 text-slate-900 bg-white max-h-[82vh] overflow-y-auto">
-                <div class="border-b-2 border-slate-900 pb-2.5 flex justify-between items-start">
-                    <div><h2 class="font-black text-base sm:text-lg uppercase">DONAT BAHAGIA</h2><p class="text-[11px] font-semibold text-slate-600">Departemen General Affair & Aset Perusahaan</p></div>
-                    <div class="text-right"><span id="detailReqId" class="font-mono font-black text-xs sm:text-sm text-slate-900">#ARQ-000</span></div>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-2.5 neo-border text-[11px]">
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Divisi:</span><span id="detailDivision" class="font-bold truncate block"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Cabang:</span><span id="detailBranch" class="font-bold truncate block"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Tanggal:</span><span id="detailSubmissionDate" class="font-mono font-bold"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Status:</span><span id="detailStatusBadge" class="font-bold truncate block"></span></div>
-                </div>
-                <div class="space-y-0.5">
-                    <span class="text-[11px] font-black uppercase text-slate-700">Justifikasi:</span>
-                    <p id="detailJustification" class="text-[11px] bg-slate-50 p-2 neo-border italic"></p>
-                </div>
-                <table class="w-full text-left border-collapse border-2 border-slate-900 text-[11px]">
-                    <thead><tr class="bg-slate-900 text-white font-mono uppercase text-[10px]"><th class="p-1.5 border border-slate-900 text-center w-7">No</th><th class="p-1.5 border border-slate-900">Item</th><th class="p-1.5 border border-slate-900 text-center">Qty</th><th class="p-1.5 border border-slate-900 text-right">Harga</th><th class="p-1.5 border border-slate-900 text-right">Subtotal</th></tr></thead>
-                    <tbody id="detailItemsTableBody" class="divide-y border-2 border-slate-900"></tbody>
-                    <tfoot><tr class="bg-slate-100 font-bold border-t-2 border-slate-900 text-xs"><td colspan="4" class="p-1.5 text-right uppercase font-black">Total:</td><td id="detailTotalBudget" class="p-1.5 text-right font-mono font-black text-cobalt-700">Rp 0</td></tr></tfoot>
-                </table>
-                <div id="detailPhotosContainer" class="flex flex-wrap gap-2 pt-1 mb-3"></div>
-                
-                <!-- Audit Trail Box -->
-                <div class="bg-slate-50 neo-border p-3 mt-4 no-print">
-                    <h4 class="font-black text-[10px] uppercase text-slate-600 mb-2 border-b border-slate-300 pb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Riwayat Persetujuan (Audit Trail)</h4>
-                    <ul id="detailAuditTrail" class="space-y-1.5 text-[10px] font-medium text-slate-700"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- EDIT / APPROVAL MODAL -->
-    <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white neo-border neo-shadow-lg max-w-3xl w-full my-8 overflow-hidden">
-            <div class="bg-slate-900 text-white p-4 neo-border border-b-2 border-slate-950 flex items-center justify-between">
-                <h3 id="editModalTitle" class="font-black text-sm uppercase font-mono">Edit & Approval</h3>
-                <button onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-800 text-white font-bold text-xs w-7 h-7">&times;</button>
-            </div>
-            <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
-                <input type="hidden" id="editReqDocId">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Status Pengajuan</label>
-                        <select id="editStatus" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi & Detail Kerusakan <span class="text-red-500">*</span></label>
+                        <textarea rows="2" required placeholder="Jelaskan detail lokasi dan kronologi kerusakan..." onchange="updateDraftField(${idx}, 'description', this.value)" class="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500/20">${item.description}</textarea>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">Urgensi</label>
-                        <select id="editUrgency" class="w-full bg-slate-50 neo-border px-3 py-2 text-sm font-bold focus:outline-none">
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                            <option value="Critical">Critical</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Kerusakan Aset (Opsional)</label>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors shadow-sm">
+                                <i data-lucide="image" class="w-4 h-4 text-blue-600"></i> Pilih File / Galeri
+                                <input type="file" accept="image/*" onchange="handleDraftPhotoUpload(this, ${idx})" class="hidden">
+                            </label>
+                            <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold border border-blue-200 transition-colors shadow-sm">
+                                <i data-lucide="camera" class="w-4 h-4 text-blue-600"></i> Ambil Foto Direct (Kamera)
+                                <input type="file" accept="image/*" capture="environment" onchange="handleDraftPhotoUpload(this, ${idx})" class="hidden">
+                            </label>
+                            ${item.photoBase64 ? `
+                                <button type="button" onclick="removeDraftPhoto(${idx})" class="text-xs text-red-600 hover:text-red-800 hover:underline font-semibold ml-1 flex items-center gap-1">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Foto
+                                </button>
+                            ` : ''}
+                        </div>
+                        ${item.photoBase64 ? `
+                            <div class="mt-2.5 flex items-center gap-3 bg-emerald-50/60 p-2 rounded-xl border border-emerald-200/80 w-fit">
+                                <img src="${item.photoBase64}" class="h-14 w-14 object-cover rounded-lg border border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" onclick="showEnlargedImage('${item.photoBase64}')">
+                                <div>
+                                    <span class="text-[11px] text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Foto Berhasil Diunggah</span>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">Klik gambar untuk memperbesar</p>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
-                <div class="space-y-3 pt-2 border-t-2 border-slate-200">
-                    <div class="flex items-center justify-between"><label class="block text-xs font-black uppercase text-slate-700">Rincian Item</label><button type="button" onclick="addEditModalItemRow()" class="neo-button bg-amber-500 text-slate-900 font-bold text-[11px] px-2.5 py-1"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button></div>
-                    <div id="editModalItemsContainer" class="space-y-3 max-h-60 overflow-y-auto p-1 bg-slate-50 neo-border"></div>
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Catatan GA</label>
-                    <textarea id="editGANotes" rows="2" class="w-full bg-slate-50 neo-border p-3 text-sm font-medium focus:outline-none" placeholder="Catatan approval..."></textarea>
-                </div>
-                <div class="flex justify-end space-x-2 pt-3 border-t-2 border-slate-200">
-                    <button type="button" onclick="closeModal('editApprovalModal')" class="neo-button bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2">Batal</button>
-                    <button type="submit" class="neo-button bg-cobalt-600 text-white font-bold text-xs px-5 py-2">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            `).join('');
 
-    <!-- IMAGE ZOOM MODAL -->
-    <div id="imageZoomModal" class="fixed inset-0 z-50 bg-slate-950/90 hidden items-center justify-center p-4" onclick="closeModal('imageZoomModal')">
-        <div class="relative max-w-4xl max-h-[90vh] bg-slate-900 p-2 neo-border" onclick="event.stopPropagation()">
-            <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 neo-button bg-rose-600 text-white font-black text-sm w-8 h-8 flex items-center justify-center z-10">&times;</button>
-            <img id="zoomedImage" src="" alt="Zoom" class="max-h-[80vh] w-auto mx-auto object-contain neo-border">
-        </div>
-    </div>
+            lucide.createIcons();
+        }
 
-    <!-- APPLICATION LOGIC -->
-    <script>
-        let appState = {
-            activeTab: 'form',
-            users: [
-                { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
-                { id: 'usr_2', username: 'headstore_cibeunying', password: '123', name: 'HEADSTORE CIBEUNYING', role: 'Staff Store', branches: ['DONAT BAHAGIA CIBEUNYING'] },
-                { id: 'usr_3', username: 'headstore_cilaki', password: '123', name: 'HEADSTORE CILAKI', role: 'Staff Store', branches: ['DONAT BAHAGIA CILAKI'] }
-            ],
-            categories: ['SUPPORT EQUIPMENT'],
-            divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
-            branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
-            requests: [],
-            pagination: { currentPage: 1, pageSize: 10, filteredData: [] },
-            sortConfig: { key: 'id', direction: 'desc' } // Konfigurasi Sorting
+        window.updateDraftField = function(index, field, value) {
+            if (draftItems[index]) draftItems[index][field] = value;
         };
 
-        let chartInstance = null; // Menyimpan instance Chart.js
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                ['detailModal', 'editApprovalModal', 'userModal', 'imageZoomModal', 'passwordModal'].forEach(modalId => {
-                    const modalEl = document.getElementById(modalId);
-                    if (modalEl && modalEl.classList.contains('flex')) closeModal(modalId);
-                });
-                document.getElementById('userMenuDropdown').classList.add('hidden');
-                document.getElementById('notifMenu').classList.add('hidden');
-            }
-        });
-
-        /* --- DATA PERSISTENCE --- */
-        async function saveMasterSettings() {
-            saveMasterSettingsToLocal();
-            if (window.db) {
-                try {
-                    const { doc, setDoc } = window.fbDeps;
-                    await setDoc(doc(window.db, "settings", "master_config"), {
-                        users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
-                    }, { merge: true });
-                } catch(err) { console.error("Gagal simpan master data:", err); }
-            }
-        }
-
-        function saveMasterSettingsToLocal() {
-            localStorage.setItem('assetReqUsersData', JSON.stringify(appState.users));
-            localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
-            localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
-            localStorage.setItem('assetReqBranchesData', JSON.stringify(appState.branches));
-        }
-
-        function loadMasterSettings() {
-            const u = localStorage.getItem('assetReqUsersData'); if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
-            const c = localStorage.getItem('assetReqCategoriesData'); if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
-            const d = localStorage.getItem('assetReqDivisionsData'); if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
-            const b = localStorage.getItem('assetReqBranchesData'); if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
-        }
-
-        function saveLocalState() { localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests)); }
-        function loadLocalState() { const local = localStorage.getItem('assetReqLocalData'); if (local) { try { appState.requests = JSON.parse(local); } catch(e) {} } }
-
-        window.addEventListener('firebase-ready', () => initRealtimeSync());
-
-        function initRealtimeSync() {
-            loadLocalState();
-            if (!window.db) { updateCloudBadge('Offline (Lokal)'); applyTableFilters(); updateMetrics(); updateNotifications(); return; }
-            try {
-                const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
-                onSnapshot(collection(window.db, "requests"), (snapshot) => {
-                    const cloudData = [];
-                    snapshot.forEach(docSnap => cloudData.push({ docId: docSnap.id, ...docSnap.data() }));
-                    appState.requests = cloudData;
-                    saveLocalState();
-                    updateCloudBadge('Cloud Live');
-                    applyTableFilters();
-                    updateMetrics();
-                    updateNotifications();
-                }, () => updateCloudBadge('Offline (Lokal)'));
-
-                onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.users) appState.users = data.users;
-                        if (data.categories) appState.categories = data.categories;
-                        if (data.divisions) appState.divisions = data.divisions;
-                        if (data.branches) appState.branches = data.branches;
-                        saveMasterSettingsToLocal();
-                        if (appState.activeTab === 'master') renderMasterDataView();
-                        populateDropdowns();
-                    }
-                });
-            } catch (e) { updateCloudBadge('Offline (Lokal)'); }
-        }
-
-        function updateCloudBadge(statusText) {
-            const badge = document.getElementById('cloudStatusBadge');
-            if (badge) {
-                badge.innerText = statusText;
-                badge.className = statusText.includes('Live') ? "bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase" : "bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 border border-white uppercase";
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadMasterSettings(); loadLocalState(); checkUserSession();
-            document.getElementById('formSubmissionDate').value = new Date().toISOString().split('T')[0]; // Set Hari Ini
-            addFormItemRow();
-        });
-
-        /* --- AUTENTIKASI --- */
-        function getCurrentUser() { const session = localStorage.getItem('assetReqUserSession'); return session ? JSON.parse(session) : null; }
-
-        function checkUserSession() {
-            const user = getCurrentUser();
-            const loginModal = document.getElementById('loginModal');
-            const userInfo = document.getElementById('userSessionInfo');
-            if (!user) {
-                loginModal.classList.remove('hidden'); loginModal.classList.add('flex');
-                if (userInfo) userInfo.classList.add('hidden');
-            } else {
-                loginModal.classList.remove('flex'); loginModal.classList.add('hidden');
-                if (userInfo) userInfo.classList.replace('hidden', 'flex');
-                document.getElementById('displayUserName').innerText = user.name;
-                document.getElementById('displayUserRole').innerText = user.role;
-                
-                const tabMaster = document.getElementById('tab-master');
-                if (user.role === 'Staff Store') { if (tabMaster) tabMaster.style.display = 'none'; } 
-                else { if (tabMaster) tabMaster.style.display = 'flex'; }
-
-                populateDropdowns(); applyTableFilters(); updateMetrics(); updateNotifications();
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const uInput = document.getElementById('loginUsername').value.trim();
-            const pInput = document.getElementById('loginPassword').value.trim();
-            const errBox = document.getElementById('loginErrorMsg');
-            const found = appState.users.find(u => u.username === uInput && u.password === pInput);
-            if (found) {
-                errBox.classList.add('hidden');
-                localStorage.setItem('assetReqUserSession', JSON.stringify({ id: found.id, username: found.username, name: found.name, role: found.role, branches: found.branches || [] }));
-                document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = '';
-                checkUserSession();
-            } else { errBox.classList.remove('hidden'); }
-        }
-
-        function handleLogout() { localStorage.removeItem('assetReqUserSession'); location.reload(); }
-
-        /* --- UX: User Dropdown & Notification --- */
-        function toggleUserMenu() {
-            document.getElementById('userMenuDropdown').classList.toggle('hidden');
-            document.getElementById('notifMenu').classList.add('hidden');
-        }
-
-        function toggleNotifMenu() {
-            document.getElementById('notifMenu').classList.toggle('hidden');
-            document.getElementById('userMenuDropdown').classList.add('hidden');
-        }
-
-        function handleChangePassword(e) {
-            e.preventDefault();
-            const user = getCurrentUser();
-            const oldP = document.getElementById('oldPasswordInput').value;
-            const newP = document.getElementById('newPasswordInput').value;
-            
-            const userIndex = appState.users.findIndex(u => u.id === user.id);
-            if(userIndex > -1 && appState.users[userIndex].password === oldP) {
-                appState.users[userIndex].password = newP;
-                saveMasterSettings();
-                closeModal('passwordModal');
-                Swal.fire('Berhasil', 'Password telah diubah!', 'success');
-                document.getElementById('oldPasswordInput').value = '';
-                document.getElementById('newPasswordInput').value = '';
-            } else {
-                Swal.fire('Gagal', 'Password lama salah!', 'error');
-            }
-        }
-
-        function updateNotifications() {
-            const user = getCurrentUser();
-            if(!user) return;
-            const requests = getAccessibleRequests();
-            const notifList = document.getElementById('notifList');
-            const badge = document.getElementById('notifBadge');
-            
-            let notifications = [];
-            if(user.role === 'General Affair Manager') {
-                const pending = requests.filter(r => r.status === 'Pending');
-                if(pending.length > 0) notifications.push(`Ada ${pending.length} pengajuan berstatus Pending menunggu proses Anda.`);
-            } else {
-                const approved = requests.filter(r => r.status === 'Approved' || r.status === 'Completed');
-                if(approved.length > 0) notifications.push(`Anda memiliki ${approved.length} pengajuan yang disetujui/selesai.`);
-            }
-
-            if(notifications.length > 0) {
-                badge.innerText = notifications.length;
-                badge.classList.remove('hidden');
-                notifList.innerHTML = notifications.map(n => `<div class="p-2 bg-amber-50 neo-border border-amber-300 font-bold text-slate-700">${n}</div>`).join('');
-            } else {
-                badge.classList.add('hidden');
-                notifList.innerHTML = `<p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>`;
-            }
-        }
-
-        /* --- NAVIGATION --- */
-        function switchTab(tabId) {
-            const s = getCurrentUser();
-            if (s && s.role === 'Staff Store' && tabId === 'master') { Swal.fire('Akses Dibatasi', 'Menu Master Data hanya untuk GA Manager.', 'warning'); return; }
-            appState.activeTab = tabId;
-            ['form', 'list', 'master'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = "neo-button bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
-            });
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).className = "neo-button bg-amber-500 text-slate-900 font-bold text-xs sm:text-sm px-4 py-2 flex items-center whitespace-nowrap";
-            if (tabId === 'list') { applyTableFilters(); updateMetrics(); } else if (tabId === 'master') { renderMasterDataView(); }
-        }
-
-        function populateDropdowns() {
-            const u = getCurrentUser();
-            const ub = (u && u.branches && !u.branches.includes('ALL')) ? u.branches : appState.branches;
-            const divEl = document.getElementById('formDivision');
-            const branchEl = document.getElementById('formBranch');
-            const filtBranchEl = document.getElementById('filterBranch');
-            if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}">${d}</option>`).join('');
-            if (branchEl) branchEl.innerHTML = ub.map(b => `<option value="${b}">${b}</option>`).join('');
-            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="">Semua Cabang (Akses)</option>` + ub.map(b => `<option value="${b}">${b}</option>`).join('');
-        }
-
-        /* --- FORM HANDLING --- */
-        function addFormItemRow(itemData = null) {
-            const c = document.getElementById('formItemsContainer');
-            const rowId = 'item_' + Date.now();
-            const catOpts = appState.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-            const html = `
-                <div id="${rowId}" class="item-row bg-slate-50 p-4 neo-border space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-300 pb-2">
-                        <span class="font-mono font-black text-xs uppercase text-slate-700"><i class="fa-solid fa-cube text-amber-500 mr-1.5"></i>Baris Aset</span>
-                        <button type="button" onclick="removeFormItemRow('${rowId}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[11px] px-2 py-0.5">Hapus Baris</button>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                        <div class="lg:col-span-4"><input type="text" required placeholder="Nama / Tipe Aset..." class="item-name w-full bg-white neo-border px-3 py-1.5 text-xs font-bold"></div>
-                        <div class="lg:col-span-3"><select class="item-category w-full bg-white neo-border px-3 py-1.5 text-xs font-bold">${catOpts}</select></div>
-                        <div class="lg:col-span-1"><input type="number" min="1" required class="item-qty w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="1" oninput="calculateLiveTotal()"></div>
-                        <div class="lg:col-span-1"><input type="text" required class="item-unit w-full bg-white neo-border px-2 py-1.5 text-xs font-bold text-center" value="Unit"></div>
-                        <div class="lg:col-span-3"><input type="number" min="0" required class="item-cost w-full bg-white neo-border px-3 py-1.5 text-xs font-bold font-mono" value="0" oninput="calculateLiveTotal()"></div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full bg-white neo-border px-3 py-1 text-xs">
-                        <div class="flex items-center space-x-2">
-                            <label class="neo-button bg-slate-200 text-slate-800 text-[11px] font-bold px-2.5 py-1 cursor-pointer flex items-center shrink-0">
-                                <i class="fa-solid fa-camera mr-1 text-cobalt-600"></i>Upload Foto
-                                <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rowId}')">
-                            </label>
-                            <input type="hidden" class="item-photo-data">
-                            <div class="photo-preview-box text-[11px] font-mono text-slate-500 truncate flex-1">Belum ada foto</div>
-                        </div>
-                    </div>
-                </div>`;
-            c.insertAdjacentHTML('beforeend', html); calculateLiveTotal();
-        }
-        function removeFormItemRow(id) { if (document.querySelectorAll('.item-row').length > 1) document.getElementById(id).remove(); calculateLiveTotal(); }
-        function handlePhotoUpload(input, id) {
+        window.handleDraftPhotoUpload = function(input, index) {
             if (input.files && input.files[0]) {
-                const f = input.files[0]; if (f.size > 2*1024*1024) return Swal.fire('Error', 'Maksimal ukuran 2MB', 'error');
-                const r = new FileReader();
-                r.onload = e => {
-                    const row = document.getElementById(id);
-                    if(row) { row.querySelector('.item-photo-data').value = e.target.result; row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-700 font-bold">✓ Foto (${f.name})</span>`; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        draftItems[index].photoBase64 = compressedBase64;
+                        renderDraftItems();
+                        showToast("Foto ter-upload dan di-kompresi!");
+                    };
+                    img.src = e.target.result;
                 };
-                r.readAsDataURL(f);
+                reader.readAsDataURL(input.files[0]);
             }
-        }
-        function calculateLiveTotal() {
-            let t = 0;
-            document.querySelectorAll('.item-row').forEach(r => t += (parseFloat(r.querySelector('.item-qty').value)||0) * (parseFloat(r.querySelector('.item-cost').value)||0));
-            document.getElementById('formLiveTotalBudget').innerText = formatRupiah(t);
-        }
+        };
 
-        async function handleFormSubmit(e) {
+        window.removeDraftPhoto = function(index) {
+            if (draftItems[index]) {
+                draftItems[index].photoBase64 = '';
+                renderDraftItems();
+                showToast("Foto item dihapus");
+            }
+        };
+
+        document.getElementById('form-batch-pengajuan').addEventListener('submit', (e) => {
             e.preventDefault();
-            let items = [];
-            document.querySelectorAll('.item-row').forEach(row => {
-                items.push({
-                    name: row.querySelector('.item-name').value, category: row.querySelector('.item-category').value,
-                    qty: parseInt(row.querySelector('.item-qty').value)||1, unit: row.querySelector('.item-unit').value||'Unit',
-                    cost: parseFloat(row.querySelector('.item-cost').value)||0, notes: row.querySelector('.item-notes').value||'',
-                    photo: row.querySelector('.item-photo-data').value||''
-                });
-            });
+            
+            for (let i = 0; i < draftItems.length; i++) {
+                if (!draftItems[i].itemName.trim() || !draftItems[i].category || !draftItems[i].description.trim()) {
+                    showToast(`Harap lengkapi semua field wajib pada Item #${i + 1}!`, true);
+                    return;
+                }
+            }
 
-            const usr = getCurrentUser();
-            const timeNow = new Date().toLocaleString('id-ID');
-            // Menambahkan Audit Trail (Riwayat Pembuatan)
-            const auditTrail = [{
-                actor: usr.name, role: usr.role,
-                action: 'Membuat Pengajuan', timestamp: timeNow
-            }];
-
-            const p = { 
-                id: `ARQ-${new Date().getFullYear()}-${String(appState.requests.length+1).padStart(3,'0')}`, 
-                division: document.getElementById('formDivision').value, branch: document.getElementById('formBranch').value, 
-                submissionDate: document.getElementById('formSubmissionDate').value, urgency: document.getElementById('formUrgency').value, 
-                status: 'Pending', justification: document.getElementById('formJustification').value, gaNotes: '', items, audit: auditTrail
+            const ticketCode = document.getElementById('ticket-code-preview').innerText;
+            const newTicket = {
+                id: 'tkt-' + Date.now(),
+                code: ticketCode,
+                requesterName: currentUser.name,
+                requesterUsername: currentUser.username,
+                branch: document.getElementById('batch-cabang').value,
+                date: document.getElementById('batch-tanggal').value,
+                createdAt: new Date().toISOString(),
+                status: 'Menunggu',
+                items: draftItems.map((item, i) => ({
+                    id: 'item-' + Date.now() + '-' + i,
+                    itemName: item.itemName,
+                    category: item.category,
+                    priority: item.priority,
+                    description: item.description,
+                    status: 'Menunggu',
+                    photoBase64: item.photoBase64 || ''
+                }))
             };
 
-            if (window.db) { try { await window.fbDeps.addDoc(window.fbDeps.collection(window.db, "requests"), p); } catch(err){} } 
-            else { appState.requests.unshift(p); saveLocalState(); }
+            // Save document to Firestore
+            db.collection('tickets').add(newTicket)
+                .then(() => {
+                    showToast(`Pengajuan Tiket ${ticketCode} berhasil dikirim ke Cloud Firestore!`);
+                    switchView('dashboard');
+                })
+                .catch((err) => {
+                    showToast("Gagal menyimpan ke Firestore: " + err.message, true);
+                });
+        });
 
-            Swal.fire('Berhasil!', `Dokumen tersimpan aman.`, 'success');
-            document.getElementById('newRequestForm').reset(); document.getElementById('formItemsContainer').innerHTML = ''; addFormItemRow();
-            switchTab('list');
-        }
 
-        function getAccessibleRequests() {
-            const u = getCurrentUser(); if (!u) return [];
-            return (u.role === 'General Affair Manager' || u.branches.includes('ALL')) ? appState.requests : appState.requests.filter(r => u.branches.includes(r.branch));
-        }
+        // ==================== DASHBOARD RENDER & PAGINATION ====================
+        window.handleSearchOrFilter = function() {
+            currentPage = 1;
+            renderDashboardTickets();
+        };
 
-        /* --- UX: SORTING LOGIC --- */
-        function handleSort(key) {
-            // Reset icons
-            document.querySelectorAll('th.sortable i').forEach(icon => {
-                icon.className = 'fa-solid fa-sort ml-1 text-slate-500';
-            });
-
-            if (appState.sortConfig.key === key) {
-                appState.sortConfig.direction = appState.sortConfig.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                appState.sortConfig.key = key;
-                appState.sortConfig.direction = 'asc';
-            }
-
-            // Update Icon
-            const activeIcon = document.getElementById(`sortIcon-${key}`);
-            if (activeIcon) {
-                activeIcon.className = appState.sortConfig.direction === 'asc' 
-                    ? 'fa-solid fa-sort-up ml-1 text-amber-500' 
-                    : 'fa-solid fa-sort-down ml-1 text-amber-500';
-            }
-            applyTableFilters();
-        }
-
-        function sortDataList(dataList) {
-            const { key, direction } = appState.sortConfig;
-            return dataList.sort((a, b) => {
-                let valA, valB;
-                if (key === 'id') { valA = a.id; valB = b.id; }
-                else if (key === 'division') { valA = a.division; valB = b.division; }
-                else if (key === 'status') { valA = a.status; valB = b.status; }
-                else if (key === 'urgency') {
-                    const urgMap = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
-                    valA = urgMap[a.urgency] || 0; valB = urgMap[b.urgency] || 0;
-                }
-                else if (key === 'totalCost') {
-                    valA = a.items ? a.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                    valB = b.items ? b.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                }
-
-                if (valA < valB) return direction === 'asc' ? -1 : 1;
-                if (valA > valB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        /* --- TABEL & FILTERS (Termasuk Date Filter) --- */
-        function applyTableFilters() {
-            const q = document.getElementById('filterSearch').value.toLowerCase();
-            const b = document.getElementById('filterBranch').value;
-            const s = document.getElementById('filterStatus').value;
-            const u = document.getElementById('filterUrgency').value;
-            const dStart = document.getElementById('filterStartDate').value;
-            const dEnd = document.getElementById('filterEndDate').value;
-
-            let filtered = getAccessibleRequests().filter(r => {
-                const matchQ = r.id.toLowerCase().includes(q) || r.division.toLowerCase().includes(q) || (r.items && r.items.some(i => i.name.toLowerCase().includes(q)));
-                
-                // Filter Date Range
-                let matchDate = true;
-                if (dStart) matchDate = matchDate && (r.submissionDate >= dStart);
-                if (dEnd) matchDate = matchDate && (r.submissionDate <= dEnd);
-
-                return matchQ && matchDate && (!b || r.branch === b) && (!s || r.status === s) && (!u || r.urgency === u);
-            });
-
-            // Terapkan sorting setelah difilter
-            appState.pagination.filteredData = sortDataList(filtered);
-            appState.pagination.currentPage = 1;
-            renderRequestsTable();
-        }
-
-        function renderRequestsTable() {
-            const list = appState.pagination.filteredData;
-            const tbody = document.getElementById('requestsTableBody');
-            if (!tbody) return; tbody.innerHTML = '';
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500 font-bold">Tidak ada data sesuai filter.</td></tr>`;
-                updatePaginationControls(0, 0, 0, 0); return;
-            }
-
-            const ps = appState.pagination.pageSize;
-            const tp = Math.ceil(list.length / ps);
-            if (appState.pagination.currentPage > tp) appState.pagination.currentPage = tp;
-            if (appState.pagination.currentPage < 1) appState.pagination.currentPage = 1;
-
-            const startIdx = (appState.pagination.currentPage - 1) * ps;
-            const pageData = list.slice(startIdx, startIdx + ps);
-
-            pageData.forEach((req, idx) => {
-                const rowNo = startIdx + idx + 1;
-                const cost = req.items ? req.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                const actIdx = appState.requests.indexOf(req);
-                const role = getCurrentUser().role;
-                let btns = `<button onclick="openDetailModal(${actIdx})" class="neo-button bg-slate-900 text-amber-400 text-xs px-2 py-1"><i class="fa-solid fa-eye"></i></button>`;
-                if (role === 'General Affair Manager') {
-                    btns += `<button onclick="openEditModal(${actIdx})" class="neo-button bg-cobalt-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="neo-button bg-rose-600 text-white text-xs px-2 py-1 ml-1"><i class="fa-solid fa-trash"></i></button>`;
-                }
-                const statClass = req.status === 'Pending' ? 'bg-amber-100 text-amber-900' : (req.status === 'Completed' ? 'bg-emerald-100 text-emerald-900' : (req.status === 'Rejected' ? 'bg-rose-100 text-rose-900' : 'bg-blue-100 text-blue-900'));
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 pl-4 text-center font-bold text-slate-500">${rowNo}</td>
-                        <td class="p-3 font-mono font-black">${req.id}<br><span class="text-[11px] text-slate-500">${req.submissionDate}</span></td>
-                        <td class="p-3 font-bold">${req.division}<br><span class="text-[11px] text-slate-600 font-normal">${req.branch}</span></td>
-                        <td class="p-3">${req.items ? req.items.map(i=>`${i.qty}x${i.name}`).join(', ') : '-'}</td>
-                        <td class="p-3 text-right font-mono font-black">${formatRupiah(cost)}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border ${req.urgency === 'Critical' ? 'bg-rose-100 text-rose-900' : 'bg-white'}">${req.urgency}</span></td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-[10px] uppercase font-bold neo-border ${statClass}">${req.status}</span></td>
-                        <td class="p-3 pr-4 text-center whitespace-nowrap">${btns}</td>
-                    </tr>`;
-            });
-            updatePaginationControls(startIdx + 1, Math.min(startIdx + ps, list.length), list.length, tp);
-        }
-
-        function updatePaginationControls(s, e, t, tp) {
-            document.getElementById('paginationInfo').innerText = t === 0 ? "Menampilkan 0 data" : `Menampilkan ${s}-${e} dari ${t} data`;
-            document.getElementById('btnPrevPage').disabled = (appState.pagination.currentPage <= 1 || t === 0);
-            document.getElementById('btnNextPage').disabled = (appState.pagination.currentPage >= tp || t === 0);
-            document.getElementById('pageNumbersContainer').innerHTML = t === 0 ? '' : `Hal ${appState.pagination.currentPage} / ${tp}`;
-        }
-        function nextPage() { if(appState.pagination.currentPage < Math.ceil(appState.pagination.filteredData.length / appState.pagination.pageSize)) { appState.pagination.currentPage++; renderRequestsTable(); } }
-        function prevPage() { if(appState.pagination.currentPage > 1) { appState.pagination.currentPage--; renderRequestsTable(); } }
-        function changePageSize(sz) { appState.pagination.pageSize = parseInt(sz); appState.pagination.currentPage = 1; renderRequestsTable(); }
-        function clearFilters() { 
-            document.getElementById('filterSearch').value = ''; document.getElementById('filterBranch').value = ''; 
-            document.getElementById('filterStatus').value = ''; document.getElementById('filterUrgency').value = ''; 
-            document.getElementById('filterStartDate').value = ''; document.getElementById('filterEndDate').value = ''; 
-            applyTableFilters(); 
-        }
-
-        /* --- DASHBOARD & METRICS --- */
-        function updateMetrics() {
-            const list = getAccessibleRequests();
-            document.getElementById('metric-pending').innerText = list.filter(r => r.status === 'Pending').length;
-            document.getElementById('metric-progress').innerText = list.filter(r => r.status === 'Approved').length;
-            document.getElementById('metric-completed').innerText = list.filter(r => r.status === 'Completed').length;
-            let tot = 0; list.forEach(r => r.items && r.items.forEach(i => tot += (i.qty * i.cost)));
-            document.getElementById('metric-budget').innerText = formatRupiah(tot);
-            
-            if (document.getElementById('nav-count-badge')) document.getElementById('nav-count-badge').innerText = list.length;
-            renderBudgetChart(list);
-        }
-
-        function renderBudgetChart(dataList) {
-            const ctx = document.getElementById('budgetChart');
-            if(!ctx) return;
-
-            // Kelompokkan total cost per cabang
-            let branchBudgets = {};
-            dataList.forEach(req => {
-                const b = req.branch;
-                const cost = req.items ? req.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                if(!branchBudgets[b]) branchBudgets[b] = 0;
-                branchBudgets[b] += cost;
-            });
-
-            const labels = Object.keys(branchBudgets);
-            const dataValues = Object.values(branchBudgets);
-
-            if(chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Estimasi Anggaran (Rp)',
-                        data: dataValues,
-                        backgroundColor: '#f59e0b', // amber-500
-                        borderColor: '#0f172a', // slate-900
-                        borderWidth: 2,
-                        borderRadius: 2,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            ticks: { callback: function(value) { return 'Rp ' + (value/1000000) + 'Jt'; }, font: { family: "'JetBrains Mono', monospace", size: 10 } }
-                        },
-                        x: { ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: 'bold' } } }
-                    }
+        window.setDashboardFilter = function(status) {
+            currentDashboardFilter = status;
+            currentPage = 1;
+            ['ALL', 'Menunggu', 'Diproses', 'Selesai'].forEach(s => {
+                const btn = document.getElementById(`filter-tab-${s}`);
+                if (s === status) {
+                    btn.className = "px-4 py-2 rounded-lg transition-all bg-white text-slate-800 shadow-sm font-bold";
+                } else {
+                    btn.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-800 font-semibold";
                 }
             });
+            renderDashboardTickets();
+        };
+
+        window.changeItemsPerPage = function(val) {
+            itemsPerPage = parseInt(val, 10);
+            currentPage = 1;
+            renderDashboardTickets();
+        };
+
+        window.goToPage = function(page) {
+            currentPage = page;
+            renderDashboardTickets();
+        };
+
+        window.renderDashboardTickets = function() {
+            const tbody = document.getElementById('tickets-tbody');
+            const branchFilter = document.getElementById('filter-branch-select').value;
+            const search = document.getElementById('search-ticket-input').value.toLowerCase();
+
+            // Filter tickets based on user role permissions
+            let accessibleTickets = dbTickets;
+            if (currentUser && currentUser.role !== 'manager') {
+                const userBranches = currentUser.branches || (currentUser.branch ? [currentUser.branch] : []);
+                accessibleTickets = dbTickets.filter(t => userBranches.includes(t.branch));
+            }
+
+            let totalT = accessibleTickets.length;
+            let pendingT = accessibleTickets.filter(t => t.status === 'Menunggu').length;
+            let processT = accessibleTickets.filter(t => t.status === 'Diproses').length;
+            let completedT = accessibleTickets.filter(t => t.status === 'Selesai').length;
+
+            let emergencyItemsCount = 0;
+            accessibleTickets.forEach(t => {
+                if (t.items) {
+                    t.items.forEach(i => {
+                        if ((i.priority === 'Darurat' || i.priority === 'Tinggi') && i.status !== 'Selesai') {
+                            emergencyItemsCount++;
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('stat-total-tickets').innerText = totalT;
+            document.getElementById('stat-pending-tickets').innerText = pendingT;
+            document.getElementById('stat-process-tickets').innerText = processT;
+            document.getElementById('stat-completed-tickets').innerText = completedT;
+            document.getElementById('stat-emergency-items').innerText = emergencyItemsCount;
+
+            // Filter
+            let filtered = accessibleTickets.filter(t => {
+                const matchStatus = currentDashboardFilter === 'ALL' || t.status === currentDashboardFilter;
+                const matchBranch = branchFilter === 'ALL' || t.branch === branchFilter;
+                const matchSearch = t.code.toLowerCase().includes(search) || 
+                                    t.requesterName.toLowerCase().includes(search) || 
+                                    t.branch.toLowerCase().includes(search) ||
+                                    (t.items && t.items.some(i => i.itemName.toLowerCase().includes(search)));
+                return matchStatus && matchBranch && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Tidak ada data tiket pengajuan perbaikan.</td></tr>`;
+                document.getElementById('pagination-info').innerText = "Menampilkan 0-0 dari 0 data";
+                document.getElementById('pagination-controls').innerHTML = "";
+                return;
+            }
+
+            const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
+            const pageTickets = filtered.slice(startIndex, endIndex);
+
+            document.getElementById('pagination-info').innerText = `Menampilkan ${startIndex + 1} - ${endIndex} dari ${filtered.length} tiket`;
+            renderPaginationControls(totalPages);
+
+            const statusBadge = (s) => {
+                if (s === 'Selesai') return `<span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 flex items-center justify-center gap-1 w-24 mx-auto"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Selesai</span>`;
+                if (s === 'Diproses') return `<span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 flex items-center justify-center gap-1 w-24 mx-auto"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Diproses</span>`;
+                return `<span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-700 flex items-center justify-center gap-1 w-24 mx-auto"><i data-lucide="clock" class="w-3 h-3"></i> Menunggu</span>`;
+            };
+
+            const isManager = currentUser && currentUser.role === 'manager';
+
+            tbody.innerHTML = pageTickets.map(t => {
+                const items = t.items || [];
+                const totalItems = items.length;
+                const doneItems = items.filter(i => i.status === 'Selesai').length;
+                const progressPct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="p-4">
+                            <div class="font-extrabold text-blue-700 text-xs font-mono">${t.code}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5"><i data-lucide="calendar" class="w-3 h-3 inline"></i> ${t.date}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${t.requesterName}</div>
+                            <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i> ${t.branch}
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[11px] border border-slate-200">
+                                ${totalItems} Item
+                            </span>
+                        </td>
+                        <td class="p-4 min-w-[160px]">
+                            <div class="flex justify-between items-center text-[10px] font-bold text-slate-600 mb-1">
+                                <span>${doneItems}/${totalItems} Selesai</span>
+                                <span>${progressPct}%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                <div class="h-full bg-blue-600 rounded-full transition-all" style="width: ${progressPct}%"></div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">${statusBadge(t.status)}</td>
+                        <td class="p-4 text-right space-x-1">
+                            <button onclick="openTicketDetailModal('${t.id}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] rounded-xl transition-colors">
+                                Detail / Ubah
+                            </button>
+                            ${isManager ? `
+                                <button onclick="confirmDelete('ticket', '${t._fbKey}')" class="p-1.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        };
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById('pagination-controls');
+            if (!container || totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold flex items-center gap-1">
+                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Prev
+                </button>
+            `;
+
+            for (let p = 1; p <= totalPages; p++) {
+                if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
+                    const isActive = p === currentPage;
+                    html += `
+                        <button onclick="goToPage(${p})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-blue-600 text-white shadow-sm' : 'border border-slate-200 hover:bg-slate-100 text-slate-700'}">
+                            ${p}
+                        </button>
+                    `;
+                } else if (p === currentPage - 2 || p === currentPage + 2) {
+                    html += `<span class="px-1 text-slate-400">...</span>`;
+                }
+            }
+
+            html += `
+                <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold flex items-center gap-1">
+                    Next <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+            `;
+
+            container.innerHTML = html;
         }
 
-        /* --- MODALS LOGIC --- */
-        function openDetailModal(idx) {
-            const req = appState.requests[idx]; if (!req) return;
-            document.getElementById('detailReqId').innerText = `#${req.id}`;
-            document.getElementById('detailDivision').innerText = req.division;
-            document.getElementById('detailBranch').innerText = req.branch;
-            document.getElementById('detailSubmissionDate').innerText = req.submissionDate;
-            document.getElementById('detailStatusBadge').innerText = `${req.status} (${req.urgency})`;
-            document.getElementById('detailJustification').innerText = req.justification || '-';
 
-            const tb = document.getElementById('detailItemsTableBody'); tb.innerHTML = ''; let tot = 0;
-            if(req.items) {
-                req.items.forEach((item, i) => {
-                    const sub = item.qty * item.cost; tot += sub;
-                    tb.innerHTML += `<tr><td class="p-1.5 border border-slate-900 text-center">${i+1}</td><td class="p-1.5 border border-slate-900 font-bold">${item.name}<br><span class="text-[9px] text-slate-500">${item.category} ${item.notes?'• '+item.notes:''}</span></td><td class="p-1.5 border border-slate-900 text-center">${item.qty} ${item.unit}</td><td class="p-1.5 border border-slate-900 text-right">${formatRupiah(item.cost)}</td><td class="p-1.5 border border-slate-900 text-right font-bold">${formatRupiah(sub)}</td></tr>`;
+        // ==================== TIKET DETAIL & ITEM STATUS UPDATE ====================
+        window.openTicketDetailModal = function(ticketId) {
+            const ticket = dbTickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+
+            document.getElementById('modal-ticket-code').innerText = ticket.code;
+            document.getElementById('modal-ticket-meta').innerText = `Pemohon: ${ticket.requesterName} | Cabang: ${ticket.branch} | Tgl: ${ticket.date}`;
+
+            const items = ticket.items || [];
+            const totalItems = items.length;
+            const doneItems = items.filter(i => i.status === 'Selesai').length;
+            const progressPct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+            document.getElementById('modal-ticket-progress-text').innerText = `${doneItems} dari ${totalItems} Item Selesai (${progressPct}%)`;
+            document.getElementById('modal-ticket-progress-bar').style.width = `${progressPct}%`;
+
+            const isManager = currentUser && currentUser.role === 'manager';
+            const itemsContainer = document.getElementById('modal-ticket-items-list');
+
+            itemsContainer.innerHTML = items.map((item, idx) => {
+                let priorityClass = 'bg-slate-100 text-slate-700';
+                if (item.priority === 'Rendah') priorityClass = 'bg-emerald-100 text-emerald-700';
+                if (item.priority === 'Sedang') priorityClass = 'bg-amber-100 text-amber-700';
+                if (item.priority === 'Tinggi') priorityClass = 'bg-orange-100 text-orange-700';
+                if (item.priority === 'Darurat') priorityClass = 'bg-rose-100 text-rose-700 font-extrabold animate-pulse';
+
+                return `
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-xs text-slate-800">#${idx + 1}. ${item.itemName}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${priorityClass}">${item.priority}</span>
+                            </div>
+                            <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg font-bold">${item.category}</span>
+                        </div>
+
+                        <p class="text-xs text-slate-600 leading-relaxed">${item.description}</p>
+
+                        ${item.photoBase64 ? `
+                            <div>
+                                <button onclick="showEnlargedImage('${item.photoBase64}')" class="text-xs text-blue-600 font-bold underline flex items-center gap-1 hover:text-blue-800">
+                                    <i data-lucide="image" class="w-3.5 h-3.5"></i> Lihat Foto Kerusakan
+                                </button>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                            <span class="text-[11px] font-bold text-slate-500">Status Item:</span>
+                            ${isManager ? `
+                                <select onchange="updateItemStatus('${ticket._fbKey}', '${item.id}', this.value)" class="text-xs font-bold px-2.5 py-1 border border-slate-200 rounded-xl bg-white outline-none">
+                                    <option value="Menunggu" ${item.status === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+                                    <option value="Diproses" ${item.status === 'Diproses' ? 'selected' : ''}>Diproses</option>
+                                    <option value="Selesai" ${item.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                                </select>
+                            ` : `
+                                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${item.status === 'Selesai' ? 'bg-emerald-100 text-emerald-700' : (item.status === 'Diproses' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700')}">
+                                    ${item.status}
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('modal-ticket-detail').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.updateItemStatus = function(fbKey, itemId, newStatus) {
+            const ticket = dbTickets.find(t => t._fbKey === fbKey);
+            if (!ticket) return;
+
+            const item = ticket.items.find(i => i.id === itemId);
+            if (item) {
+                item.status = newStatus;
+
+                const total = ticket.items.length;
+                const completedCount = ticket.items.filter(i => i.status === 'Selesai').length;
+                const processCount = ticket.items.filter(i => i.status === 'Diproses').length;
+
+                if (completedCount === total) ticket.status = 'Selesai';
+                else if (completedCount > 0 || processCount > 0) ticket.status = 'Diproses';
+                else ticket.status = 'Menunggu';
+
+                // Sync Document Update in Cloud Firestore
+                db.collection('tickets').doc(fbKey).update({
+                    status: ticket.status,
+                    items: ticket.items
+                }).then(() => {
+                    showToast("Status item berhasil diperbarui secara realtime!");
+                }).catch((err) => {
+                    showToast("Gagal update status: " + err.message, true);
                 });
             }
-            document.getElementById('detailTotalBudget').innerText = formatRupiah(tot);
-            
-            const pc = document.getElementById('detailPhotosContainer'); pc.innerHTML = '';
-            if(req.items) {
-                req.items.filter(i => i.photo).forEach(item => {
-                    pc.innerHTML += `<div class="cursor-pointer border-2 border-slate-900 p-1 bg-white" onclick="openZoomImage('${item.photo}')"><img src="${item.photo}" class="w-12 h-12 object-cover border"><span class="text-[8px] font-mono font-bold block text-center mt-0.5 truncate w-12">${item.name}</span></div>`;
-                });
-            }
+        };
 
-            // Tampilkan Audit Trail
-            const auditUl = document.getElementById('detailAuditTrail');
-            if (req.audit && req.audit.length > 0) {
-                auditUl.innerHTML = req.audit.map(a => `<li><span class="font-bold text-slate-900">${a.timestamp}</span> - ${a.actor} (${a.role}) : <span class="italic">${a.action}</span></li>`).join('');
-            } else {
-                auditUl.innerHTML = `<li class="italic text-slate-500">Tidak ada riwayat.</li>`;
-            }
+        window.showEnlargedImage = function(src) {
+            document.getElementById('enlarged-image-src').src = src;
+            document.getElementById('modal-image-preview').classList.remove('hidden');
+        };
 
-            openModal('detailModal');
+
+        // ==================== MASTER DATA MANAGEMENT ====================
+        // CABANG
+        function renderCabangTable() {
+            const tbody = document.getElementById('cabang-tbody');
+            tbody.innerHTML = dbBranches.map((b, index) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="moveBranchOrder(${index}, -1)" ${index === 0 ? 'disabled' : ''} class="p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 rounded-lg transition-colors">
+                                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="moveBranchOrder(${index}, 1)" ${index === dbBranches.length - 1 ? 'disabled' : ''} class="p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 rounded-lg transition-colors">
+                                <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-4 font-bold text-slate-800">${b.name}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="openModalCabang('${b._fbKey}', '${b.name}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-xl mr-1"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="confirmDelete('cabang', '${b._fbKey}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
         }
 
-        function openEditModal(idx) {
-            const u = getCurrentUser(); if (u.role !== 'General Affair Manager') return Swal.fire('Akses Dibatasi', 'Hanya GA Manager.', 'warning');
-            const r = appState.requests[idx]; if (!r) return;
-            document.getElementById('editReqDocId').value = idx;
-            document.getElementById('editStatus').value = r.status; document.getElementById('editUrgency').value = r.urgency; document.getElementById('editGANotes').value = r.gaNotes||'';
-            const c = document.getElementById('editModalItemsContainer'); c.innerHTML = '';
-            if(r.items) { r.items.forEach(i => addEditModalItemRow(i)); } else { addEditModalItemRow(); }
-            openModal('editApprovalModal');
-        }
+        window.moveBranchOrder = function(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= dbBranches.length) return;
 
-        function addEditModalItemRow(data=null) {
-            const c = document.getElementById('editModalItemsContainer'); const rid = 'edit_item_'+Date.now();
-            const co = appState.categories.map(c => `<option value="${c}" ${data&&data.category===c?'selected':''}>${c}</option>`).join('');
-            const h = `
-                <div id="${rid}" class="edit-item-row bg-white p-3 neo-border space-y-2">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-1"><span class="font-mono font-bold text-[11px] uppercase text-slate-700">Baris Item Aset</span><button type="button" onclick="removeEditModalItemRow('${rid}')" class="neo-button bg-rose-100 text-rose-700 font-bold text-[10px] px-2 py-0.5">Hapus Baris</button></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                        <div class="sm:col-span-5"><input type="text" required class="edit-item-name w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold" value="${data?data.name:''}"></div>
-                        <div class="sm:col-span-4"><select class="edit-item-category w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold">${co}</select></div>
-                        <div class="sm:col-span-1"><input type="number" min="1" required class="edit-item-qty w-full bg-slate-50 neo-border px-1 py-1 text-xs font-bold text-center" value="${data?data.qty:1}"></div>
-                        <div class="sm:col-span-2"><input type="number" min="0" required class="edit-item-cost w-full bg-slate-50 neo-border px-2 py-1 text-xs font-bold font-mono" value="${data?data.cost:0}"></div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <input type="text" placeholder="Catatan spesifikasi..." class="edit-item-notes w-full bg-slate-50 neo-border px-2 py-1 text-xs" value="${data?data.notes||'':''}">
-                        <div class="flex items-center space-x-2"><label class="neo-button bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-1 cursor-pointer flex items-center shrink-0"><i class="fa-solid fa-camera mr-1"></i>Upload <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rid}')"></label><input type="hidden" class="item-photo-data" value="${data?data.photo||'':''}"><div class="photo-preview-box text-[10px] font-mono text-slate-500 truncate flex-1">${data&&data.photo?'✓ Foto Terlampir':'Belum ada foto'}</div></div>
-                    </div>
-                </div>`;
-            c.insertAdjacentHTML('beforeend', h);
-        }
-        function removeEditModalItemRow(id) { if (document.querySelectorAll('.edit-item-row').length > 1) document.getElementById(id).remove(); }
+            const itemA = dbBranches[index];
+            const itemB = dbBranches[targetIndex];
 
-        async function saveEditApproval(e) {
+            const batch = db.batch();
+            const refA = db.collection('branches').doc(itemA._fbKey);
+            const refB = db.collection('branches').doc(itemB._fbKey);
+
+            batch.update(refA, { order: itemB.order || targetIndex + 1 });
+            batch.update(refB, { order: itemA.order || index + 1 });
+
+            batch.commit().then(() => {
+                showToast("Urutan cabang diperbarui!");
+            }).catch(err => showToast("Gagal ubah urutan: " + err.message, true));
+        };
+
+        window.openModalCabang = function(id = '', name = '') {
+            document.getElementById('cabang-edit-id').value = id;
+            document.getElementById('cabang-nama').value = name;
+            document.getElementById('modal-cabang-title').innerText = id ? 'Edit Cabang' : 'Tambah Cabang Baru';
+            document.getElementById('modal-cabang').classList.remove('hidden');
+        };
+
+        document.getElementById('form-cabang-master').addEventListener('submit', (e) => {
             e.preventDefault();
-            const idx = parseInt(document.getElementById('editReqDocId').value); const req = appState.requests[idx]; if (!req) return;
-            const usr = getCurrentUser();
-            
-            const oldStatus = req.status;
-            const newStatus = document.getElementById('editStatus').value;
-            
-            req.status = newStatus; 
-            req.urgency = document.getElementById('editUrgency').value; 
-            req.gaNotes = document.getElementById('editGANotes').value;
+            const id = document.getElementById('cabang-edit-id').value;
+            const name = document.getElementById('cabang-nama').value.trim();
 
-            let upd = []; document.querySelectorAll('.edit-item-row').forEach(r => { upd.push({ name: r.querySelector('.edit-item-name').value, category: r.querySelector('.edit-item-category').value, qty: parseInt(r.querySelector('.edit-item-qty').value)||1, unit: 'Unit', cost: parseFloat(r.querySelector('.edit-item-cost').value)||0, notes: r.querySelector('.edit-item-notes').value||'', photo: r.querySelector('.item-photo-data').value||'' }); });
-            req.items = upd;
+            if (id) {
+                db.collection('branches').doc(id).update({ name });
+            } else {
+                const newOrder = dbBranches.length + 1;
+                db.collection('branches').add({ id: 'b-' + Date.now(), name, order: newOrder });
+            }
 
-            // Tambah Audit Trail
-            if(!req.audit) req.audit = [];
-            let actionText = `Memperbarui Data & Rincian.`;
-            if (oldStatus !== newStatus) actionText = `Ubah status: ${oldStatus} ➔ ${newStatus}. Catatan GA: ${req.gaNotes || '-'}`;
-            
-            req.audit.push({
-                actor: usr.name, role: usr.role,
-                action: actionText, timestamp: new Date().toLocaleString('id-ID')
-            });
+            closeModal('modal-cabang');
+            showToast("Master Cabang tersimpan di Firestore.");
+        });
 
-            if (window.db && req.docId) { try { await window.fbDeps.setDoc(window.fbDeps.doc(window.db, "requests", req.docId), req, { merge: true }); } catch(err){} } 
-            else { saveLocalState(); }
-            closeModal('editApprovalModal'); applyTableFilters(); updateMetrics(); Swal.fire('Berhasil', 'Pembaruan disimpan.', 'success');
+        // KATEGORI
+        function renderKategoriTable() {
+            const tbody = document.getElementById('kategori-tbody');
+            tbody.innerHTML = dbCategories.map((k, index) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="moveCategoryOrder(${index}, -1)" ${index === 0 ? 'disabled' : ''} class="p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 rounded-lg transition-colors">
+                                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="moveCategoryOrder(${index}, 1)" ${index === dbCategories.length - 1 ? 'disabled' : ''} class="p-1 text-slate-500 hover:bg-slate-200 disabled:opacity-30 rounded-lg transition-colors">
+                                <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-4 font-bold text-slate-800">${k.name}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="openModalKategori('${k._fbKey}', '${k.name}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-xl mr-1"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="confirmDelete('kategori', '${k._fbKey}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
         }
 
-        async function deleteRequest(idx, did) {
-            Swal.fire({ title: 'Hapus pengajuan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626' }).then(async (res) => {
-                if(res.isConfirmed) {
-                    if (window.db && did) { try { await window.fbDeps.deleteDoc(window.fbDeps.doc(window.db, "requests", did)); } catch(e){} } 
-                    else { appState.requests.splice(idx, 1); saveLocalState(); }
-                    applyTableFilters(); updateMetrics(); Swal.fire('Terhapus', 'Data dihapus.', 'success');
+        window.moveCategoryOrder = function(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= dbCategories.length) return;
+
+            const itemA = dbCategories[index];
+            const itemB = dbCategories[targetIndex];
+
+            const batch = db.batch();
+            const refA = db.collection('categories').doc(itemA._fbKey);
+            const refB = db.collection('categories').doc(itemB._fbKey);
+
+            batch.update(refA, { order: itemB.order || targetIndex + 1 });
+            batch.update(refB, { order: itemA.order || index + 1 });
+
+            batch.commit().then(() => {
+                showToast("Urutan kategori diperbarui!");
+            }).catch(err => showToast("Gagal ubah urutan: " + err.message, true));
+        };
+
+        window.openModalKategori = function(id = '', name = '') {
+            document.getElementById('kategori-edit-id').value = id;
+            document.getElementById('kategori-nama').value = name;
+            document.getElementById('modal-kategori-title').innerText = id ? 'Edit Kategori' : 'Tambah Kategori Baru';
+            document.getElementById('modal-kategori').classList.remove('hidden');
+        };
+
+        document.getElementById('form-kategori-master').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('kategori-edit-id').value;
+            const name = document.getElementById('kategori-nama').value.trim();
+
+            if (id) {
+                db.collection('categories').doc(id).update({ name });
+            } else {
+                const newOrder = dbCategories.length + 1;
+                db.collection('categories').add({ id: 'c-' + Date.now(), name, order: newOrder });
+            }
+
+            closeModal('modal-kategori');
+            showToast("Master Kategori tersimpan di Firestore.");
+        });
+
+        // USERS & MULTI-BRANCH ACCESS
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = dbUsers.map(u => {
+                const userBranches = u.branches || (u.branch ? [u.branch] : []);
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-4 font-bold text-slate-800">${u.name}</td>
+                        <td class="p-4 text-slate-600 font-mono">${u.username}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase ${u.role === 'manager' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${u.role}</span>
+                        </td>
+                        <td class="p-4 text-slate-600">${userBranches.join(', ') || '-'}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="openModalUser('${u._fbKey}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-xl mr-1"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="confirmDelete('user', '${u._fbKey}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        window.openModalUser = function(id = '') {
+            document.getElementById('user-edit-id').value = id;
+            
+            // Render checkboxes for branches
+            const container = document.getElementById('user-branches-checkboxes');
+            let assignedBranches = [];
+
+            if (id) {
+                const u = dbUsers.find(x => x._fbKey === id || x.id === id);
+                if (u) {
+                    document.getElementById('user-nama').value = u.name;
+                    document.getElementById('user-username').value = u.username;
+                    document.getElementById('user-password').value = u.password;
+                    document.getElementById('user-role').value = u.role;
+                    assignedBranches = u.branches || (u.branch ? [u.branch] : []);
+                }
+                document.getElementById('modal-user-title').innerText = 'Edit User';
+            } else {
+                document.getElementById('form-user').reset();
+                document.getElementById('user-edit-id').value = '';
+                document.getElementById('modal-user-title').innerText = 'Tambah User Baru';
+            }
+
+            container.innerHTML = dbBranches.map(b => {
+                const isChecked = assignedBranches.includes(b.name) ? 'checked' : '';
+                return `
+                    <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                        <input type="checkbox" name="user_branch_cb" value="${b.name}" ${isChecked} class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        <span>${b.name}</span>
+                    </label>
+                `;
+            }).join('');
+
+            document.getElementById('modal-user').classList.remove('hidden');
+        };
+
+        document.getElementById('form-user').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('user-edit-id').value;
+
+            // Collect checked branches
+            const checkedBoxes = document.querySelectorAll('input[name="user_branch_cb"]:checked');
+            const selectedBranches = Array.from(checkedBoxes).map(cb => cb.value);
+
+            if (selectedBranches.length === 0) {
+                showToast("Pilih minimal satu cabang akses untuk user ini!", true);
+                return;
+            }
+
+            const payload = {
+                name: document.getElementById('user-nama').value.trim(),
+                username: document.getElementById('user-username').value.trim(),
+                password: document.getElementById('user-password').value.trim(),
+                role: document.getElementById('user-role').value,
+                branches: selectedBranches
+            };
+
+            if (id) {
+                db.collection('users').doc(id).update(payload);
+            } else {
+                db.collection('users').add({ id: 'u-' + Date.now(), ...payload });
+            }
+
+            closeModal('modal-user');
+            showToast("Data akun pengguna tersimpan di Firestore.");
+        });
+
+        // DELETE CONFIRMATION
+        window.confirmDelete = function(type, key) {
+            const modal = document.getElementById('modal-confirm');
+            const actBtn = document.getElementById('btn-confirm-act');
+            modal.classList.remove('hidden');
+
+            actBtn.onclick = () => {
+                const collectionMap = {
+                    ticket: 'tickets',
+                    cabang: 'branches',
+                    kategori: 'categories',
+                    user: 'users'
+                };
+
+                db.collection(collectionMap[type]).doc(key).delete()
+                    .then(() => {
+                        showToast("Data berhasil dihapus dari Cloud Firestore!");
+                    })
+                    .catch((err) => {
+                        showToast("Gagal menghapus: " + err.message, true);
+                    });
+
+                closeModal('modal-confirm');
+            };
+        };
+
+
+        // ==================== REALTIME CLOUD FIRESTORE LISTENERS ====================
+        function initFirestoreRealtimeListeners() {
+            // Status Indicator
+            document.getElementById('system-status-indicator').innerText = 'Cloud Firestore Active';
+
+            // Users Collection Listener
+            db.collection('users').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    defaultUsers.forEach(u => db.collection('users').add(u));
+                } else {
+                    dbUsers = snapshot.docs.map(doc => ({ ...doc.data(), _fbKey: doc.id }));
+                    if (!document.getElementById('view-users').classList.contains('hidden')) renderUsersTable();
+                }
+            });
+
+            // Branches Collection Listener (With Sorting)
+            db.collection('branches').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    defaultBranches.forEach(b => db.collection('branches').add(b));
+                } else {
+                    dbBranches = snapshot.docs
+                        .map(doc => ({ ...doc.data(), _fbKey: doc.id }))
+                        .sort((a, b) => (a.order || 0) - (b.order || 0));
+                    
+                    populateMasterDropdowns();
+                    if (!document.getElementById('view-cabang').classList.contains('hidden')) renderCabangTable();
+                }
+            });
+
+            // Categories Collection Listener (With Sorting)
+            db.collection('categories').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    defaultCategories.forEach(c => db.collection('categories').add(c));
+                } else {
+                    dbCategories = snapshot.docs
+                        .map(doc => ({ ...doc.data(), _fbKey: doc.id }))
+                        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                    if (!document.getElementById('view-kategori').classList.contains('hidden')) renderKategoriTable();
+                }
+            });
+
+            // Tickets Collection Listener (Realtime Sync Engine)
+            db.collection('tickets').onSnapshot((snapshot) => {
+                dbTickets = snapshot.docs
+                    .map(doc => ({ ...doc.data(), _fbKey: doc.id }))
+                    .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+
+                if (!document.getElementById('view-dashboard').classList.contains('hidden')) {
+                    renderDashboardTickets();
+                }
+
+                // Refresh Modal Detail jika sedang terbuka
+                const activeCode = document.getElementById('modal-ticket-code').innerText;
+                if (activeCode && !document.getElementById('modal-ticket-detail').classList.contains('hidden')) {
+                    const matched = dbTickets.find(t => t.code === activeCode);
+                    if (matched) openTicketDetailModal(matched.id);
                 }
             });
         }
-        function openZoomImage(src) { document.getElementById('zoomedImage').src = src; openModal('imageZoomModal'); }
-        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
-        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
 
-        /* --- MASTER DATA LOGIC --- */
-        function renderMasterDataView() {
-            const tb = document.getElementById('masterUserTableBody'); if (!tb) return;
-            tb.innerHTML = appState.users.map((u, i) => `<tr class="hover:bg-slate-50"><td class="p-2.5 border border-slate-300 font-bold">${u.name}</td><td class="p-2.5 border border-slate-300 text-blue-600 font-mono">${u.role}</td><td class="p-2.5 border border-slate-300 font-medium">${u.branches.includes('ALL')?'All Branches':u.branches.join(', ')}</td><td class="p-2.5 border border-slate-300 text-center"><button onclick="promptEditUser(${i})" class="text-slate-600 mr-2"><i class="fa-solid fa-pen"></i></button>${u.username!=='admin'?`<button onclick="deleteUserAccount(${i})" class="text-rose-600"><i class="fa-solid fa-trash"></i></button>`:''}</td></tr>`).join('');
-            ['categories','divisions','branches'].forEach(k => {
-                const el = document.getElementById('masterList' + k.charAt(0).toUpperCase() + k.slice(1));
-                if(el) el.innerHTML = appState[k].map((item, idx) => `<div class="flex items-center justify-between bg-slate-50 p-2 neo-border text-xs font-bold"><span>${item}</span><button onclick="deleteMasterItem('${k}', ${idx})" class="text-rose-600 hover:text-rose-800 px-1 font-black">&times;</button></div>`).join('');
-            });
-        }
-        function promptAddMasterItem(k) {
-            Swal.fire({ title: `Tambah Data`, input: 'text', showCancelButton: true, confirmButtonColor: '#2563eb' }).then(r => {
-                if(r.isConfirmed && r.value.trim()!=='') { appState[k].push(r.value.trim()); saveMasterSettings(); renderMasterDataView(); populateDropdowns(); }
-            });
-        }
-        function deleteMasterItem(k, i) { appState[k].splice(i, 1); saveMasterSettings(); renderMasterDataView(); populateDropdowns(); }
 
-        function renderBranchCheckboxes(sel=[]) {
-            const c = document.getElementById('branchCheckboxesContainer'); if (!c) return;
-            c.innerHTML = appState.branches.map(b => `<label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="${b}" ${sel.includes('ALL')||sel.includes(b)?'checked':''} class="branch-checkbox w-4 h-4 text-cobalt-600 font-bold"><span>${b}</span></label>`).join('');
-        }
-        function toggleBranchCheckboxesByRole() {
-            const r = document.getElementById('userFormRole').value;
-            document.querySelectorAll('.branch-checkbox').forEach(cb => { if(r==='General Affair Manager'){ cb.checked=true; cb.disabled=true; } else { cb.disabled=false; } });
-        }
-        function promptAddUser() { document.getElementById('userForm').reset(); document.getElementById('userFormId').value=''; document.getElementById('userModalTitle').innerText='Buat Akun Baru'; renderBranchCheckboxes([]); toggleBranchCheckboxesByRole(); openModal('userModal'); }
-        function promptEditUser(i) {
-            const u = appState.users[i]; document.getElementById('userFormId').value = i; document.getElementById('userModalTitle').innerText = 'Edit: '+u.name;
-            document.getElementById('userFormUsername').value = u.username; document.getElementById('userFormName').value = u.name; document.getElementById('userFormPassword').value = u.password; document.getElementById('userFormRole').value = u.role;
-            renderBranchCheckboxes(u.branches||[]); toggleBranchCheckboxesByRole(); openModal('userModal');
-        }
-        function saveUserAccount(e) {
-            e.preventDefault(); const idStr = document.getElementById('userFormId').value;
-            const uname = document.getElementById('userFormUsername').value.trim(); const nm = document.getElementById('userFormName').value.trim(); const pwd = document.getElementById('userFormPassword').value.trim(); const rl = document.getElementById('userFormRole').value;
-            let br = []; if (rl === 'General Affair Manager') { br = ['ALL']; } else { document.querySelectorAll('.branch-checkbox:checked').forEach(cb => br.push(cb.value)); }
-            if (br.length===0) return Swal.fire('Peringatan', 'Pilih minimal 1 cabang!', 'warning');
-            
-            if (idStr==='') {
-                if (appState.users.some(u=>u.username===uname)) return Swal.fire('Error', 'Username terpakai!', 'error');
-                appState.users.push({ id:'usr_'+Date.now(), username:uname, name:nm, password:pwd, role:rl, branches:br });
-            } else {
-                appState.users[parseInt(idStr)] = { ...appState.users[parseInt(idStr)], username:uname, name:nm, password:pwd, role:rl, branches:br };
-            }
-            saveMasterSettings(); closeModal('userModal'); renderMasterDataView(); Swal.fire('Tersimpan', '', 'success');
-        }
-        function deleteUserAccount(i) {
-            Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626' }).then(r => {
-                if(r.isConfirmed) { appState.users.splice(i, 1); saveMasterSettings(); renderMasterDataView(); Swal.fire('Terhapus', '', 'success'); }
-            });
-        }
-        function exportCSV() {
-            let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Divisi,Cabang,Urgensi,Status,Total\r\n";
-            getAccessibleRequests().forEach(r => { const t = r.items ? r.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0; csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, t].join(",") + "\r\n"; });
-            const link = document.createElement("a"); link.href = encodeURI(csv); link.download = `AssetReq_Report.csv`; link.click();
-        }
-        function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
+        // System Initialization
+        window.onload = function() {
+            lucide.createIcons();
+            checkSavedSession();
+            initFirestoreRealtimeListeners();
+        };
     </script>
 </body>
 </html>
