@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-950">
+<html lang="id" class="h-full bg-[#1b100c]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,10 +16,24 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857' },
-                        charcoal: { 800: '#1e2530', 900: '#131821', 950: '#0b0f17' },
-                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04' },
-                        rose: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 900: '#881337' }
+                        dobah: {
+                            50: '#fcf6f0',
+                            100: '#f7ebd9',
+                            200: '#edd5b3',
+                            300: '#e1b782',
+                            400: '#f4a23a', // Warm Donut Yellow (dari logo)
+                            500: '#d97d26',
+                            600: '#a75d22', // Caramel Brown (dari logo text)
+                            700: '#84471b',
+                            800: '#5c3113',
+                            900: '#3a1f0c',
+                            950: '#211006',
+                        },
+                        cocoa: {
+                            800: '#331d14',
+                            900: '#22120a',
+                            950: '#150a05',
+                        }
                     }
                 }
             }
@@ -64,18 +78,18 @@
     </script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0f17; color: #f8fafc; }
-        .glass-panel { background: rgba(30, 37, 48, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1rem; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
-        .glass-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; border-radius: 0.75rem; transition: all 0.2s ease; }
-        .glass-input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); outline: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #150a05; color: #fcf6f0; }
+        .glass-panel { background: rgba(51, 29, 20, 0.65); backdrop-filter: blur(14px); border: 1px solid rgba(244, 162, 58, 0.15); border-radius: 1rem; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7); }
+        .glass-input { background: rgba(21, 10, 5, 0.8); border: 1px solid rgba(244, 162, 58, 0.2); color: #fcf6f0; border-radius: 0.75rem; transition: all 0.2s ease; }
+        .glass-input:focus { border-color: #f4a23a; box-shadow: 0 0 0 2px rgba(244, 162, 58, 0.25); outline: none; }
         .modern-button { transition: all 0.2s ease; border-radius: 0.75rem; font-weight: 600; }
         .modern-button:hover { transform: translateY(-1px); filter: brightness(1.1); }
         .modern-button:active { transform: translateY(1px); }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b0f17; }
-        ::-webkit-scrollbar-thumb { background: #1e2530; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        ::-webkit-scrollbar-track { background: #150a05; }
+        ::-webkit-scrollbar-thumb { background: #331d14; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f4a23a; }
 
         @media print {
             body * { visibility: hidden !important; }
@@ -84,74 +98,74 @@
             .no-print { display: none !important; }
         }
         
-        th.sortable:hover { color: #34d399; cursor: pointer; }
+        th.sortable:hover { color: #f4a23a; cursor: pointer; }
     </style>
 </head>
-<body class="min-h-full flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950">
+<body class="min-h-full flex flex-col antialiased selection:bg-dobah-400 selection:text-slate-950">
 
     <!-- Top Navigation Header -->
-    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-40 px-4 sm:px-8 py-4 no-print">
+    <header class="bg-cocoa-900/95 backdrop-blur-md border-b border-dobah-400/20 sticky top-0 z-40 px-4 sm:px-8 py-4 no-print">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-3.5 w-full md:w-auto justify-between md:justify-start">
                 <div class="flex items-center space-x-3.5">
-                    <div class="w-11 h-11 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-900/40">
-                        <i class="fa-solid fa-boxes-packing"></i>
+                    <div class="w-11 h-11 bg-gradient-to-br from-dobah-400 to-dobah-600 rounded-xl flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-dobah-950/80 border border-dobah-300/30">
+                        <i class="fa-solid fa-cookie-bite"></i>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2.5">
-                            <h1 class="font-black text-lg tracking-wide text-white font-mono uppercase">GA X <span class="text-emerald-400">DOBAH</span></h1>
-                            <span id="cloudStatusBadge" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Syncing...</span>
+                            <h1 class="font-black text-lg tracking-wide text-white font-mono uppercase">GA X <span class="text-dobah-400">DOBAH</span></h1>
+                            <span id="cloudStatusBadge" class="bg-dobah-400/20 text-dobah-300 border border-dobah-400/40 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Syncing...</span>
                         </div>
-                        <p class="text-[11px] text-slate-400 font-medium tracking-wide uppercase">Created By : DIVISI GA</p>
+                        <p class="text-[11px] text-dobah-200/60 font-medium tracking-wide uppercase">Created By : DIVISI GA</p>
                     </div>
                 </div>
             </div>
 
             <nav class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-                <button onclick="switchTab('form')" id="tab-form" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-200 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5">
+                <button onclick="switchTab('form')" id="tab-form" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-100 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5">
                     <i class="fa-solid fa-pen-to-square mr-2"></i>Buat Permintaan
                 </button>
-                <button onclick="switchTab('list')" id="tab-list" class="modern-button bg-emerald-500 text-slate-950 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap shadow-lg shadow-emerald-900/20">
+                <button onclick="switchTab('list')" id="tab-list" class="modern-button bg-dobah-400 text-slate-950 font-bold px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap shadow-lg shadow-dobah-950/40">
                     <i class="fa-solid fa-list-check mr-2"></i>Daftar & Status
-                    <span id="nav-count-badge" class="ml-2 bg-emerald-500/20 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">0</span>
+                    <span id="nav-count-badge" class="ml-2 bg-slate-950/30 text-dobah-100 text-[10px] font-mono px-2 py-0.5 rounded-full border border-dobah-400/30">0</span>
                 </button>
-                <button onclick="switchTab('master')" id="tab-master" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-200 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5">
+                <button onclick="switchTab('master')" id="tab-master" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-100 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5">
                     <i class="fa-solid fa-database mr-2"></i>Master Data & Akun
                 </button>
             </nav>
 
             <div class="flex items-center space-x-3 relative">
                 <!-- Notifikasi Bell -->
-                <button onclick="toggleNotifMenu()" class="text-slate-300 hover:text-emerald-400 relative p-2.5 bg-charcoal-800 rounded-xl border border-white/5 transition-colors">
+                <button onclick="toggleNotifMenu()" class="text-dobah-200 hover:text-dobah-400 relative p-2.5 bg-cocoa-800 rounded-xl border border-white/5 transition-colors">
                     <i class="fa-solid fa-bell text-sm"></i>
-                    <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-charcoal-900">0</span>
+                    <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-cocoa-900">0</span>
                 </button>
 
                 <!-- Menu Notifikasi Dropdown -->
                 <div id="notifMenu" class="hidden absolute top-full right-12 mt-2 w-72 glass-panel z-50 overflow-hidden shadow-2xl">
-                    <div class="bg-charcoal-900/90 text-white font-bold text-xs px-4 py-3 border-b border-white/10 flex justify-between items-center">
+                    <div class="bg-cocoa-900/90 text-white font-bold text-xs px-4 py-3 border-b border-dobah-400/20 flex justify-between items-center">
                         <span>Pemberitahuan</span>
                     </div>
-                    <div id="notifList" class="max-h-60 overflow-y-auto p-3 space-y-2 text-xs text-slate-300">
-                        <p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>
+                    <div id="notifList" class="max-h-60 overflow-y-auto p-3 space-y-2 text-xs text-dobah-200">
+                        <p class="text-dobah-300/50 text-center italic py-2">Tidak ada notifikasi baru.</p>
                     </div>
                 </div>
 
                 <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
 
                 <!-- User Menu Profile -->
-                <div id="userSessionInfo" class="hidden relative items-center cursor-pointer bg-charcoal-800 px-3.5 py-2 rounded-xl border border-white/5 hover:bg-slate-700 transition-all" onclick="toggleUserMenu()">
+                <div id="userSessionInfo" class="hidden relative items-center cursor-pointer bg-cocoa-800 px-3.5 py-2 rounded-xl border border-white/5 hover:bg-cocoa-900 transition-all" onclick="toggleUserMenu()">
                     <div class="text-left">
-                        <span id="displayUserName" class="text-xs font-bold text-emerald-400 block truncate max-w-[100px] sm:max-w-[140px]">User</span>
-                        <span id="displayUserRole" class="text-[10px] text-slate-400 font-mono block">Role</span>
+                        <span id="displayUserName" class="text-xs font-bold text-dobah-300 block truncate max-w-[100px] sm:max-w-[140px]">User</span>
+                        <span id="displayUserRole" class="text-[10px] text-dobah-200/60 font-mono block">Role</span>
                     </div>
-                    <i class="fa-solid fa-caret-down text-slate-400 ml-3 text-xs"></i>
+                    <i class="fa-solid fa-caret-down text-dobah-300 ml-3 text-xs"></i>
                 </div>
 
                 <!-- User Dropdown Menu -->
                 <div id="userMenuDropdown" class="hidden absolute top-full right-0 mt-2 w-52 glass-panel z-50 text-xs font-bold flex flex-col shadow-2xl overflow-hidden">
-                    <button onclick="openModal('passwordModal')" class="text-left px-4 py-3 hover:bg-white/5 text-slate-200 flex items-center border-b border-white/5">
-                        <i class="fa-solid fa-key w-5 text-emerald-400"></i> Ubah Password
+                    <button onclick="openModal('passwordModal')" class="text-left px-4 py-3 hover:bg-white/5 text-dobah-100 flex items-center border-b border-white/5">
+                        <i class="fa-solid fa-key w-5 text-dobah-400"></i> Ubah Password
                     </button>
                     <button onclick="handleLogout()" class="text-left px-4 py-3 hover:bg-rose-500/10 text-rose-400 flex items-center">
                         <i class="fa-solid fa-power-off w-5"></i> Keluar (Logout)
@@ -167,16 +181,16 @@
         <!-- TAB 1: FORM -->
         <section id="view-form" class="hidden space-y-6">
             <div class="glass-panel p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
-                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-dobah-400/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10">
-                    <div class="inline-block bg-emerald-500/15 text-emerald-400 font-bold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider mb-3 border border-emerald-500/20">
+                    <div class="inline-block bg-dobah-400/20 text-dobah-300 font-bold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider mb-3 border border-dobah-400/30">
                         <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i>FORMULIR PENGADAAN RESMI (REALTIME CLOUD SYNC)
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Pengajuan Permintaan Aset Baru / Perbaikan</h2>
-                    <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
+                    <p class="text-xs sm:text-sm text-dobah-200/70 font-medium mt-1">Lengkapi rincian unit, perkiraan biaya, serta foto bukti kerusakan untuk persetujuan General Affair.</p>
                 </div>
-                <div class="flex items-center space-x-2.5 text-xs font-mono font-bold bg-charcoal-900/80 px-4 py-2.5 rounded-xl border border-white/10 relative z-10">
-                    <i class="fa-solid fa-calendar-day text-emerald-400"></i>
+                <div class="flex items-center space-x-2.5 text-xs font-mono font-bold bg-cocoa-900/80 px-4 py-2.5 rounded-xl border border-white/10 relative z-10">
+                    <i class="fa-solid fa-calendar-day text-dobah-400"></i>
                     <span>HARI INI: <span id="clock-date-today" class="text-white">17 Okt 2026</span></span>
                 </div>
             </div>
@@ -184,36 +198,36 @@
             <form id="newRequestForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
                 <!-- Data Pemohon -->
                 <div class="glass-panel p-6 sm:p-8 space-y-5">
-                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200 border-b border-white/10 pb-3 flex items-center">
-                        <i class="fa-solid fa-circle-info text-emerald-400 mr-2 text-sm"></i>1. Informasi Unit & Divisi Pemohon
+                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200 border-b border-white/10 pb-3 flex items-center">
+                        <i class="fa-solid fa-circle-info text-dobah-400 mr-2 text-sm"></i>1. Informasi Unit & Divisi Pemohon
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Divisi Pemohon <span class="text-rose-500">*</span></label>
+                            <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Divisi Pemohon <span class="text-rose-500">*</span></label>
                             <select id="formDivision" required class="w-full glass-input px-3.5 py-2.5 text-xs sm:text-sm font-semibold"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Cabang / Lokasi Store <span class="text-rose-500">*</span></label>
+                            <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Cabang / Lokasi Store <span class="text-rose-500">*</span></label>
                             <select id="formBranch" required class="w-full glass-input px-3.5 py-2.5 text-xs sm:text-sm font-semibold"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Tanggal Pengajuan <span class="text-rose-500">*</span></label>
+                            <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Tanggal Pengajuan <span class="text-rose-500">*</span></label>
                             <input type="date" id="formSubmissionDate" required class="w-full glass-input px-3.5 py-2.5 text-xs sm:text-sm font-semibold">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Tingkat Urgensi <span class="text-rose-500">*</span></label>
+                            <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Tingkat Urgensi <span class="text-rose-500">*</span></label>
                             <select id="formUrgency" required class="w-full glass-input px-3.5 py-2.5 text-xs sm:text-sm font-semibold">
-                                <option value="Low" class="bg-charcoal-900 text-white">Low - Biasa (Rutin)</option>
-                                <option value="Medium" selected class="bg-charcoal-900 text-white">Medium - Sedang</option>
-                                <option value="High" class="bg-charcoal-900 text-white">High - Penting (Operasional Termacet)</option>
-                                <option value="Critical" class="bg-charcoal-900 text-white">Critical - Darurat (Mempengaruhi Omset)</option>
+                                <option value="Low" class="bg-cocoa-900 text-white">Low - Biasa (Rutin)</option>
+                                <option value="Medium" selected class="bg-cocoa-900 text-white">Medium - Sedang</option>
+                                <option value="High" class="bg-cocoa-900 text-white">High - Penting (Operasional Termacet)</option>
+                                <option value="Critical" class="bg-cocoa-900 text-white">Critical - Darurat (Mempengaruhi Omset)</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Alasan / Justifikasi Pengajuan <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Alasan / Justifikasi Pengajuan <span class="text-rose-500">*</span></label>
                         <textarea id="formJustification" rows="2.5" required placeholder="Jelaskan kebutuhan pengadaan atau alasan perbaikan aset ini secara ringkas..." class="w-full glass-input p-3.5 text-xs sm:text-sm font-medium"></textarea>
                     </div>
                 </div>
@@ -221,30 +235,30 @@
                 <!-- Rincian Aset -->
                 <div class="glass-panel p-6 sm:p-8 space-y-5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-                        <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200 flex items-center">
-                            <i class="fa-solid fa-boxes-stacked text-emerald-400 mr-2 text-sm"></i>2. Rincian Aset yang Diminta
+                        <h3 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200 flex items-center">
+                            <i class="fa-solid fa-boxes-stacked text-dobah-400 mr-2 text-sm"></i>2. Rincian Aset yang Diminta
                         </h3>
-                        <button type="button" onclick="addFormItemRow()" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3.5 py-2 flex items-center shadow-md shadow-emerald-900/20">
+                        <button type="button" onclick="addFormItemRow()" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-xs px-3.5 py-2 flex items-center shadow-md shadow-dobah-950/40">
                             <i class="fa-solid fa-plus mr-1.5"></i>Tambah Baris Aset
                         </button>
                     </div>
 
                     <div id="formItemsContainer" class="space-y-4"></div>
 
-                    <div class="bg-charcoal-900/90 border border-white/10 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="bg-cocoa-900/90 border border-white/10 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center space-x-2.5">
-                            <i class="fa-solid fa-calculator text-emerald-400 text-lg"></i>
-                            <span class="font-black text-xs uppercase tracking-wider text-slate-300">TOTAL ESTIMASI ANGGARAN PENGADAAN:</span>
+                            <i class="fa-solid fa-calculator text-dobah-400 text-lg"></i>
+                            <span class="font-black text-xs uppercase tracking-wider text-dobah-200">TOTAL ESTIMASI ANGGARAN PENGADAAN:</span>
                         </div>
-                        <div id="formLiveTotalBudget" class="font-mono font-black text-xl text-emerald-400">Rp 0</div>
+                        <div id="formLiveTotalBudget" class="font-mono font-black text-xl text-dobah-400">Rp 0</div>
                     </div>
                 </div>
 
                 <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="resetForm()" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm px-5 py-3 border border-white/10">
+                    <button type="button" onclick="resetForm()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-xs sm:text-sm px-5 py-3 border border-white/10">
                         <i class="fa-solid fa-eraser mr-2"></i>Reset Form
                     </button>
-                    <button type="submit" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs sm:text-sm px-7 py-3 shadow-lg shadow-emerald-900/30">
+                    <button type="submit" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-extrabold text-xs sm:text-sm px-7 py-3 shadow-lg shadow-dobah-950/50">
                         <i class="fa-solid fa-paper-plane mr-2"></i>Kirim Pengajuan
                     </button>
                 </div>
@@ -254,61 +268,61 @@
         <!-- TAB 2: LIST & METRICS -->
         <section id="view-list" class="space-y-6">
             
-            <!-- 5 Dashboard Cards (Sesuai Referensi Gambar) -->
+            <!-- 5 Dashboard Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Card 1: Total Tiket -->
                 <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">Total Tiket</span>
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-ticket"></i></div>
+                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Total Tiket</span>
+                        <div class="w-8 h-8 rounded-lg bg-dobah-400/20 text-dobah-300 flex items-center justify-center border border-dobah-400/30"><i class="fa-solid fa-ticket"></i></div>
                     </div>
                     <div>
                         <span id="metric-total" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-slate-500 mt-1 font-medium">Pengajuan Terdaftar</p>
+                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Pengajuan Terdaftar</p>
                     </div>
                 </div>
                 <!-- Card 2: Menunggu -->
                 <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">Menunggu</span>
+                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Menunggu</span>
                         <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30"><i class="fa-regular fa-clock"></i></div>
                     </div>
                     <div>
                         <span id="metric-pending" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-slate-500 mt-1 font-medium">Menunggu Respons</p>
+                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Menunggu Respons</p>
                     </div>
                 </div>
                 <!-- Card 3: Diproses -->
                 <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">Diproses</span>
-                        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30"><i class="fa-solid fa-arrows-rotate"></i></div>
+                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Diproses</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-arrows-rotate"></i></div>
                     </div>
                     <div>
                         <span id="metric-progress" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-slate-500 mt-1 font-medium">Sedang Diperbaiki</p>
+                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Sedang Diperbaiki</p>
                     </div>
                 </div>
                 <!-- Card 4: Selesai -->
                 <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">Selesai</span>
+                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Selesai</span>
                         <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30"><i class="fa-regular fa-circle-check"></i></div>
                     </div>
                     <div>
                         <span id="metric-completed" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-slate-500 mt-1 font-medium">Telah Ditangani</p>
+                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Telah Ditangani</p>
                     </div>
                 </div>
-                <!-- Card 5: Item Darurat (Crimson/Red) -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden bg-rose-500/20 border border-rose-500/30 shadow-[0_0_15px_rgba(225,29,72,0.15)] col-span-2 lg:col-span-1">
+                <!-- Card 5: Item Darurat/Tinggi -->
+                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden bg-rose-600/20 border border-rose-500/30 shadow-[0_0_15px_rgba(225,29,72,0.15)] col-span-2 lg:col-span-1">
                     <div class="flex justify-between items-start mb-3">
                         <span class="text-[11px] font-extrabold uppercase tracking-wide text-rose-300">Item Darurat/Tinggi</span>
                         <div class="w-8 h-8 rounded-lg bg-rose-500/30 text-rose-300 flex items-center justify-center border border-rose-500/50"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     </div>
                     <div>
                         <span id="metric-emergency" class="font-mono font-black text-3xl text-rose-300">0</span>
-                        <p class="text-[10px] text-rose-400 mt-1 font-medium">Butuh Penanganan Cepat</p>
+                        <p class="text-[10px] text-rose-400/80 mt-1 font-medium">Butuh Penanganan Cepat</p>
                     </div>
                 </div>
             </div>
@@ -316,10 +330,10 @@
             <!-- Chart Section -->
             <div class="glass-panel p-5 sm:p-6 flex flex-col">
                 <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
-                    <h3 class="font-extrabold text-xs uppercase text-slate-300 flex items-center">
-                        <i class="fa-solid fa-chart-simple text-emerald-400 mr-2"></i>Estimasi Anggaran per Cabang
+                    <h3 class="font-extrabold text-xs uppercase text-dobah-200 flex items-center">
+                        <i class="fa-solid fa-chart-simple text-dobah-400 mr-2"></i>Estimasi Anggaran per Cabang
                     </h3>
-                    <div class="bg-charcoal-900/80 px-3 py-1 rounded-lg border border-white/10 text-xs font-mono font-bold text-emerald-400">
+                    <div class="bg-cocoa-900/80 px-3 py-1 rounded-lg border border-white/10 text-xs font-mono font-bold text-dobah-400">
                         Total: <span id="metric-budget">Rp 0</span>
                     </div>
                 </div>
@@ -331,28 +345,28 @@
             <!-- Filter Bar Terpadu -->
             <div class="glass-panel p-4 flex flex-wrap items-center gap-3">
                 <div class="w-full md:w-64 relative flex-shrink-0">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-dobah-300/60 text-xs"></i>
                     <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 glass-input text-xs sm:text-sm font-semibold">
                 </div>
                 
                 <div class="flex items-center space-x-2 glass-input px-3 py-1 flex-shrink-0">
-                    <i class="fa-regular fa-calendar text-slate-400 text-xs"></i>
-                    <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-slate-200">
-                    <span class="text-slate-500 font-bold">-</span>
-                    <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-slate-200">
+                    <i class="fa-regular fa-calendar text-dobah-300/60 text-xs"></i>
+                    <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-dobah-100">
+                    <span class="text-dobah-300/40 font-bold">-</span>
+                    <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-dobah-100">
                 </div>
 
                 <select id="filterBranch" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-1 min-w-[150px]"></select>
                 
                 <select id="filterStatus" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-shrink-0">
-                    <option value="" class="bg-charcoal-900">Semua Status</option>
-                    <option value="Pending" class="bg-charcoal-900">Pending</option>
-                    <option value="Approved" class="bg-charcoal-900">Approved</option>
-                    <option value="Completed" class="bg-charcoal-900">Completed</option>
-                    <option value="Rejected" class="bg-charcoal-900">Rejected</option>
+                    <option value="" class="bg-cocoa-900">Semua Status</option>
+                    <option value="Pending" class="bg-cocoa-900">Pending</option>
+                    <option value="Approved" class="bg-cocoa-900">Approved</option>
+                    <option value="Completed" class="bg-cocoa-900">Completed</option>
+                    <option value="Rejected" class="bg-cocoa-900">Rejected</option>
                 </select>
                 
-                <button onclick="clearFilters()" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 border border-white/10 flex-shrink-0">Reset</button>
+                <button onclick="clearFilters()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10 flex-shrink-0">Reset</button>
             </div>
 
             <!-- Table & Pagination Container -->
@@ -360,38 +374,38 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-charcoal-900/90 text-slate-300 font-mono text-xs uppercase border-b border-white/10 select-none">
+                            <tr class="bg-cocoa-900/90 text-dobah-200 font-mono text-xs uppercase border-b border-white/10 select-none">
                                 <th class="p-4 pl-6 w-12 text-center">NO</th>
-                                <th class="p-4 sortable" onclick="handleSort('id')">KODE TIKET & TANGGAL <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-id"></i></th>
-                                <th class="p-4 sortable" onclick="handleSort('division')">PEMOHON & CABANG <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-division"></i></th>
+                                <th class="p-4 sortable" onclick="handleSort('id')">KODE TIKET & TANGGAL <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-id"></i></th>
+                                <th class="p-4 sortable" onclick="handleSort('division')">PEMOHON & CABANG <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-division"></i></th>
                                 <th class="p-4 text-center">JUMLAH ITEM</th>
                                 <th class="p-4 w-48">PROGRESS PERBAIKAN</th>
-                                <th class="p-4 text-center sortable" onclick="handleSort('status')">STATUS TIKET <i class="fa-solid fa-sort ml-1 text-slate-500" id="sortIcon-status"></i></th>
+                                <th class="p-4 text-center sortable" onclick="handleSort('status')">STATUS TIKET <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-status"></i></th>
                                 <th class="p-4 pr-6 text-center">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody id="requestsTableBody" class="divide-y divide-white/5 text-xs sm:text-sm font-medium text-slate-300"></tbody>
+                        <tbody id="requestsTableBody" class="divide-y divide-white/5 text-xs sm:text-sm font-medium text-dobah-100"></tbody>
                     </table>
                 </div>
 
                 <!-- Control Bar Pagination -->
-                <div class="bg-charcoal-900/60 p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-400">
+                <div class="bg-cocoa-900/60 p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-dobah-200/70">
                         <span>Tampilkan per halaman:</span>
                         <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="glass-input px-2.5 py-1 text-xs font-bold">
-                            <option value="10" class="bg-charcoal-900" selected>10</option>
-                            <option value="25" class="bg-charcoal-900">25</option>
-                            <option value="50" class="bg-charcoal-900">50</option>
+                            <option value="10" class="bg-cocoa-900" selected>10</option>
+                            <option value="25" class="bg-cocoa-900">25</option>
+                            <option value="50" class="bg-cocoa-900">50</option>
                         </select>
-                        <span id="paginationInfo" class="text-slate-400 font-medium ml-2">Menampilkan 0-0 dari 0 tiket</span>
+                        <span id="paginationInfo" class="text-dobah-200/60 font-medium ml-2">Menampilkan 0-0 dari 0 tiket</span>
                     </div>
 
                     <div class="flex items-center space-x-2">
-                        <button id="btnPrevPage" onclick="prevPage()" class="modern-button bg-charcoal-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
+                        <button id="btnPrevPage" onclick="prevPage()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
-                        <span id="pageNumbersContainer" class="font-mono font-bold text-xs px-2 text-emerald-400"></span>
-                        <button id="btnNextPage" onclick="nextPage()" class="modern-button bg-charcoal-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
+                        <span id="pageNumbersContainer" class="font-mono font-bold text-xs px-2 text-dobah-400"></span>
+                        <button id="btnNextPage" onclick="nextPage()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
@@ -401,30 +415,30 @@
 
         <!-- TAB 3: MASTER DATA -->
         <section id="view-master" class="hidden space-y-6">
-            <div class="glass-panel p-5 border-l-4 border-l-emerald-500">
-                <p class="text-xs sm:text-sm text-slate-300 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
+            <div class="glass-panel p-5 border-l-4 border-l-dobah-400">
+                <p class="text-xs sm:text-sm text-dobah-200 font-medium">Kelola referensi sistem serta buat akun pengguna baru (Staf Store / GA) yang tersimpan dan tersinkronisasi realtime di cloud.</p>
             </div>
 
             <div class="glass-panel p-6 space-y-5">
                 <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200 flex items-center">
-                        <i class="fa-solid fa-users-gear text-emerald-400 mr-2 text-sm"></i>MANAJEMEN AKUN PENGGUNA TERDAFTAR
+                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200 flex items-center">
+                        <i class="fa-solid fa-users-gear text-dobah-400 mr-2 text-sm"></i>MANAJEMEN AKUN PENGGUNA TERDAFTAR
                     </h3>
-                    <button onclick="promptAddUser()" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 flex items-center shadow-md shadow-emerald-900/20">
+                    <button onclick="promptAddUser()" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-xs px-4 py-2 flex items-center shadow-md shadow-dobah-950/40">
                         <i class="fa-solid fa-user-plus mr-1.5"></i>Tambah Akun Baru
                     </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="bg-charcoal-900 text-slate-300 font-mono uppercase">
+                            <tr class="bg-cocoa-900 text-dobah-200 font-mono uppercase">
                                 <th class="p-3 border border-white/10">NAMA PENGGUNA</th>
                                 <th class="p-3 border border-white/10">ROLE / HAK AKSES</th>
                                 <th class="p-3 border border-white/10">CABANG PENUGASAN</th>
                                 <th class="p-3 border border-white/10 text-center w-24">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody id="masterUserTableBody" class="divide-y divide-white/5 font-medium text-slate-300"></tbody>
+                        <tbody id="masterUserTableBody" class="divide-y divide-white/5 font-medium text-dobah-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -432,8 +446,8 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="glass-panel p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">1. KATEGORI ASET</h4>
-                        <button onclick="promptAddMasterItem('categories')" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 flex items-center border border-emerald-500/30">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200">1. KATEGORI ASET</h4>
+                        <button onclick="promptAddMasterItem('categories')" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-xs px-2.5 py-1 flex items-center border border-dobah-400/30">
                             <i class="fa-solid fa-plus mr-1"></i>Tambah
                         </button>
                     </div>
@@ -442,8 +456,8 @@
 
                 <div class="glass-panel p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">2. DIVISI PEMOHON</h4>
-                        <button onclick="promptAddMasterItem('divisions')" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 flex items-center border border-emerald-500/30">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200">2. DIVISI PEMOHON</h4>
+                        <button onclick="promptAddMasterItem('divisions')" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-xs px-2.5 py-1 flex items-center border border-dobah-400/30">
                             <i class="fa-solid fa-plus mr-1"></i>Tambah
                         </button>
                     </div>
@@ -452,8 +466,8 @@
 
                 <div class="glass-panel p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">3. CABANG STORE / LOKASI</h4>
-                        <button onclick="promptAddMasterItem('branches')" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 flex items-center border border-emerald-500/30">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200">3. CABANG STORE / LOKASI</h4>
+                        <button onclick="promptAddMasterItem('branches')" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-xs px-2.5 py-1 flex items-center border border-dobah-400/30">
                             <i class="fa-solid fa-plus mr-1"></i>Tambah
                         </button>
                     </div>
@@ -464,176 +478,176 @@
     </main>
 
     <!-- MODALS -->
-    <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-panel max-w-md w-full p-8 space-y-6 shadow-2xl relative overflow-hidden">
-            <div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div id="loginModal" class="fixed inset-0 z-50 bg-[#150a05]/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel max-w-md w-full p-8 space-y-6 shadow-2xl relative overflow-hidden border border-dobah-400/30">
+            <div class="absolute -right-12 -top-12 w-40 h-40 bg-dobah-400/20 rounded-full blur-2xl pointer-events-none"></div>
             <div class="text-center space-y-3 relative z-10">
-                <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl mx-auto flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-emerald-900/40">
+                <div class="w-14 h-14 bg-gradient-to-br from-dobah-400 to-dobah-600 rounded-2xl mx-auto flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-dobah-950/60">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-extrabold text-white uppercase tracking-wide">Login GA X DOBAH</h2>
-                <p class="text-xs text-slate-400 font-medium">Masukkan Username & Password yang terdaftar.</p>
+                <p class="text-xs text-dobah-200/70 font-medium">Masukkan Username & Password yang terdaftar.</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Username <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Username <span class="text-rose-500">*</span></label>
                     <input type="text" id="loginUsername" required class="w-full glass-input px-3.5 py-2.5 text-sm font-semibold">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Password <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Password <span class="text-rose-500">*</span></label>
                     <input type="password" id="loginPassword" required class="w-full glass-input px-3.5 py-2.5 text-sm font-semibold">
                 </div>
                 <div id="loginErrorMsg" class="hidden text-rose-400 text-xs font-bold bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
                     <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Username atau password salah!
                 </div>
-                <button type="submit" class="w-full modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm py-3.5 shadow-lg shadow-emerald-900/30">
+                <button type="submit" class="w-full modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-extrabold text-sm py-3.5 shadow-lg shadow-dobah-950/50">
                     <i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk ke Sistem
                 </button>
             </form>
         </div>
     </div>
 
-    <div id="passwordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div id="passwordModal" class="fixed inset-0 z-50 bg-[#150a05]/80 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="glass-panel max-w-sm w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="font-extrabold text-xs uppercase font-mono text-white">Ubah Password</h3>
-                <button onclick="closeModal('passwordModal')" class="text-slate-400 hover:text-white font-bold">&times;</button>
+                <button onclick="closeModal('passwordModal')" class="text-dobah-200 hover:text-white font-bold">&times;</button>
             </div>
             <form onsubmit="handleChangePassword(event)" class="space-y-3.5">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Password Lama</label>
+                    <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Password Lama</label>
                     <input type="password" id="oldPasswordInput" required class="w-full glass-input px-3 py-2 text-xs font-semibold">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Password Baru</label>
+                    <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Password Baru</label>
                     <input type="password" id="newPasswordInput" required class="w-full glass-input px-3 py-2 text-xs font-semibold">
                 </div>
-                <button type="submit" class="w-full modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs py-2.5 mt-2">Simpan Password</button>
+                <button type="submit" class="w-full modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-xs py-2.5 mt-2">Simpan Password</button>
             </form>
         </div>
     </div>
 
-    <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="userModal" class="fixed inset-0 z-50 bg-[#150a05]/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-md w-full my-8 overflow-hidden shadow-2xl">
-            <div class="bg-charcoal-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
+            <div class="bg-cocoa-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
                 <h3 id="userModalTitle" class="font-extrabold text-xs uppercase font-mono">Buat Akun Baru</h3>
-                <button onclick="closeModal('userModal')" class="text-slate-400 hover:text-white font-bold text-sm w-7 h-7">&times;</button>
+                <button onclick="closeModal('userModal')" class="text-dobah-200 hover:text-white font-bold text-sm w-7 h-7">&times;</button>
             </div>
             <form id="userForm" onsubmit="saveUserAccount(event)" class="p-6 space-y-4">
                 <input type="hidden" id="userFormId">
-                <div><label class="block text-xs font-bold uppercase text-slate-400 mb-1">Username Login</label><input type="text" id="userFormUsername" required class="w-full glass-input px-3 py-2 text-xs font-semibold"></div>
-                <div><label class="block text-xs font-bold uppercase text-slate-400 mb-1">Nama Pengguna</label><input type="text" id="userFormName" required class="w-full glass-input px-3 py-2 text-xs font-semibold"></div>
-                <div><label class="block text-xs font-bold uppercase text-slate-400 mb-1">Password</label><input type="text" id="userFormPassword" required class="w-full glass-input px-3 py-2 text-xs font-semibold font-mono"></div>
-                <div><label class="block text-xs font-bold uppercase text-slate-400 mb-1">Role / Hak Akses</label>
+                <div><label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Username Login</label><input type="text" id="userFormUsername" required class="w-full glass-input px-3 py-2 text-xs font-semibold"></div>
+                <div><label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Nama Pengguna</label><input type="text" id="userFormName" required class="w-full glass-input px-3 py-2 text-xs font-semibold"></div>
+                <div><label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Password</label><input type="text" id="userFormPassword" required class="w-full glass-input px-3 py-2 text-xs font-semibold font-mono"></div>
+                <div><label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Role / Hak Akses</label>
                     <select id="userFormRole" onchange="toggleBranchCheckboxesByRole()" class="w-full glass-input px-3 py-2 text-xs font-semibold">
-                        <option value="Staff Store" class="bg-charcoal-900">Staff Store</option>
-                        <option value="General Affair Manager" class="bg-charcoal-900">General Affair Manager</option>
+                        <option value="Staff Store" class="bg-cocoa-900">Staff Store</option>
+                        <option value="General Affair Manager" class="bg-cocoa-900">General Affair Manager</option>
                     </select>
                 </div>
-                <div><label class="block text-xs font-bold uppercase text-slate-400 mb-1">Cabang Akses</label>
-                    <div id="branchCheckboxesContainer" class="space-y-2 bg-charcoal-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold max-h-32 overflow-y-auto"></div>
+                <div><label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1">Cabang Akses</label>
+                    <div id="branchCheckboxesContainer" class="space-y-2 bg-cocoa-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold max-h-32 overflow-y-auto"></div>
                 </div>
-                <div class="flex justify-end space-x-2 pt-3"><button type="button" onclick="closeModal('userModal')" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 border border-white/10">Batal</button><button type="submit" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-5 py-2">Simpan</button></div>
+                <div class="flex justify-end space-x-2 pt-3"><button type="button" onclick="closeModal('userModal')" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10">Batal</button><button type="submit" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-xs px-5 py-2">Simpan</button></div>
             </form>
         </div>
     </div>
 
     <!-- DETAIL MODAL -->
-    <div id="detailModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div id="detailModal" class="fixed inset-0 z-50 bg-[#150a05]/80 backdrop-blur-md hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="glass-panel max-w-2xl w-full my-auto overflow-hidden shadow-2xl">
-            <div class="bg-charcoal-900 text-white px-4 py-3 border-b border-white/10 flex items-center justify-between no-print">
+            <div class="bg-cocoa-900 text-white px-4 py-3 border-b border-white/10 flex items-center justify-between no-print">
                 <h3 class="font-extrabold text-xs sm:text-sm uppercase font-mono">Detail Dokumen</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="window.print()" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-[11px] px-3 py-1 flex items-center"><i class="fa-solid fa-print mr-1.5"></i>Cetak</button>
-                    <button onclick="closeModal('detailModal')" class="text-slate-400 hover:text-white font-bold text-sm w-6 h-6 flex items-center justify-center">&times;</button>
+                    <button onclick="window.print()" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-[11px] px-3 py-1 flex items-center"><i class="fa-solid fa-print mr-1.5"></i>Cetak</button>
+                    <button onclick="closeModal('detailModal')" class="text-dobah-200 hover:text-white font-bold text-sm w-6 h-6 flex items-center justify-center">&times;</button>
                 </div>
             </div>
-            <div id="printable-area" class="p-5 sm:p-6 space-y-4 text-slate-200 bg-charcoal-800 max-h-[82vh] overflow-y-auto">
+            <div id="printable-area" class="p-5 sm:p-6 space-y-4 text-dobah-100 bg-cocoa-800 max-h-[82vh] overflow-y-auto">
                 <div class="border-b border-white/10 pb-3 flex justify-between items-start">
-                    <div><h2 class="font-black text-base sm:text-lg uppercase text-white">DONAT BAHAGIA</h2><p class="text-[11px] font-semibold text-slate-400">Departemen General Affair & Aset Perusahaan</p></div>
-                    <div class="text-right"><span id="detailReqId" class="font-mono font-black text-xs sm:text-sm text-emerald-400">#ARQ-000</span></div>
+                    <div><h2 class="font-black text-base sm:text-lg uppercase text-white">DONAT BAHAGIA</h2><p class="text-[11px] font-semibold text-dobah-200/60">Departemen General Affair & Aset Perusahaan</p></div>
+                    <div class="text-right"><span id="detailReqId" class="font-mono font-black text-xs sm:text-sm text-dobah-400">#ARQ-000</span></div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-charcoal-900/60 p-3 rounded-lg border border-white/10 text-[11px]">
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Divisi:</span><span id="detailDivision" class="font-bold truncate block text-slate-200"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Cabang:</span><span id="detailBranch" class="font-bold truncate block text-slate-200"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Tanggal:</span><span id="detailSubmissionDate" class="font-mono font-bold text-slate-200"></span></div>
-                    <div><span class="text-[9px] text-slate-500 block font-bold uppercase">Status:</span><span id="detailStatusBadge" class="font-bold truncate block text-emerald-400"></span></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-cocoa-900/60 p-3 rounded-lg border border-white/10 text-[11px]">
+                    <div><span class="text-[9px] text-dobah-200/50 block font-bold uppercase">Divisi:</span><span id="detailDivision" class="font-bold truncate block text-dobah-100"></span></div>
+                    <div><span class="text-[9px] text-dobah-200/50 block font-bold uppercase">Cabang:</span><span id="detailBranch" class="font-bold truncate block text-dobah-100"></span></div>
+                    <div><span class="text-[9px] text-dobah-200/50 block font-bold uppercase">Tanggal:</span><span id="detailSubmissionDate" class="font-mono font-bold text-dobah-100"></span></div>
+                    <div><span class="text-[9px] text-dobah-200/50 block font-bold uppercase">Status:</span><span id="detailStatusBadge" class="font-bold truncate block text-dobah-400"></span></div>
                 </div>
                 <div class="space-y-1">
-                    <span class="text-[11px] font-black uppercase text-slate-400">Justifikasi:</span>
-                    <p id="detailJustification" class="text-[11px] bg-charcoal-900 p-2.5 rounded border border-white/10 italic text-slate-300"></p>
+                    <span class="text-[11px] font-black uppercase text-dobah-200/70">Justifikasi:</span>
+                    <p id="detailJustification" class="text-[11px] bg-cocoa-900 p-2.5 rounded border border-white/10 italic text-dobah-200"></p>
                 </div>
                 <table class="w-full text-left border-collapse border border-white/10 text-[11px]">
-                    <thead><tr class="bg-charcoal-900 text-slate-300 font-mono uppercase text-[10px]"><th class="p-2 border border-white/10 text-center w-8">No</th><th class="p-2 border border-white/10">Item</th><th class="p-2 border border-white/10 text-center">Qty</th><th class="p-2 border border-white/10 text-right">Harga</th><th class="p-2 border border-white/10 text-right">Subtotal</th></tr></thead>
-                    <tbody id="detailItemsTableBody" class="divide-y divide-white/5 border border-white/10 text-slate-300"></tbody>
-                    <tfoot><tr class="bg-charcoal-900/60 font-bold border-t border-white/10 text-xs"><td colspan="4" class="p-2 text-right uppercase font-black text-slate-300">Total:</td><td id="detailTotalBudget" class="p-2 text-right font-mono font-black text-emerald-400">Rp 0</td></tr></tfoot>
+                    <thead><tr class="bg-cocoa-900 text-dobah-200 font-mono uppercase text-[10px]"><th class="p-2 border border-white/10 text-center w-8">No</th><th class="p-2 border border-white/10">Item</th><th class="p-2 border border-white/10 text-center">Qty</th><th class="p-2 border border-white/10 text-right">Harga</th><th class="p-2 border border-white/10 text-right">Subtotal</th></tr></thead>
+                    <tbody id="detailItemsTableBody" class="divide-y divide-white/5 border border-white/10 text-dobah-100"></tbody>
+                    <tfoot><tr class="bg-cocoa-900/60 font-bold border-t border-white/10 text-xs"><td colspan="4" class="p-2 text-right uppercase font-black text-dobah-200">Total:</td><td id="detailTotalBudget" class="p-2 text-right font-mono font-black text-dobah-400">Rp 0</td></tr></tfoot>
                 </table>
                 <div id="detailPhotosContainer" class="flex flex-wrap gap-2 pt-1 mb-3"></div>
                 
-                <div class="bg-charcoal-900/60 border border-white/10 p-3 rounded-lg mt-4 no-print text-slate-300">
-                    <h4 class="font-black text-[10px] uppercase text-slate-400 mb-2 border-b border-white/5 pb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Riwayat Persetujuan (Audit Trail)</h4>
-                    <ul id="detailAuditTrail" class="space-y-1.5 text-[10px] font-medium text-slate-400"></ul>
+                <div class="bg-cocoa-900/60 border border-white/10 p-3 rounded-lg mt-4 no-print text-dobah-200">
+                    <h4 class="font-black text-[10px] uppercase text-dobah-200/70 mb-2 border-b border-white/5 pb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Riwayat Persetujuan (Audit Trail)</h4>
+                    <ul id="detailAuditTrail" class="space-y-1.5 text-[10px] font-medium text-dobah-200/80"></ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- EDIT / APPROVAL MODAL (Sesuai Desain Card Item Anda) -->
-    <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <!-- EDIT / APPROVAL MODAL DENGAN CARD ITEM -->
+    <div id="editApprovalModal" class="fixed inset-0 z-50 bg-[#150a05]/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-3xl w-full my-8 overflow-hidden shadow-2xl">
-            <div class="bg-charcoal-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
+            <div class="bg-cocoa-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
                 <h3 id="editModalTitle" class="font-extrabold text-xs uppercase font-mono">Edit & Approval Dokumen</h3>
-                <button onclick="closeModal('editApprovalModal')" class="text-slate-400 hover:text-white font-bold text-sm w-7 h-7">&times;</button>
+                <button onclick="closeModal('editApprovalModal')" class="text-dobah-200 hover:text-white font-bold text-sm w-7 h-7">&times;</button>
             </div>
             <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-5">
                 <input type="hidden" id="editReqDocId">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Status Tiket Keseluruhan</label>
+                        <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Status Tiket Keseluruhan</label>
                         <select id="editStatus" class="w-full glass-input px-3 py-2 text-sm font-semibold">
-                            <option value="Pending" class="bg-charcoal-900">Pending</option>
-                            <option value="Approved" class="bg-charcoal-900">Approved</option>
-                            <option value="Completed" class="bg-charcoal-900">Completed</option>
-                            <option value="Rejected" class="bg-charcoal-900">Rejected</option>
+                            <option value="Pending" class="bg-cocoa-900">Pending</option>
+                            <option value="Approved" class="bg-cocoa-900">Approved</option>
+                            <option value="Completed" class="bg-cocoa-900">Completed</option>
+                            <option value="Rejected" class="bg-cocoa-900">Rejected</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Urgensi</label>
+                        <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Urgensi</label>
                         <select id="editUrgency" class="w-full glass-input px-3 py-2 text-sm font-semibold">
-                            <option value="Low" class="bg-charcoal-900">Low</option>
-                            <option value="Medium" class="bg-charcoal-900">Medium</option>
-                            <option value="High" class="bg-charcoal-900">High</option>
-                            <option value="Critical" class="bg-charcoal-900">Critical</option>
+                            <option value="Low" class="bg-cocoa-900">Low</option>
+                            <option value="Medium" class="bg-cocoa-900">Medium</option>
+                            <option value="High" class="bg-cocoa-900">High</option>
+                            <option value="Critical" class="bg-cocoa-900">Critical</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="space-y-4 pt-2 border-t border-white/10">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold uppercase text-slate-300">Rincian Item & Status per Item</label>
-                        <button type="button" onclick="addEditModalItemRow()" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1 border border-emerald-500/30"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button>
+                        <label class="block text-xs font-bold uppercase text-dobah-200">Rincian Item & Status per Item</label>
+                        <button type="button" onclick="addEditModalItemCard()" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-[11px] px-2.5 py-1 border border-dobah-400/30"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button>
                     </div>
                     <!-- Container Card Item -->
                     <div id="editModalItemsContainer" class="space-y-4 max-h-[50vh] overflow-y-auto p-1"></div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Catatan GA</label>
+                    <label class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Catatan GA</label>
                     <textarea id="editGANotes" rows="2" class="w-full glass-input p-3 text-sm font-medium" placeholder="Catatan approval..."></textarea>
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-3 border-t border-white/10">
-                    <button type="button" onclick="closeModal('editApprovalModal')" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 border border-white/10">Batal</button>
-                    <button type="submit" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-5 py-2">Simpan Perubahan</button>
+                    <button type="button" onclick="closeModal('editApprovalModal')" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10">Batal</button>
+                    <button type="submit" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-xs px-5 py-2">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- IMAGE ZOOM MODAL -->
-    <div id="imageZoomModal" class="fixed inset-0 z-50 bg-slate-950/95 hidden items-center justify-center p-4" onclick="closeModal('imageZoomModal')">
-        <div class="relative max-w-4xl max-h-[90vh] bg-charcoal-900 p-3 rounded-2xl border border-white/10 shadow-2xl" onclick="event.stopPropagation()">
-            <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 modern-button bg-rose-500 text-white font-black text-sm w-8 h-8 rounded-full flex items-center justify-center z-10 shadow-lg">&times;</button>
+    <div id="imageZoomModal" class="fixed inset-0 z-50 bg-[#150a05]/95 hidden items-center justify-center p-4" onclick="closeModal('imageZoomModal')">
+        <div class="relative max-w-4xl max-h-[90vh] bg-cocoa-900 p-3 rounded-2xl border border-white/10 shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeModal('imageZoomModal')" class="absolute -top-3 -right-3 modern-button bg-rose-600 text-white font-black text-sm w-8 h-8 rounded-full flex items-center justify-center z-10 shadow-lg">&times;</button>
             <img id="zoomedImage" src="" alt="Zoom" class="max-h-[80vh] w-auto mx-auto object-contain rounded-xl">
         </div>
     </div>
@@ -767,7 +781,7 @@
             const badge = document.getElementById('cloudStatusBadge');
             if (badge) {
                 badge.innerText = statusText;
-                badge.className = statusText.includes('Live') ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider" : "bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider";
+                badge.className = statusText.includes('Live') ? "bg-dobah-400/20 text-dobah-300 border border-dobah-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider" : "bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider";
             }
         }
 
@@ -867,10 +881,10 @@
             if(notifications.length > 0) {
                 badge.innerText = notifications.length;
                 badge.classList.remove('hidden');
-                notifList.innerHTML = notifications.map(n => `<div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 font-semibold text-slate-200">${n}</div>`).join('');
+                notifList.innerHTML = notifications.map(n => `<div class="p-2.5 bg-dobah-400/10 rounded-xl border border-dobah-400/20 font-semibold text-dobah-100">${n}</div>`).join('');
             } else {
                 badge.classList.add('hidden');
-                notifList.innerHTML = `<p class="text-slate-500 text-center italic py-2">Tidak ada notifikasi baru.</p>`;
+                notifList.innerHTML = `<p class="text-dobah-300/50 text-center italic py-2">Tidak ada notifikasi baru.</p>`;
             }
         }
 
@@ -881,10 +895,10 @@
             appState.activeTab = tabId;
             ['form', 'list', 'master'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = "modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-200 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5";
+                document.getElementById(`tab-${t}`).className = "modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-100 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap border border-white/5";
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).className = "modern-button bg-emerald-500 text-slate-950 px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap shadow-lg shadow-emerald-900/20";
+            document.getElementById(`tab-${tabId}`).className = "modern-button bg-dobah-400 text-slate-950 font-bold px-4 py-2 text-xs sm:text-sm flex items-center whitespace-nowrap shadow-lg shadow-dobah-950/40";
             if (tabId === 'list') { applyTableFilters(); updateMetrics(); } else if (tabId === 'master') { renderMasterDataView(); }
         }
 
@@ -894,20 +908,20 @@
             const divEl = document.getElementById('formDivision');
             const branchEl = document.getElementById('formBranch');
             const filtBranchEl = document.getElementById('filterBranch');
-            if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}" class="bg-charcoal-900">${d}</option>`).join('');
-            if (branchEl) branchEl.innerHTML = ub.map(b => `<option value="${b}" class="bg-charcoal-900">${b}</option>`).join('');
-            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="" class="bg-charcoal-900">Semua Cabang (Akses)</option>` + ub.map(b => `<option value="${b}" class="bg-charcoal-900">${b}</option>`).join('');
+            if (divEl) divEl.innerHTML = appState.divisions.map(d => `<option value="${d}" class="bg-cocoa-900">${d}</option>`).join('');
+            if (branchEl) branchEl.innerHTML = ub.map(b => `<option value="${b}" class="bg-cocoa-900">${b}</option>`).join('');
+            if (filtBranchEl) filtBranchEl.innerHTML = `<option value="" class="bg-cocoa-900">Semua Cabang (Akses)</option>` + ub.map(b => `<option value="${b}" class="bg-cocoa-900">${b}</option>`).join('');
         }
 
         /* --- FORM HANDLING --- */
         function addFormItemRow(itemData = null) {
             const c = document.getElementById('formItemsContainer');
             const rowId = 'item_' + Date.now();
-            const catOpts = appState.categories.map(cat => `<option value="${cat}" class="bg-charcoal-900">${cat}</option>`).join('');
+            const catOpts = appState.categories.map(cat => `<option value="${cat}" class="bg-cocoa-900">${cat}</option>`).join('');
             const html = `
-                <div id="${rowId}" class="item-row bg-charcoal-900/60 p-4 rounded-2xl border border-white/10 space-y-3">
+                <div id="${rowId}" class="item-row bg-cocoa-900/60 p-4 rounded-2xl border border-white/10 space-y-3">
                     <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                        <span class="font-mono font-bold text-xs uppercase text-slate-300"><i class="fa-solid fa-cube text-emerald-400 mr-2"></i>Baris Aset</span>
+                        <span class="font-mono font-bold text-xs uppercase text-dobah-200"><i class="fa-solid fa-cube text-dobah-400 mr-2"></i>Baris Aset</span>
                         <button type="button" onclick="removeFormItemRow('${rowId}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-[11px] px-2.5 py-1 border border-rose-500/20">Hapus Baris</button>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -920,12 +934,12 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full glass-input px-3 py-2 text-xs">
                         <div class="flex items-center space-x-2.5">
-                            <label class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold px-3 py-2 cursor-pointer flex items-center shrink-0 border border-white/10">
-                                <i class="fa-solid fa-camera mr-1.5 text-emerald-400"></i>Upload Foto
+                            <label class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-[11px] font-semibold px-3 py-2 cursor-pointer flex items-center shrink-0 border border-white/10">
+                                <i class="fa-solid fa-camera mr-1.5 text-dobah-400"></i>Upload Foto
                                 <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rowId}')">
                             </label>
                             <input type="hidden" class="item-photo-data">
-                            <div class="photo-preview-box text-[11px] font-mono text-slate-400 truncate flex-1">Belum ada foto</div>
+                            <div class="photo-preview-box text-[11px] font-mono text-dobah-200/50 truncate flex-1">Belum ada foto</div>
                         </div>
                     </div>
                 </div>`;
@@ -939,7 +953,7 @@
                 const r = new FileReader();
                 r.onload = e => {
                     const row = document.getElementById(id);
-                    if(row) { row.querySelector('.item-photo-data').value = e.target.result; row.querySelector('.photo-preview-box').innerHTML = `<span class="text-emerald-400 font-bold">✓ Foto (${f.name})</span>`; }
+                    if(row) { row.querySelector('.item-photo-data').value = e.target.result; row.querySelector('.photo-preview-box').innerHTML = `<span class="text-dobah-400 font-bold">✓ Foto (${f.name})</span>`; }
                 };
                 r.readAsDataURL(f);
             }
@@ -988,7 +1002,7 @@
         }
 
         function handleSort(key) {
-            document.querySelectorAll('th.sortable i').forEach(icon => { icon.className = 'fa-solid fa-sort ml-1 text-slate-500'; });
+            document.querySelectorAll('th.sortable i').forEach(icon => { icon.className = 'fa-solid fa-sort ml-1 text-dobah-300/40'; });
             if (appState.sortConfig.key === key) {
                 appState.sortConfig.direction = appState.sortConfig.direction === 'asc' ? 'desc' : 'asc';
             } else {
@@ -996,7 +1010,7 @@
             }
             const activeIcon = document.getElementById(`sortIcon-${key}`);
             if (activeIcon) {
-                activeIcon.className = appState.sortConfig.direction === 'asc' ? 'fa-solid fa-sort-up ml-1 text-emerald-400' : 'fa-solid fa-sort-down ml-1 text-emerald-400';
+                activeIcon.className = appState.sortConfig.direction === 'asc' ? 'fa-solid fa-sort-up ml-1 text-dobah-400' : 'fa-solid fa-sort-down ml-1 text-dobah-400';
             }
             applyTableFilters();
         }
@@ -1039,7 +1053,7 @@
             const tbody = document.getElementById('requestsTableBody');
             if (!tbody) return; tbody.innerHTML = '';
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-500 font-bold">Tidak ada data sesuai filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-dobah-200/50 font-bold">Tidak ada data sesuai filter.</td></tr>`;
                 updatePaginationControls(0, 0, 0, 0); return;
             }
 
@@ -1061,7 +1075,6 @@
                 
                 const totalItemsCount = req.items ? req.items.length : 0;
                 
-                // Hitung progress akurat berdasarkan itemStatus
                 let completedCount = 0;
                 if (req.items) {
                     completedCount = req.items.filter(i => i.itemStatus === 'Selesai').length;
@@ -1070,28 +1083,27 @@
                 
                 const progressPercent = totalItemsCount > 0 ? Math.round((completedCount / totalItemsCount) * 100) : 0;
 
-                // Tombol aksi dengan teks "Detail" saja sesuai permintaan Anda
-                let btns = `<button onclick="openDetailModal(${actIdx})" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-emerald-400 text-[11px] px-3 py-1.5 border border-white/5 font-bold"><i class="fa-solid fa-eye mr-1"></i>Detail</button>`;
+                let btns = `<button onclick="openDetailModal(${actIdx})" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-300 text-[11px] px-3 py-1.5 border border-white/5 font-bold"><i class="fa-solid fa-eye mr-1"></i>Detail</button>`;
                 if (role === 'General Affair Manager') {
-                    btns += `<button onclick="openEditModal(${actIdx})" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1.5 ml-1 border border-emerald-500/30" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] px-2.5 py-1.5 ml-1 border border-rose-500/20" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
+                    btns += `<button onclick="openEditModal(${actIdx})" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-[11px] px-2.5 py-1.5 ml-1 border border-dobah-400/30" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] px-2.5 py-1.5 ml-1 border border-rose-500/20" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
                 }
                 
-                const statClass = req.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : (req.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : (req.status === 'Rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'));
+                const statClass = req.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : (req.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : (req.status === 'Rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'));
                 const statLabel = req.status === 'Pending' ? 'Menunggu' : (req.status === 'Approved' ? 'Diproses' : (req.status === 'Completed' ? 'Selesai' : 'Ditolak'));
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-white/[0.02] transition-colors">
-                        <td class="p-4 pl-6 text-center font-bold text-slate-500">${rowNo}</td>
-                        <td class="p-4 font-mono font-bold text-white">${req.id}<br><span class="text-[11px] text-slate-400 font-normal"><i class="fa-regular fa-calendar mr-1"></i>${req.submissionDate}</span></td>
-                        <td class="p-4 font-bold text-slate-200">${namaPemohon}<br><span class="text-[11px] text-slate-400 font-normal"><i class="fa-solid fa-location-dot mr-1"></i>${req.branch}</span></td>
-                        <td class="p-4 text-center"><span class="bg-charcoal-800 text-slate-200 border border-white/10 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold">${totalItemsCount} Item</span></td>
+                        <td class="p-4 pl-6 text-center font-bold text-dobah-200/50">${rowNo}</td>
+                        <td class="p-4 font-mono font-bold text-white">${req.id}<br><span class="text-[11px] text-dobah-200/60 font-normal"><i class="fa-regular fa-calendar mr-1"></i>${req.submissionDate}</span></td>
+                        <td class="p-4 font-bold text-dobah-100">${namaPemohon}<br><span class="text-[11px] text-dobah-200/60 font-normal"><i class="fa-solid fa-location-dot mr-1"></i>${req.branch}</span></td>
+                        <td class="p-4 text-center"><span class="bg-cocoa-800 text-dobah-200 border border-white/10 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold">${totalItemsCount} Item</span></td>
                         <td class="p-4 w-48">
-                            <div class="flex justify-between text-[10px] font-mono text-slate-300 mb-1">
+                            <div class="flex justify-between text-[10px] font-mono text-dobah-200 mb-1">
                                 <span>${completedCount}/${totalItemsCount} Selesai</span>
-                                <span class="font-bold text-emerald-400">${progressPercent}%</span>
+                                <span class="font-bold text-dobah-400">${progressPercent}%</span>
                             </div>
-                            <div class="w-full bg-charcoal-800 h-2 rounded-full overflow-hidden border border-white/5">
-                                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                            <div class="w-full bg-cocoa-800 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-dobah-400 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                             </div>
                         </td>
                         <td class="p-4 text-center"><span class="px-3 py-1.5 text-[10px] uppercase font-bold rounded border ${statClass}"><i class="fa-regular fa-clock mr-1"></i>${statLabel}</span></td>
@@ -1153,8 +1165,8 @@
                     datasets: [{
                         label: 'Total Estimasi Anggaran (Rp)',
                         data: dataValues,
-                        backgroundColor: '#10b981',
-                        borderColor: '#0b0f17',
+                        backgroundColor: '#f4a23a',
+                        borderColor: '#150a05',
                         borderWidth: 2,
                         borderRadius: 6,
                         borderSkipped: false,
@@ -1168,11 +1180,11 @@
                         y: { 
                             beginAtZero: true, 
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#94a3b8', callback: function(value) { return 'Rp ' + (value/1000000) + 'Jt'; }, font: { family: "'JetBrains Mono', monospace", size: 10 } }
+                            ticks: { color: '#edd5b3', callback: function(value) { return 'Rp ' + (value/1000000) + 'Jt'; }, font: { family: "'JetBrains Mono', monospace", size: 10 } }
                         },
                         x: { 
                             grid: { display: false },
-                            ticks: { color: '#94a3b8', font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: 'bold' } } 
+                            ticks: { color: '#edd5b3', font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: 'bold' } } 
                         }
                     }
                 }
@@ -1192,7 +1204,7 @@
             if(req.items) {
                 req.items.forEach((item, i) => {
                     const sub = item.qty * item.cost; tot += sub;
-                    tb.innerHTML += `<tr><td class="p-2 border border-white/10 text-center">${i+1}</td><td class="p-2 border border-white/10 font-bold text-white">${item.name}<br><span class="text-[9px] text-slate-500">${item.category} ${item.notes?'• '+item.notes:''}</span></td><td class="p-2 border border-white/10 text-center text-slate-200">${item.qty} ${item.unit}</td><td class="p-2 border border-white/10 text-right text-slate-200">${formatRupiah(item.cost)}</td><td class="p-2 border border-white/10 text-right font-bold text-white">${formatRupiah(sub)}</td></tr>`;
+                    tb.innerHTML += `<tr><td class="p-2 border border-white/10 text-center">${i+1}</td><td class="p-2 border border-white/10 font-bold text-white">${item.name}<br><span class="text-[9px] text-dobah-200/50">${item.category} ${item.notes?'• '+item.notes:''}</span></td><td class="p-2 border border-white/10 text-center text-dobah-200">${item.qty} ${item.unit}</td><td class="p-2 border border-white/10 text-right text-dobah-200">${formatRupiah(item.cost)}</td><td class="p-2 border border-white/10 text-right font-bold text-white">${formatRupiah(sub)}</td></tr>`;
                 });
             }
             document.getElementById('detailTotalBudget').innerText = formatRupiah(tot);
@@ -1200,21 +1212,21 @@
             const pc = document.getElementById('detailPhotosContainer'); pc.innerHTML = '';
             if(req.items) {
                 req.items.filter(i => i.photo).forEach(item => {
-                    pc.innerHTML += `<div class="cursor-pointer border border-white/10 p-1 rounded bg-charcoal-900 shadow-sm" onclick="openZoomImage('${item.photo}')"><img src="${item.photo}" class="w-12 h-12 object-cover rounded"><span class="text-[8px] font-mono font-bold block text-center mt-0.5 truncate w-12 text-slate-400">${item.name}</span></div>`;
+                    pc.innerHTML += `<div class="cursor-pointer border border-white/10 p-1 rounded bg-cocoa-900 shadow-sm" onclick="openZoomImage('${item.photo}')"><img src="${item.photo}" class="w-12 h-12 object-cover rounded"><span class="text-[8px] font-mono font-bold block text-center mt-0.5 truncate w-12 text-dobah-200/60">${item.name}</span></div>`;
                 });
             }
 
             const auditUl = document.getElementById('detailAuditTrail');
             if (req.audit && req.audit.length > 0) {
-                auditUl.innerHTML = req.audit.map(a => `<li><span class="font-bold text-slate-200">${a.timestamp}</span> - ${a.actor} (${a.role}) : <span class="italic">${a.action}</span></li>`).join('');
+                auditUl.innerHTML = req.audit.map(a => `<li><span class="font-bold text-dobah-100">${a.timestamp}</span> - ${a.actor} (${a.role}) : <span class="italic">${a.action}</span></li>`).join('');
             } else {
-                auditUl.innerHTML = `<li class="italic text-slate-500">Tidak ada riwayat.</li>`;
+                auditUl.innerHTML = `<li class="italic text-dobah-300/50">Tidak ada riwayat.</li>`;
             }
 
             openModal('detailModal');
         }
 
-        /* --- EDIT MODAL DENGAN CARD ITEM & STATUS PER ITEM (Sesuai Gambar Anda) --- */
+        /* --- EDIT MODAL DENGAN CARD ITEM & STATUS PER ITEM --- */
         function openEditModal(idx) {
             const u = getCurrentUser(); if (u.role !== 'General Affair Manager') return Swal.fire('Akses Dibatasi', 'Hanya GA Manager.', 'warning');
             const r = appState.requests[idx]; if (!r) return;
@@ -1234,19 +1246,21 @@
 
         function addEditModalItemCard(data = null, num = 1) {
             const c = document.getElementById('editModalItemsContainer'); 
+            const currentCount = c.querySelectorAll('.edit-item-row').length + 1;
             const rid = 'edit_item_' + Date.now() + Math.random();
-            const catOpts = appState.categories.map(cat => `<option value="${cat}" class="bg-charcoal-900" ${data && data.category === cat ? 'selected' : ''}>${cat}</option>`).join('');
-            const statusItemOpts = ['Menunggu', 'Diproses', 'Selesai', 'Ditolak'].map(st => `<option value="${st}" class="bg-charcoal-900" ${data && data.itemStatus === st ? 'selected' : ''}>${st}</option>`).join('');
+            const catOpts = appState.categories.map(cat => `<option value="${cat}" class="bg-cocoa-900" ${data && data.category === cat ? 'selected' : ''}>${cat}</option>`).join('');
+            const statusItemOpts = ['Menunggu', 'Diproses', 'Selesai', 'Ditolak'].map(st => `<option value="${st}" class="bg-cocoa-900" ${data && data.itemStatus === st ? 'selected' : ''}>${st}</option>`).join('');
             
-            const urgBadgeColor = (data && data.itemStatus === 'Selesai') ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+            const itemStat = data && data.itemStatus ? data.itemStatus : 'Menunggu';
+            const urgBadgeColor = (itemStat === 'Selesai') ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : (itemStat === 'Diproses' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30');
 
             const h = `
-                <div id="${rid}" class="edit-item-row bg-charcoal-900/90 p-4 rounded-xl border border-white/10 space-y-3">
+                <div id="${rid}" class="edit-item-row bg-cocoa-900/90 p-4 rounded-xl border border-white/10 space-y-3">
                     <div class="flex justify-between items-center border-b border-white/5 pb-2">
                         <div class="flex items-center space-x-2">
-                            <span class="font-mono font-black text-xs text-white">#${num}.</span>
+                            <span class="font-mono font-black text-xs text-white">#${num || currentCount}.</span>
                             <input type="text" required class="edit-item-name glass-input px-2.5 py-1 text-xs font-bold text-white w-48" value="${data ? data.name : ''}" placeholder="Nama Item...">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${urgBadgeColor}">${data ? (data.itemStatus || 'Menunggu') : 'Menunggu'}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${urgBadgeColor}">${itemStat}</span>
                         </div>
                         <div class="flex items-center space-x-2">
                             <select class="edit-item-category glass-input px-2 py-1 text-[11px] font-semibold">${catOpts}</select>
@@ -1260,19 +1274,19 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Qty & Satuan</label>
+                            <label class="block text-[10px] uppercase font-bold text-dobah-200/60 mb-1">Qty & Satuan</label>
                             <div class="flex space-x-1">
                                 <input type="number" min="1" required class="edit-item-qty w-16 glass-input px-2 py-1 text-xs text-center font-bold" value="${data ? data.qty : 1}">
                                 <input type="text" required class="edit-item-unit w-20 glass-input px-2 py-1 text-xs text-center font-bold" value="${data ? data.unit || 'Unit' : 'Unit'}">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Harga Satuan (Rp)</label>
+                            <label class="block text-[10px] uppercase font-bold text-dobah-200/60 mb-1">Harga Satuan (Rp)</label>
                             <input type="number" min="0" required class="edit-item-cost w-full glass-input px-2.5 py-1 text-xs font-bold font-mono" value="${data ? data.cost : 0}">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Status Item:</label>
-                            <select class="edit-item-status w-full glass-input px-2.5 py-1 text-xs font-bold text-emerald-400">${statusItemOpts}</select>
+                            <label class="block text-[10px] uppercase font-bold text-dobah-400 mb-1">Status Item:</label>
+                            <select class="edit-item-status w-full glass-input px-2.5 py-1 text-xs font-bold text-dobah-300">${statusItemOpts}</select>
                         </div>
                     </div>
                 </div>`;
@@ -1334,7 +1348,7 @@
         }
 
         async function deleteRequest(idx, did) {
-            Swal.fire({ title: 'Hapus pengajuan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#059669', cancelButtonColor: '#dc2626' }).then(async (res) => {
+            Swal.fire({ title: 'Hapus pengajuan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d96c38', cancelButtonColor: '#dc2626' }).then(async (res) => {
                 if(res.isConfirmed) {
                     if (window.db && did) { try { await window.fbDeps.deleteDoc(window.fbDeps.doc(window.db, "requests", did)); } catch(e){} } 
                     else { appState.requests.splice(idx, 1); saveLocalState(); }
@@ -1349,14 +1363,14 @@
         /* --- MASTER DATA LOGIC --- */
         function renderMasterDataView() {
             const tb = document.getElementById('masterUserTableBody'); if (!tb) return;
-            tb.innerHTML = appState.users.map((u, i) => `<tr class="hover:bg-white/[0.02]"><td class="p-3 border border-white/5 font-bold text-white">${u.name}</td><td class="p-3 border border-white/5 text-emerald-400 font-mono">${u.role}</td><td class="p-3 border border-white/5 text-slate-300 font-medium">${u.branches.includes('ALL')?'All Branches':u.branches.join(', ')}</td><td class="p-3 border border-white/5 text-center"><button onclick="promptEditUser(${i})" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-emerald-400 p-1.5 px-2.5 mr-1 border border-white/5 text-xs"><i class="fa-solid fa-pen"></i></button>${u.username!=='admin'?`<button onclick="deleteUserAccount(${i})" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 px-2.5 border border-rose-500/20 text-xs"><i class="fa-solid fa-trash"></i></button>`:''}</td></tr>`).join('');
+            tb.innerHTML = appState.users.map((u, i) => `<tr class="hover:bg-white/[0.02]"><td class="p-3 border border-white/5 font-bold text-white">${u.name}</td><td class="p-3 border border-white/5 text-dobah-400 font-mono">${u.role}</td><td class="p-3 border border-white/5 text-dobah-100 font-medium">${u.branches.includes('ALL')?'All Branches':u.branches.join(', ')}</td><td class="p-3 border border-white/5 text-center"><button onclick="promptEditUser(${i})" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-300 p-1.5 px-2.5 mr-1 border border-white/5 text-xs"><i class="fa-solid fa-pen"></i></button>${u.username!=='admin'?`<button onclick="deleteUserAccount(${i})" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 px-2.5 border border-rose-500/20 text-xs"><i class="fa-solid fa-trash"></i></button>`:''}</td></tr>`).join('');
             ['categories','divisions','branches'].forEach(k => {
                 const el = document.getElementById('masterList' + k.charAt(0).toUpperCase() + k.slice(1));
-                if(el) el.innerHTML = appState[k].map((item, idx) => `<div class="flex items-center justify-between bg-charcoal-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold text-slate-200"><span>${item}</span><button onclick="deleteMasterItem('${k}', ${idx})" class="text-rose-400 hover:text-rose-300 px-1 font-black">&times;</button></div>`).join('');
+                if(el) el.innerHTML = appState[k].map((item, idx) => `<div class="flex items-center justify-between bg-cocoa-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold text-dobah-100"><span>${item}</span><button onclick="deleteMasterItem('${k}', ${idx})" class="text-rose-400 hover:text-rose-300 px-1 font-black">&times;</button></div>`).join('');
             });
         }
         function promptAddMasterItem(k) {
-            Swal.fire({ title: `Tambah Data`, input: 'text', showCancelButton: true, confirmButtonColor: '#10b981' }).then(r => {
+            Swal.fire({ title: `Tambah Data`, input: 'text', showCancelButton: true, confirmButtonColor: '#f4a23a' }).then(r => {
                 if(r.isConfirmed && r.value.trim()!=='') { appState[k].push(r.value.trim()); saveMasterSettings(); renderMasterDataView(); populateDropdowns(); }
             });
         }
@@ -1364,7 +1378,7 @@
 
         function renderBranchCheckboxes(sel=[]) {
             const c = document.getElementById('branchCheckboxesContainer'); if (!c) return;
-            c.innerHTML = appState.branches.map(b => `<label class="flex items-center space-x-2.5 cursor-pointer text-slate-300 hover:text-white"><input type="checkbox" value="${b}" ${sel.includes('ALL')||sel.includes(b)?'checked':''} class="branch-checkbox w-4 h-4 text-emerald-500 rounded border-white/20 bg-charcoal-900"><span>${b}</span></label>`).join('');
+            c.innerHTML = appState.branches.map(b => `<label class="flex items-center space-x-2.5 cursor-pointer text-dobah-200 hover:text-white"><input type="checkbox" value="${b}" ${sel.includes('ALL')||sel.includes(b)?'checked':''} class="branch-checkbox w-4 h-4 text-dobah-400 rounded border-white/20 bg-cocoa-900"><span>${b}</span></label>`).join('');
         }
         function toggleBranchCheckboxesByRole() {
             const r = document.getElementById('userFormRole').value;
@@ -1391,7 +1405,7 @@
             saveMasterSettings(); closeModal('userModal'); renderMasterDataView(); Swal.fire('Tersimpan', '', 'success');
         }
         function deleteUserAccount(i) {
-            Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#059669', cancelButtonColor: '#dc2626' }).then(r => {
+            Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f4a23a', cancelButtonColor: '#dc2626' }).then(r => {
                 if(r.isConfirmed) { appState.users.splice(i, 1); saveMasterSettings(); renderMasterDataView(); Swal.fire('Terhapus', '', 'success'); }
             });
         }
