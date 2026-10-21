@@ -77,7 +77,6 @@
         ::-webkit-scrollbar-thumb { background: #1e2530; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #10b981; }
 
-        /* Konfigurasi Print PDF */
         @media print {
             body * { visibility: hidden !important; }
             #printable-area, #printable-area * { visibility: visible !important; }
@@ -314,7 +313,7 @@
                 </div>
             </div>
 
-            <!-- Chart Section (Optional, dipindah ke bawah metrics) -->
+            <!-- Chart Section -->
             <div class="glass-panel p-5 sm:p-6 flex flex-col">
                 <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
                     <h3 class="font-extrabold text-xs uppercase text-slate-300 flex items-center">
@@ -331,14 +330,11 @@
 
             <!-- Filter Bar Terpadu -->
             <div class="glass-panel p-4 flex flex-wrap items-center gap-3">
-                
-                <!-- Search Text -->
                 <div class="w-full md:w-64 relative flex-shrink-0">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
                     <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 glass-input text-xs sm:text-sm font-semibold">
                 </div>
                 
-                <!-- Date Range -->
                 <div class="flex items-center space-x-2 glass-input px-3 py-1 flex-shrink-0">
                     <i class="fa-regular fa-calendar text-slate-400 text-xs"></i>
                     <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-slate-200">
@@ -346,7 +342,6 @@
                     <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-slate-200">
                 </div>
 
-                <!-- Dropdown Filters -->
                 <select id="filterBranch" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-1 min-w-[150px]"></select>
                 
                 <select id="filterStatus" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-shrink-0">
@@ -357,9 +352,7 @@
                     <option value="Rejected" class="bg-charcoal-900">Rejected</option>
                 </select>
                 
-                <!-- Reset Button -->
                 <button onclick="clearFilters()" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 border border-white/10 flex-shrink-0">Reset</button>
-                
             </div>
 
             <!-- Table & Pagination Container -->
@@ -471,7 +464,6 @@
     </main>
 
     <!-- MODALS -->
-    <!-- LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-panel max-w-md w-full p-8 space-y-6 shadow-2xl relative overflow-hidden">
             <div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -501,7 +493,6 @@
         </div>
     </div>
 
-    <!-- PASSWORD MODAL (Fitur Baru) -->
     <div id="passwordModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="glass-panel max-w-sm w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -522,7 +513,6 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT / TAMBAH USER -->
     <div id="userModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-md w-full my-8 overflow-hidden shadow-2xl">
             <div class="bg-charcoal-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
@@ -580,7 +570,6 @@
                 </table>
                 <div id="detailPhotosContainer" class="flex flex-wrap gap-2 pt-1 mb-3"></div>
                 
-                <!-- Audit Trail Box -->
                 <div class="bg-charcoal-900/60 border border-white/10 p-3 rounded-lg mt-4 no-print text-slate-300">
                     <h4 class="font-black text-[10px] uppercase text-slate-400 mb-2 border-b border-white/5 pb-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Riwayat Persetujuan (Audit Trail)</h4>
                     <ul id="detailAuditTrail" class="space-y-1.5 text-[10px] font-medium text-slate-400"></ul>
@@ -589,18 +578,18 @@
         </div>
     </div>
 
-    <!-- EDIT / APPROVAL MODAL -->
+    <!-- EDIT / APPROVAL MODAL (Sesuai Desain Card Item Anda) -->
     <div id="editApprovalModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-3xl w-full my-8 overflow-hidden shadow-2xl">
             <div class="bg-charcoal-900 text-white p-4 border-b border-white/10 flex items-center justify-between">
-                <h3 id="editModalTitle" class="font-extrabold text-xs uppercase font-mono">Edit & Approval</h3>
+                <h3 id="editModalTitle" class="font-extrabold text-xs uppercase font-mono">Edit & Approval Dokumen</h3>
                 <button onclick="closeModal('editApprovalModal')" class="text-slate-400 hover:text-white font-bold text-sm w-7 h-7">&times;</button>
             </div>
-            <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-4">
+            <form id="editApprovalForm" onsubmit="saveEditApproval(event)" class="p-6 space-y-5">
                 <input type="hidden" id="editReqDocId">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Status Pengajuan</label>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Status Tiket Keseluruhan</label>
                         <select id="editStatus" class="w-full glass-input px-3 py-2 text-sm font-semibold">
                             <option value="Pending" class="bg-charcoal-900">Pending</option>
                             <option value="Approved" class="bg-charcoal-900">Approved</option>
@@ -618,14 +607,21 @@
                         </select>
                     </div>
                 </div>
-                <div class="space-y-3 pt-2 border-t border-white/10">
-                    <div class="flex items-center justify-between"><label class="block text-xs font-bold uppercase text-slate-400">Rincian Item</label><button type="button" onclick="addEditModalItemRow()" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1 border border-emerald-500/30"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button></div>
-                    <div id="editModalItemsContainer" class="space-y-3 max-h-60 overflow-y-auto p-2 bg-charcoal-900/60 rounded-xl border border-white/10"></div>
+
+                <div class="space-y-4 pt-2 border-t border-white/10">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold uppercase text-slate-300">Rincian Item & Status per Item</label>
+                        <button type="button" onclick="addEditModalItemRow()" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1 border border-emerald-500/30"><i class="fa-solid fa-plus mr-1"></i>Tambah Baris</button>
+                    </div>
+                    <!-- Container Card Item -->
+                    <div id="editModalItemsContainer" class="space-y-4 max-h-[50vh] overflow-y-auto p-1"></div>
                 </div>
+
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Catatan GA</label>
                     <textarea id="editGANotes" rows="2" class="w-full glass-input p-3 text-sm font-medium" placeholder="Catatan approval..."></textarea>
                 </div>
+
                 <div class="flex justify-end space-x-2 pt-3 border-t border-white/10">
                     <button type="button" onclick="closeModal('editApprovalModal')" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 border border-white/10">Batal</button>
                     <button type="submit" class="modern-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-5 py-2">Simpan Perubahan</button>
@@ -645,20 +641,19 @@
     <!-- APPLICATION LOGIC -->
     <script>
         let appState = {
-            activeTab: 'list', // Mengubah default langsung ke tampilan Dashboard List
+            activeTab: 'list',
             users: [
                 { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
                 { id: 'usr_2', username: 'headstore_cibeunying', password: '123', name: 'Hendra Wijaya', role: 'Staff Store', branches: ['DONAT BAHAGIA CIBEUNYING'] },
                 { id: 'usr_3', username: 'headstore_cilaki', password: '123', name: 'HEADSTORE CILAKI', role: 'Staff Store', branches: ['DONAT BAHAGIA CILAKI'] }
             ],
-            categories: ['SUPPORT EQUIPMENT'],
+            categories: ['SUPPORT EQUIPMENT', 'BANGUNAN', 'PERALATAN'],
             divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
             branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
             
-            // Dummy Default Data (Akan tergantikan jika Firebase/LocalStorage memiliki data)
             requests: [
                 {
-                    id: '#TKT-202610-760',
+                    id: 'TKT-202610-760',
                     division: 'HEAD STORE',
                     branch: 'DONAT BAHAGIA CIBEUNYING',
                     submissionDate: '2026-10-20',
@@ -667,28 +662,11 @@
                     justification: 'Penggantian showcase chiller yang rusak total',
                     gaNotes: '',
                     items: [
-                        { name: 'Showcase Chiller 2 Pintu', category: 'SUPPORT EQUIPMENT', qty: 1, unit: 'Unit', cost: 4500000, notes: '', photo: '' },
-                        { name: 'Kabel Roll 10m', category: 'SUPPORT EQUIPMENT', qty: 1, unit: 'Pcs', cost: 150000, notes: '', photo: '' }
+                        { name: 'SHOWCASE CHILLER', category: 'SUPPORT EQUIPMENT', qty: 1, unit: 'Unit', cost: 4500000, notes: 'Rusak kompresor', photo: '', itemStatus: 'Menunggu' },
+                        { name: 'KABEL ROLL', category: 'SUPPORT EQUIPMENT', qty: 1, unit: 'Pcs', cost: 150000, notes: '', photo: '', itemStatus: 'Menunggu' }
                     ],
                     audit: [
                         { actor: 'Hendra Wijaya', role: 'Staff Store', action: 'Membuat Pengajuan', timestamp: '20/10/2026, 08:30:00' }
-                    ]
-                },
-                {
-                    id: '#TKT-202610-761',
-                    division: 'ASST. HEAD STORE',
-                    branch: 'DONAT BAHAGIA CILAKI',
-                    submissionDate: '2026-10-21',
-                    urgency: 'Medium',
-                    status: 'Approved',
-                    justification: 'Perbaikan mesin espresso karena macet',
-                    gaNotes: 'Silahkan hubungi teknisi eksternal',
-                    items: [
-                        { name: 'Jasa Service Mesin Espresso', category: 'SUPPORT EQUIPMENT', qty: 1, unit: 'Lot', cost: 850000, notes: 'Teknisi external', photo: '' }
-                    ],
-                    audit: [
-                        { actor: 'Staff Cilaki', role: 'Staff Store', action: 'Membuat Pengajuan', timestamp: '21/10/2026, 09:15:00' },
-                        { actor: 'Muhammad Taufik', role: 'General Affair Manager', action: 'Ubah status: Pending ➔ Approved.', timestamp: '21/10/2026, 10:00:00' }
                     ]
                 }
             ],
@@ -696,7 +674,7 @@
             sortConfig: { key: 'id', direction: 'desc' }
         };
 
-        let chartInstance = null; // Menyimpan instance Chart.js
+        let chartInstance = null;
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -709,7 +687,7 @@
             }
         });
 
-        /* --- DATA PERSISTENCE --- */
+        /* --- DATA PERSISTENCE & SAFE LOAD --- */
         async function saveMasterSettings() {
             saveMasterSettingsToLocal();
             if (window.db) {
@@ -718,7 +696,7 @@
                     await setDoc(doc(window.db, "settings", "master_config"), {
                         users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
                     }, { merge: true });
-                } catch(err) { console.error("Gagal simpan master data:", err); }
+                } catch(err) {}
             }
         }
 
@@ -743,7 +721,6 @@
             if (local) { 
                 try { 
                     const parsed = JSON.parse(local);
-                    // MODIFIKASI: Hanya timpakan jika parsed.length > 0 agar dummy data tidak hilang jika local storage kosong array []
                     if (parsed && parsed.length > 0) {
                         appState.requests = parsed; 
                     }
@@ -761,13 +738,10 @@
                 onSnapshot(collection(window.db, "requests"), (snapshot) => {
                     const cloudData = [];
                     snapshot.forEach(docSnap => cloudData.push({ docId: docSnap.id, ...docSnap.data() }));
-                    
-                    // Prioritaskan Cloud jika ada data
                     if(cloudData.length > 0) {
                         appState.requests = cloudData;
                         saveLocalState();
                     }
-                    
                     updateCloudBadge('Cloud Live');
                     applyTableFilters();
                     updateMetrics();
@@ -801,10 +775,8 @@
             loadMasterSettings(); 
             loadLocalState(); 
             checkUserSession();
-            document.getElementById('formSubmissionDate').value = new Date().toISOString().split('T')[0]; // Set Hari Ini
+            document.getElementById('formSubmissionDate').value = new Date().toISOString().split('T')[0];
             addFormItemRow();
-            
-            // Render list secara default jika tab active adalah list
             if(appState.activeTab === 'list') switchTab('list');
         });
 
@@ -848,7 +820,6 @@
 
         function handleLogout() { localStorage.removeItem('assetReqUserSession'); location.reload(); }
 
-        /* --- UX: User Dropdown & Notification --- */
         function toggleUserMenu() {
             document.getElementById('userMenuDropdown').classList.toggle('hidden');
             document.getElementById('notifMenu').classList.add('hidden');
@@ -864,7 +835,6 @@
             const user = getCurrentUser();
             const oldP = document.getElementById('oldPasswordInput').value;
             const newP = document.getElementById('newPasswordInput').value;
-            
             const userIndex = appState.users.findIndex(u => u.id === user.id);
             if(userIndex > -1 && appState.users[userIndex].password === oldP) {
                 appState.users[userIndex].password = newP;
@@ -962,6 +932,7 @@
             c.insertAdjacentHTML('beforeend', html); calculateLiveTotal();
         }
         function removeFormItemRow(id) { if (document.querySelectorAll('.item-row').length > 1) document.getElementById(id).remove(); calculateLiveTotal(); }
+        
         function handlePhotoUpload(input, id) {
             if (input.files && input.files[0]) {
                 const f = input.files[0]; if (f.size > 2*1024*1024) return Swal.fire('Error', 'Maksimal ukuran 2MB', 'error');
@@ -973,6 +944,7 @@
                 r.readAsDataURL(f);
             }
         }
+        
         function calculateLiveTotal() {
             let t = 0;
             document.querySelectorAll('.item-row').forEach(r => t += (parseFloat(r.querySelector('.item-qty').value)||0) * (parseFloat(r.querySelector('.item-cost').value)||0));
@@ -987,17 +959,13 @@
                     name: row.querySelector('.item-name').value, category: row.querySelector('.item-category').value,
                     qty: parseInt(row.querySelector('.item-qty').value)||1, unit: row.querySelector('.item-unit').value||'Unit',
                     cost: parseFloat(row.querySelector('.item-cost').value)||0, notes: row.querySelector('.item-notes').value||'',
-                    photo: row.querySelector('.item-photo-data').value||''
+                    photo: row.querySelector('.item-photo-data').value||'', itemStatus: 'Menunggu'
                 });
             });
 
             const usr = getCurrentUser();
             const timeNow = new Date().toLocaleString('id-ID');
-            // Menambahkan Audit Trail (Riwayat Pembuatan)
-            const auditTrail = [{
-                actor: usr.name, role: usr.role,
-                action: 'Membuat Pengajuan', timestamp: timeNow
-            }];
+            const auditTrail = [{ actor: usr.name, role: usr.role, action: 'Membuat Pengajuan', timestamp: timeNow }];
 
             const p = { 
                 id: `ARQ-${new Date().getFullYear()}-${String(appState.requests.length+1).padStart(3,'0')}`, 
@@ -1019,26 +987,16 @@
             return (u.role === 'General Affair Manager' || u.branches.includes('ALL')) ? appState.requests : appState.requests.filter(r => u.branches.includes(r.branch));
         }
 
-        /* --- UX: SORTING LOGIC --- */
         function handleSort(key) {
-            // Reset icons
-            document.querySelectorAll('th.sortable i').forEach(icon => {
-                icon.className = 'fa-solid fa-sort ml-1 text-slate-500';
-            });
-
+            document.querySelectorAll('th.sortable i').forEach(icon => { icon.className = 'fa-solid fa-sort ml-1 text-slate-500'; });
             if (appState.sortConfig.key === key) {
                 appState.sortConfig.direction = appState.sortConfig.direction === 'asc' ? 'desc' : 'asc';
             } else {
-                appState.sortConfig.key = key;
-                appState.sortConfig.direction = 'asc';
+                appState.sortConfig.key = key; appState.sortConfig.direction = 'asc';
             }
-
-            // Update Icon
             const activeIcon = document.getElementById(`sortIcon-${key}`);
             if (activeIcon) {
-                activeIcon.className = appState.sortConfig.direction === 'asc' 
-                    ? 'fa-solid fa-sort-up ml-1 text-emerald-400' 
-                    : 'fa-solid fa-sort-down ml-1 text-emerald-400';
+                activeIcon.className = appState.sortConfig.direction === 'asc' ? 'fa-solid fa-sort-up ml-1 text-emerald-400' : 'fa-solid fa-sort-down ml-1 text-emerald-400';
             }
             applyTableFilters();
         }
@@ -1050,43 +1008,27 @@
                 if (key === 'id') { valA = a.id; valB = b.id; }
                 else if (key === 'division') { valA = a.division; valB = b.division; }
                 else if (key === 'status') { valA = a.status; valB = b.status; }
-                else if (key === 'urgency') {
-                    const urgMap = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
-                    valA = urgMap[a.urgency] || 0; valB = urgMap[b.urgency] || 0;
-                }
-                else if (key === 'totalCost') {
-                    valA = a.items ? a.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                    valB = b.items ? b.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0;
-                }
-
                 if (valA < valB) return direction === 'asc' ? -1 : 1;
                 if (valA > valB) return direction === 'asc' ? 1 : -1;
                 return 0;
             });
         }
 
-        /* --- TABEL & FILTERS (Termasuk Date Filter) --- */
         function applyTableFilters() {
             const q = document.getElementById('filterSearch').value.toLowerCase();
             const b = document.getElementById('filterBranch').value;
             const s = document.getElementById('filterStatus').value;
-            const uEl = document.getElementById('filterUrgency');
-            const u = uEl ? uEl.value : '';
             const dStart = document.getElementById('filterStartDate').value;
             const dEnd = document.getElementById('filterEndDate').value;
 
             let filtered = getAccessibleRequests().filter(r => {
                 const matchQ = r.id.toLowerCase().includes(q) || r.division.toLowerCase().includes(q) || (r.items && r.items.some(i => i.name.toLowerCase().includes(q)));
-                
-                // Filter Date Range
                 let matchDate = true;
                 if (dStart) matchDate = matchDate && (r.submissionDate >= dStart);
                 if (dEnd) matchDate = matchDate && (r.submissionDate <= dEnd);
-
-                return matchQ && matchDate && (!b || r.branch === b) && (!s || r.status === s) && (!u || r.urgency === u);
+                return matchQ && matchDate && (!b || r.branch === b) && (!s || r.status === s);
             });
 
-            // Terapkan sorting setelah difilter
             appState.pagination.filteredData = sortDataList(filtered);
             appState.pagination.currentPage = 1;
             renderRequestsTable();
@@ -1114,25 +1056,22 @@
                 const actIdx = appState.requests.indexOf(req);
                 const role = getCurrentUser().role;
                 
-                // Mendapatkan nama pemohon dari audit trail (jika ada)
                 let namaPemohon = req.division;
-                if (req.audit && req.audit.length > 0) {
-                    namaPemohon = req.audit[0].actor;
-                }
+                if (req.audit && req.audit.length > 0) namaPemohon = req.audit[0].actor;
                 
-                // Hitung jumlah item
                 const totalItemsCount = req.items ? req.items.length : 0;
                 
-                // Hitung progress perbaikan berdasarkan status atau item yang selesai
+                // Hitung progress akurat berdasarkan itemStatus
                 let completedCount = 0;
-                if (req.status === 'Completed') {
-                    completedCount = totalItemsCount;
-                } else if (req.status === 'Approved') {
-                    completedCount = Math.round(totalItemsCount * 0.5); // Proporsi dinamis saat approve
+                if (req.items) {
+                    completedCount = req.items.filter(i => i.itemStatus === 'Selesai').length;
                 }
+                if (req.status === 'Completed' && completedCount === 0) completedCount = totalItemsCount;
+                
                 const progressPercent = totalItemsCount > 0 ? Math.round((completedCount / totalItemsCount) * 100) : 0;
 
-                let btns = `<button onclick="openDetailModal(${actIdx})" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-emerald-400 text-[11px] px-3 py-1.5 border border-white/5 font-bold"><i class="fa-solid fa-eye mr-1"></i>Detail / Ubah</button>`;
+                // Tombol aksi dengan teks "Detail" saja sesuai permintaan Anda
+                let btns = `<button onclick="openDetailModal(${actIdx})" class="modern-button bg-charcoal-800 hover:bg-slate-700 text-emerald-400 text-[11px] px-3 py-1.5 border border-white/5 font-bold"><i class="fa-solid fa-eye mr-1"></i>Detail</button>`;
                 if (role === 'General Affair Manager') {
                     btns += `<button onclick="openEditModal(${actIdx})" class="modern-button bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1.5 ml-1 border border-emerald-500/30" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] px-2.5 py-1.5 ml-1 border border-rose-500/20" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
                 }
@@ -1174,13 +1113,10 @@
         function clearFilters() { 
             document.getElementById('filterSearch').value = ''; document.getElementById('filterBranch').value = ''; 
             document.getElementById('filterStatus').value = ''; 
-            const uEl = document.getElementById('filterUrgency');
-            if (uEl) uEl.value = ''; 
             document.getElementById('filterStartDate').value = ''; document.getElementById('filterEndDate').value = ''; 
             applyTableFilters(); 
         }
 
-        /* --- DASHBOARD & METRICS --- */
         function updateMetrics() {
             const list = getAccessibleRequests();
             document.getElementById('metric-total').innerText = list.length;
@@ -1191,7 +1127,6 @@
             
             let tot = 0; list.forEach(r => r.items && r.items.forEach(i => tot += (i.qty * i.cost)));
             if (document.getElementById('metric-budget')) document.getElementById('metric-budget').innerText = formatRupiah(tot);
-            
             if (document.getElementById('nav-count-badge')) document.getElementById('nav-count-badge').innerText = list.length;
             renderBudgetChart(list);
         }
@@ -1199,8 +1134,6 @@
         function renderBudgetChart(dataList) {
             const ctx = document.getElementById('budgetChart');
             if(!ctx) return;
-
-            // Kelompokkan total cost per cabang
             let branchBudgets = {};
             dataList.forEach(req => {
                 const b = req.branch;
@@ -1208,13 +1141,10 @@
                 if(!branchBudgets[b]) branchBudgets[b] = 0;
                 branchBudgets[b] += cost;
             });
-
             const labels = Object.keys(branchBudgets);
             const dataValues = Object.values(branchBudgets);
 
-            if(chartInstance) {
-                chartInstance.destroy();
-            }
+            if(chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -1223,7 +1153,7 @@
                     datasets: [{
                         label: 'Total Estimasi Anggaran (Rp)',
                         data: dataValues,
-                        backgroundColor: '#10b981', // emerald-500
+                        backgroundColor: '#10b981',
                         borderColor: '#0b0f17',
                         borderWidth: 2,
                         borderRadius: 6,
@@ -1249,7 +1179,6 @@
             });
         }
 
-        /* --- MODALS LOGIC --- */
         function openDetailModal(idx) {
             const req = appState.requests[idx]; if (!req) return;
             document.getElementById('detailReqId').innerText = `#${req.id}`;
@@ -1275,7 +1204,6 @@
                 });
             }
 
-            // Tampilkan Audit Trail
             const auditUl = document.getElementById('detailAuditTrail');
             if (req.audit && req.audit.length > 0) {
                 auditUl.innerHTML = req.audit.map(a => `<li><span class="font-bold text-slate-200">${a.timestamp}</span> - ${a.actor} (${a.role}) : <span class="italic">${a.action}</span></li>`).join('');
@@ -1286,40 +1214,83 @@
             openModal('detailModal');
         }
 
+        /* --- EDIT MODAL DENGAN CARD ITEM & STATUS PER ITEM (Sesuai Gambar Anda) --- */
         function openEditModal(idx) {
             const u = getCurrentUser(); if (u.role !== 'General Affair Manager') return Swal.fire('Akses Dibatasi', 'Hanya GA Manager.', 'warning');
             const r = appState.requests[idx]; if (!r) return;
             document.getElementById('editReqDocId').value = idx;
-            document.getElementById('editStatus').value = r.status; document.getElementById('editUrgency').value = r.urgency; document.getElementById('editGANotes').value = r.gaNotes||'';
+            document.getElementById('editStatus').value = r.status; 
+            document.getElementById('editUrgency').value = r.urgency; 
+            document.getElementById('editGANotes').value = r.gaNotes||'';
+            
             const c = document.getElementById('editModalItemsContainer'); c.innerHTML = '';
-            if(r.items) { r.items.forEach(i => addEditModalItemRow(i)); } else { addEditModalItemRow(); }
+            if(r.items) { 
+                r.items.forEach((item, itemIdx) => addEditModalItemCard(item, itemIdx + 1)); 
+            } else { 
+                addEditModalItemCard(null, 1); 
+            }
             openModal('editApprovalModal');
         }
 
-        function addEditModalItemRow(data=null) {
-            const c = document.getElementById('editModalItemsContainer'); const rid = 'edit_item_'+Date.now();
-            const co = appState.categories.map(cat => `<option value="${cat}" class="bg-charcoal-900" ${data&&data.category===cat?'selected':''}>${cat}</option>`).join('');
+        function addEditModalItemCard(data = null, num = 1) {
+            const c = document.getElementById('editModalItemsContainer'); 
+            const rid = 'edit_item_' + Date.now() + Math.random();
+            const catOpts = appState.categories.map(cat => `<option value="${cat}" class="bg-charcoal-900" ${data && data.category === cat ? 'selected' : ''}>${cat}</option>`).join('');
+            const statusItemOpts = ['Menunggu', 'Diproses', 'Selesai', 'Ditolak'].map(st => `<option value="${st}" class="bg-charcoal-900" ${data && data.itemStatus === st ? 'selected' : ''}>${st}</option>`).join('');
+            
+            const urgBadgeColor = (data && data.itemStatus === 'Selesai') ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+
             const h = `
-                <div id="${rid}" class="edit-item-row bg-charcoal-900/80 p-3.5 rounded-xl border border-white/10 space-y-2">
-                    <div class="flex justify-between items-center border-b border-white/5 pb-1.5"><span class="font-mono font-bold text-[11px] uppercase text-slate-300">Baris Item Aset</span><button type="button" onclick="removeEditModalItemRow('${rid}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-[10px] px-2 py-0.5 border border-rose-500/20">Hapus Baris</button></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                        <div class="sm:col-span-5"><input type="text" required class="edit-item-name w-full glass-input px-2.5 py-1.5 text-xs font-semibold" value="${data?data.name:''}"></div>
-                        <div class="sm:col-span-4"><select class="edit-item-category w-full glass-input px-2.5 py-1.5 text-xs font-semibold">${co}</select></div>
-                        <div class="sm:col-span-1"><input type="number" min="1" required class="edit-item-qty w-full glass-input px-1.5 py-1.5 text-xs font-semibold text-center" value="${data?data.qty:1}"></div>
-                        <div class="sm:col-span-2"><input type="number" min="0" required class="edit-item-cost w-full glass-input px-2.5 py-1.5 text-xs font-semibold font-mono" value="${data?data.cost:0}"></div>
+                <div id="${rid}" class="edit-item-row bg-charcoal-900/90 p-4 rounded-xl border border-white/10 space-y-3">
+                    <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono font-black text-xs text-white">#${num}.</span>
+                            <input type="text" required class="edit-item-name glass-input px-2.5 py-1 text-xs font-bold text-white w-48" value="${data ? data.name : ''}" placeholder="Nama Item...">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${urgBadgeColor}">${data ? (data.itemStatus || 'Menunggu') : 'Menunggu'}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select class="edit-item-category glass-input px-2 py-1 text-[11px] font-semibold">${catOpts}</select>
+                            <button type="button" onclick="removeEditModalItemCard('${rid}')" class="text-rose-400 hover:text-rose-300 font-bold px-2"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <input type="text" placeholder="Catatan spesifikasi..." class="edit-item-notes w-full glass-input px-2.5 py-1 text-xs" value="${data?data.notes||'':''}">
-                        <div class="flex items-center space-x-2"><label class="modern-button bg-charcoal-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold px-2 py-1 cursor-pointer flex items-center shrink-0 border border-white/10"><i class="fa-solid fa-camera mr-1 text-emerald-400"></i>Upload <input type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, '${rid}')"></label><input type="hidden" class="item-photo-data" value="${data?data.photo||'':''}"><div class="photo-preview-box text-[10px] font-mono text-slate-400 truncate flex-1">${data&&data.photo?'✓ Foto Terlampir':'Belum ada foto'}</div></div>
+                    
+                    <div>
+                        <input type="text" placeholder="Catatan spesifikasi / keterangan item..." class="edit-item-notes w-full glass-input px-3 py-1.5 text-xs" value="${data ? data.notes || '' : ''}">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Qty & Satuan</label>
+                            <div class="flex space-x-1">
+                                <input type="number" min="1" required class="edit-item-qty w-16 glass-input px-2 py-1 text-xs text-center font-bold" value="${data ? data.qty : 1}">
+                                <input type="text" required class="edit-item-unit w-20 glass-input px-2 py-1 text-xs text-center font-bold" value="${data ? data.unit || 'Unit' : 'Unit'}">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Harga Satuan (Rp)</label>
+                            <input type="number" min="0" required class="edit-item-cost w-full glass-input px-2.5 py-1 text-xs font-bold font-mono" value="${data ? data.cost : 0}">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-emerald-400 mb-1">Status Item:</label>
+                            <select class="edit-item-status w-full glass-input px-2.5 py-1 text-xs font-bold text-emerald-400">${statusItemOpts}</select>
+                        </div>
                     </div>
                 </div>`;
             c.insertAdjacentHTML('beforeend', h);
         }
-        function removeEditModalItemRow(id) { if (document.querySelectorAll('.edit-item-row').length > 1) document.getElementById(id).remove(); }
+
+        function removeEditModalItemCard(id) { 
+            if (document.querySelectorAll('.edit-item-row').length > 1) {
+                document.getElementById(id).remove(); 
+            } else {
+                Swal.fire('Info', 'Minimal harus ada 1 baris item dalam dokumen!', 'warning');
+            }
+        }
 
         async function saveEditApproval(e) {
             e.preventDefault();
-            const idx = parseInt(document.getElementById('editReqDocId').value); const req = appState.requests[idx]; if (!req) return;
+            const idx = parseInt(document.getElementById('editReqDocId').value); 
+            const req = appState.requests[idx]; if (!req) return;
             const usr = getCurrentUser();
             
             const oldStatus = req.status;
@@ -1329,22 +1300,37 @@
             req.urgency = document.getElementById('editUrgency').value; 
             req.gaNotes = document.getElementById('editGANotes').value;
 
-            let upd = []; document.querySelectorAll('.edit-item-row').forEach(r => { upd.push({ name: r.querySelector('.edit-item-name').value, category: r.querySelector('.edit-item-category').value, qty: parseInt(r.querySelector('.edit-item-qty').value)||1, unit: 'Unit', cost: parseFloat(r.querySelector('.edit-item-cost').value)||0, notes: r.querySelector('.edit-item-notes').value||'', photo: r.querySelector('.item-photo-data').value||'' }); });
+            let upd = []; 
+            document.querySelectorAll('.edit-item-row').forEach(r => { 
+                upd.push({ 
+                    name: r.querySelector('.edit-item-name').value, 
+                    category: r.querySelector('.edit-item-category').value, 
+                    qty: parseInt(r.querySelector('.edit-item-qty').value) || 1, 
+                    unit: r.querySelector('.edit-item-unit').value || 'Unit', 
+                    cost: parseFloat(r.querySelector('.edit-item-cost').value) || 0, 
+                    notes: r.querySelector('.edit-item-notes').value || '', 
+                    photo: '', 
+                    itemStatus: r.querySelector('.edit-item-status').value 
+                }); 
+            });
             req.items = upd;
 
-            // Tambah Audit Trail
             if(!req.audit) req.audit = [];
-            let actionText = `Memperbarui Data & Rincian.`;
-            if (oldStatus !== newStatus) actionText = `Ubah status: ${oldStatus} ➔ ${newStatus}. Catatan GA: ${req.gaNotes || '-'}`;
+            let actionText = `Memperbarui Data & Status Item.`;
+            if (oldStatus !== newStatus) actionText = `Ubah status tiket: ${oldStatus} ➔ ${newStatus}. Catatan: ${req.gaNotes || '-'}`;
             
             req.audit.push({
                 actor: usr.name, role: usr.role,
                 action: actionText, timestamp: new Date().toLocaleString('id-ID')
             });
 
-            if (window.db && req.docId) { try { await window.fbDeps.setDoc(window.fbDeps.doc(window.db, "requests", req.docId), req, { merge: true }); } catch(err){} } 
-            else { saveLocalState(); }
-            closeModal('editApprovalModal'); applyTableFilters(); updateMetrics(); Swal.fire('Berhasil', 'Pembaruan disimpan.', 'success');
+            if (window.db && req.docId) { 
+                try { await window.fbDeps.setDoc(window.fbDeps.doc(window.db, "requests", req.docId), req, { merge: true }); } catch(err){} 
+            } else { 
+                saveLocalState(); 
+            }
+            closeModal('editApprovalModal'); applyTableFilters(); updateMetrics(); 
+            Swal.fire('Berhasil', 'Pembaruan approval disimpan.', 'success');
         }
 
         async function deleteRequest(idx, did) {
@@ -1408,11 +1394,6 @@
             Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#059669', cancelButtonColor: '#dc2626' }).then(r => {
                 if(r.isConfirmed) { appState.users.splice(i, 1); saveMasterSettings(); renderMasterDataView(); Swal.fire('Terhapus', '', 'success'); }
             });
-        }
-        function exportCSV() {
-            let csv = "data:text/csv;charset=utf-8,ID,Tanggal,Divisi,Cabang,Urgensi,Status,Total\r\n";
-            getAccessibleRequests().forEach(r => { const t = r.items ? r.items.reduce((s, i) => s + (i.qty * i.cost), 0) : 0; csv += [r.id, r.submissionDate, `"${r.division}"`, `"${r.branch}"`, r.urgency, r.status, t].join(",") + "\r\n"; });
-            const link = document.createElement("a"); link.href = encodeURI(csv); link.download = `AssetReq_Report.csv`; link.click();
         }
         function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
     </script>
