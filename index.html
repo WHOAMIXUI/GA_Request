@@ -653,11 +653,11 @@
                         <form onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
                             <div>
                                 <label for="loginUsername" class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Username <span class="text-rose-500">*</span></label>
-                                <input type="text" id="loginUsername" required autocomplete="username" class="w-full glass-input px-3.5 py-3 text-sm font-semibold">
+                                <input type="text" id="loginUsername" required autocapitalize="none" autocorrect="off" spellcheck="false" class="w-full glass-input px-3.5 py-3 text-sm font-semibold">
                             </div>
                             <div>
                                 <label for="loginPassword" class="block text-xs font-bold uppercase text-dobah-200/70 mb-1.5">Password <span class="text-rose-500">*</span></label>
-                                <input type="password" id="loginPassword" required autocomplete="current-password" class="w-full glass-input px-3.5 py-3 text-sm font-semibold">
+                                <input type="password" id="loginPassword" required autocapitalize="none" autocorrect="off" spellcheck="false" class="w-full glass-input px-3.5 py-3 text-sm font-semibold">
                             </div>
                             <div id="loginErrorMsg" class="hidden text-rose-400 text-xs font-bold bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
                                 <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Username atau password salah!
@@ -1082,7 +1082,7 @@
             const uInput = document.getElementById('loginUsername').value.trim();
             const pInput = document.getElementById('loginPassword').value.trim();
             const errBox = document.getElementById('loginErrorMsg');
-            const found = appState.users.find(u => u.username === uInput && u.password === pInput);
+            const found = appState.users.find(u => String(u.username).toLowerCase() === uInput.toLowerCase() && String(u.password) === pInput);
             if (found) {
                 errBox.classList.add('hidden');
                 localStorage.setItem('assetReqUserSession', JSON.stringify({ id: found.id, username: found.username, name: found.name, role: found.role, branches: found.branches || [] }));
@@ -1191,7 +1191,7 @@
                         <div class="lg:col-span-3"><input type="number" min="0" required class="item-cost w-full glass-input px-3.5 py-2 text-xs font-semibold font-mono" value="0" oninput="calculateLiveTotal()"></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <input type="text" placeholder="Alasan Permintaan..." class="item-notes w-full glass-input px-3 py-2 text-xs">
+                        <input type="text" placeholder="Catatan spesifikasi..." class="item-notes w-full glass-input px-3 py-2 text-xs">
                         <div class="flex items-center flex-wrap gap-2">
                             <label class="modern-button bg-dobah-400 text-slate-950 text-[11px] font-bold px-3.5 py-2 cursor-pointer flex items-center shrink-0">
                                 <i class="fa-solid fa-camera mr-1.5"></i>Ambil Foto
@@ -1568,7 +1568,7 @@
                     </div>
                     
                     <div>
-                        <input type="text" placeholder="Alasan Permintaan / keterangan item..." class="edit-item-notes w-full glass-input px-3 py-1.5 text-xs" value="${data ? data.notes || '' : ''}">
+                        <input type="text" placeholder="Catatan spesifikasi / keterangan item..." class="edit-item-notes w-full glass-input px-3 py-1.5 text-xs" value="${data ? data.notes || '' : ''}">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
@@ -1588,8 +1588,55 @@
                             <select class="edit-item-status w-full glass-input px-2.5 py-1 text-xs font-bold text-dobah-300">${statusItemOpts}</select>
                         </div>
                     </div>
+
+                    <div class="flex items-center flex-wrap gap-2 pt-3 border-t border-white/5">
+                        <span class="text-[10px] uppercase font-bold text-dobah-200/60 mr-1"><i class="fa-solid fa-camera mr-1"></i>Foto:</span>
+                        <label class="modern-button bg-dobah-400 text-slate-950 text-[11px] font-bold px-3.5 py-2 cursor-pointer flex items-center shrink-0">
+                            <i class="fa-solid fa-camera mr-1.5"></i>Ambil Foto
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleEditPhoto(this, '${rid}')">
+                        </label>
+                        <label class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-[11px] font-semibold px-3 py-2 cursor-pointer flex items-center shrink-0 border border-white/10">
+                            <i class="fa-solid fa-image mr-1.5 text-dobah-400"></i>Upload / Galeri
+                            <input type="file" accept="image/*" class="hidden" onchange="handleEditPhoto(this, '${rid}')">
+                        </label>
+                        <input type="hidden" class="edit-item-photo">
+                        <div class="edit-photo-preview text-[11px] font-mono text-dobah-200/50 flex items-center gap-2 min-w-0 basis-full sm:basis-0 sm:flex-1"></div>
+                    </div>
                 </div>`;
             c.insertAdjacentHTML('beforeend', h);
+            const newRow = document.getElementById(rid);
+            newRow.querySelector('.edit-item-photo').value = (data && data.photo) ? data.photo : '';
+            renderEditPhoto(rid);
+        }
+
+        function renderEditPhoto(rid) {
+            const row = document.getElementById(rid); if (!row) return;
+            const photo = row.querySelector('.edit-item-photo').value;
+            const box = row.querySelector('.edit-photo-preview');
+            if (!photo) { box.textContent = 'Belum ada foto'; return; }
+            const kb = Math.round(photo.length * 0.75 / 1024);
+            box.innerHTML = `<img src="${photo}" alt="Foto item" class="w-12 h-12 rounded-lg object-cover border border-white/10 shrink-0 cursor-pointer" onclick="openZoomImage(document.getElementById('${rid}').querySelector('.edit-item-photo').value)"><span class="text-dobah-400 font-bold truncate">✓ Foto tersimpan (${kb} KB)</span><button type="button" onclick="clearEditPhoto('${rid}')" class="text-rose-400 hover:text-rose-300 text-xs shrink-0 px-1" aria-label="Hapus foto"><i class="fa-solid fa-xmark"></i></button>`;
+        }
+
+        async function handleEditPhoto(input, rid) {
+            const f = input.files && input.files[0];
+            if (!f) return;
+            if (f.size > 15 * 1024 * 1024) { input.value = ''; return Swal.fire('Error', 'Ukuran foto terlalu besar (maksimal 15MB).', 'error'); }
+            const row = document.getElementById(rid); if (!row) return;
+            row.querySelector('.edit-photo-preview').textContent = 'Memproses foto...';
+            try {
+                row.querySelector('.edit-item-photo').value = await compressImage(f);
+            } catch (err) {
+                Swal.fire('Error', 'Foto tidak bisa diproses. Coba lagi.', 'error');
+            }
+            renderEditPhoto(rid);
+            input.value = '';
+        }
+
+        function clearEditPhoto(rid) {
+            const row = document.getElementById(rid); if (!row) return;
+            row.querySelector('.edit-item-photo').value = '';
+            renderEditPhoto(rid);
         }
 
         function removeEditModalItemCard(id) { 
@@ -1622,7 +1669,7 @@
                     unit: r.querySelector('.edit-item-unit').value || 'Unit', 
                     cost: parseFloat(r.querySelector('.edit-item-cost').value) || 0, 
                     notes: r.querySelector('.edit-item-notes').value || '', 
-                    photo: '', 
+                    photo: r.querySelector('.edit-item-photo').value || '', 
                     itemStatus: r.querySelector('.edit-item-status').value 
                 }); 
             });
