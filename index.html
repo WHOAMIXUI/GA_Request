@@ -92,11 +92,40 @@
         ::-webkit-scrollbar-thumb { background: #331d14; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #f4a23a; }
 
+        #print-sheet { display: none; }
         @media print {
-            body * { visibility: hidden !important; }
-            #printable-area, #printable-area * { visibility: visible !important; }
-            #printable-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 20px !important; background: white !important; color: black !important; box-shadow: none !important; border: none !important; }
+            @page { size: A4; margin: 14mm; }
+            html, body { background: #fff !important; background-image: none !important; }
+            body > *:not(#print-sheet) { display: none !important; }
+            #print-sheet { display: block !important; color: #1b1b1b; font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 11px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
+            .ps-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f4a23a; padding-bottom: 10px; margin-bottom: 14px; }
+            .ps-head img { height: 38px; width: auto; }
+            .ps-title { text-align: right; }
+            .ps-title h1 { font-size: 16px; font-weight: 800; letter-spacing: .02em; color: #a06836; margin: 0; }
+            .ps-title p { margin: 2px 0 0; font-weight: 700; font-size: 12px; }
+            .ps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; background: #fff6e8; border: 1px solid #f4d3a1; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+            .ps-grid span { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: #8a6a47; font-weight: 700; }
+            .ps-grid b { font-size: 11.5px; }
+            .ps h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #a06836; margin: 14px 0 5px; }
+            .ps-box { border: 1px solid #ddd; border-radius: 6px; padding: 7px 10px; min-height: 28px; }
+            .ps table { width: 100%; border-collapse: collapse; }
+            .ps th { background: #f4a23a !important; color: #1b1b1b; text-align: left; font-size: 9.5px; text-transform: uppercase; padding: 6px 7px; border: 1px solid #d98a22; }
+            .ps td { border: 1px solid #ccc; padding: 6px 7px; vertical-align: top; }
+            .ps tr { page-break-inside: avoid; }
+            .ps small { color: #666; }
+            .ps .c { text-align: center; } .ps .r { text-align: right; white-space: nowrap; }
+            .ps tfoot td { background: #fff6e8 !important; font-weight: 800; font-size: 12px; }
+            .ps-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .ps-photos figure { margin: 0; page-break-inside: avoid; text-align: center; }
+            .ps-photos img { width: 100%; height: 90px; object-fit: cover; border: 1px solid #ccc; border-radius: 6px; }
+            .ps-photos figcaption { font-size: 9px; margin-top: 2px; }
+            .ps ul { margin: 0; padding-left: 16px; font-size: 10px; color: #444; }
+            .ps-sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; text-align: center; page-break-inside: avoid; }
+            .ps-sign div { padding-top: 62px; }
+            .ps-sign b { display: block; border-top: 1px solid #1b1b1b; padding-top: 4px; }
+            .ps-sign span { font-size: 9.5px; color: #666; }
+            .ps-foot { margin-top: 16px; padding-top: 6px; border-top: 1px dashed #bbb; font-size: 9px; color: #777; display: flex; justify-content: space-between; }
         }
         
 
@@ -691,13 +720,15 @@
         </div>
     </div>
 
+    <div id="print-sheet" aria-hidden="true"></div>
+
     <!-- DETAIL MODAL -->
     <div id="detailModal" class="fixed inset-0 z-50 bg-[#150a05]/80 backdrop-blur-md hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="glass-panel max-w-2xl w-full my-auto overflow-hidden shadow-2xl">
             <div class="bg-cocoa-900 text-white px-4 py-3 border-b border-white/10 flex items-center justify-between no-print">
                 <h3 class="font-extrabold text-xs sm:text-sm uppercase font-mono">Detail Dokumen</h3>
                 <div class="flex items-center space-x-2">
-                    <button onclick="window.print()" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-[11px] px-3 py-1 flex items-center"><i class="fa-solid fa-print mr-1.5"></i>Cetak</button>
+                    <button onclick="printRequest()" class="modern-button bg-dobah-400 hover:bg-dobah-500 text-slate-950 font-bold text-[11px] px-3 py-1 flex items-center"><i class="fa-solid fa-print mr-1.5"></i>Cetak</button>
                     <button onclick="closeModal('detailModal')" class="text-dobah-200 hover:text-white font-bold text-sm w-6 h-6 flex items-center justify-center">&times;</button>
                 </div>
             </div>
@@ -935,6 +966,68 @@
 
         /* --- AUTENTIKASI --- */
         function getCurrentUser() { const session = localStorage.getItem('assetReqUserSession'); return session ? JSON.parse(session) : null; }
+
+        /* --- CETAK PENGAJUAN --- */
+        let currentDetailIdx = null;
+        function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+        async function printRequest() {
+            const req = appState.requests[currentDetailIdx];
+            if (!req) return Swal.fire('Info', 'Buka detail tiket terlebih dahulu.', 'info');
+            const u = getCurrentUser() || {};
+            const logoEl = document.querySelector('#loginModal img[alt="Dobah"]');
+            const logo = logoEl ? logoEl.src : '';
+            const items = req.items || [];
+            let total = 0;
+            const rows = items.map((it, i) => {
+                const sub = (Number(it.qty) || 0) * (Number(it.cost) || 0);
+                total += sub;
+                return `<tr><td class="c">${i + 1}</td><td><b>${esc(it.name)}</b>${it.notes ? `<br><small>${esc(it.notes)}</small>` : ''}</td><td>${esc(it.category)}</td><td class="c">${esc(it.qty)} ${esc(it.unit)}</td><td class="r">${formatRupiah(Number(it.cost) || 0)}</td><td class="r">${formatRupiah(sub)}</td><td class="c">${esc(it.itemStatus || '-')}</td></tr>`;
+            }).join('');
+            const photos = items.filter(i => i.photo).map(i => `<figure><img src="${esc(i.photo)}" alt=""><figcaption>${esc(i.name)}</figcaption></figure>`).join('');
+            const requester = (req.audit && req.audit[0] && req.audit[0].actor) || '-';
+            const audit = (req.audit || []).map(a => `<li>${esc(a.timestamp)} &ndash; ${esc(a.actor)} (${esc(a.role)}): ${esc(a.action)}</li>`).join('');
+
+            document.getElementById('print-sheet').innerHTML = `
+                <div class="ps">
+                    <div class="ps-head">
+                        ${logo ? `<img src="${logo}" alt="Dobah">` : '<b>DOBAH</b>'}
+                        <div class="ps-title"><h1>FORM PENGAJUAN ASET</h1><p>#${esc(req.id)}</p></div>
+                    </div>
+                    <div class="ps-grid">
+                        <div><span>Tanggal pengajuan</span><b>${esc(req.submissionDate)}</b></div>
+                        <div><span>Divisi pemohon</span><b>${esc(req.division)}</b></div>
+                        <div><span>Cabang</span><b>${esc(req.branch)}</b></div>
+                        <div><span>Pemohon</span><b>${esc(requester)}</b></div>
+                        <div><span>Urgensi</span><b>${esc(req.urgency)}</b></div>
+                        <div><span>Status tiket</span><b>${esc(req.status)}</b></div>
+                    </div>
+                    <h2>Justifikasi</h2>
+                    <div class="ps-box">${esc(req.justification || '-')}</div>
+                    <h2>Rincian aset</h2>
+                    <table>
+                        <thead><tr><th class="c" style="width:28px">No</th><th>Item</th><th>Kategori</th><th class="c">Qty</th><th class="r">Harga satuan</th><th class="r">Subtotal</th><th class="c">Status</th></tr></thead>
+                        <tbody>${rows || '<tr><td colspan="7" class="c">Tidak ada item.</td></tr>'}</tbody>
+                        <tfoot><tr><td colspan="5" class="r">TOTAL ESTIMASI ANGGARAN</td><td class="r" colspan="2">${formatRupiah(total)}</td></tr></tfoot>
+                    </table>
+                    ${req.gaNotes ? `<h2>Catatan General Affair</h2><div class="ps-box">${esc(req.gaNotes)}</div>` : ''}
+                    ${photos ? `<h2>Foto bukti</h2><div class="ps-photos">${photos}</div>` : ''}
+                    ${audit ? `<h2>Riwayat persetujuan</h2><ul>${audit}</ul>` : ''}
+                    <div class="ps-sign">
+                        <div><b>${esc(requester)}</b><span>Pemohon</span></div>
+                        <div><b>&nbsp;</b><span>Atasan / Store Manager</span></div>
+                        <div><b>&nbsp;</b><span>General Affair Manager</span></div>
+                    </div>
+                    <div class="ps-foot"><span>GA X DOBAH &middot; Dokumen resmi pengajuan aset</span><span>Dicetak oleh ${esc(u.name || '-')} &middot; ${esc(new Date().toLocaleString('id-ID'))}</span></div>
+                </div>`;
+
+            const imgs = Array.from(document.querySelectorAll('#print-sheet img'));
+            await Promise.all(imgs.map(im => im.complete ? Promise.resolve() : new Promise(r => { im.onload = im.onerror = r; })));
+            const oldTitle = document.title;
+            document.title = `Pengajuan-${req.id}`;
+            window.addEventListener('afterprint', () => { document.title = oldTitle; }, { once: true });
+            window.print();
+        }
 
         /* --- TEMA DONAT BAHAGIA --- */
         function updateWelcome(user) {
@@ -1398,6 +1491,7 @@
 
         function openDetailModal(idx) {
             const req = appState.requests[idx]; if (!req) return;
+            currentDetailIdx = idx;
             document.getElementById('detailReqId').innerText = `#${req.id}`;
             document.getElementById('detailDivision').innerText = req.division;
             document.getElementById('detailBranch').innerText = req.branch;
