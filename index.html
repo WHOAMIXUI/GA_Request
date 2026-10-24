@@ -247,7 +247,7 @@
                     <button onclick="switchTab('amap')" id="tab-amap" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-map-location-dot w-4 text-center"></i> Pemetaan Cabang</button>
                     <button onclick="switchTab('amtc')" id="tab-amtc" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-screwdriver-wrench w-4 text-center"></i> Maintenance</button>
                     <button onclick="switchTab('adep')" id="tab-adep" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-chart-line w-4 text-center"></i> Depresiasi &amp; Nilai Buku</button>
-                    <button onclick="switchTab('aasg')" id="tab-aasg" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-user-tag w-4 text-center"></i> Penugasan Karyawan</button>
+                    <button onclick="switchTab('aasg')" id="tab-aasg" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-right-left w-4 text-center"></i> Peminjaman Aset</button>
                     <button onclick="switchTab('aven')" id="tab-aven" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-handshake w-4 text-center"></i> Manajemen Vendor</button>
                 </div>
 
@@ -1824,7 +1824,7 @@
 /* ===== MODUL MANAJEMEN ASET (digabung dari Sistem Manajemen Aset GA) ===== */
 (function(){
 const LS='assetRegistryV1', $=id=>document.getElementById(id);
-const AM=window.AM={assets:[],vendors:[],life:{},f:{q:'',loc:'',st:'',page:1},size:15,chart:null,built:false};
+const AM=window.AM={assets:[],vendors:[],life:{},loans:[],loanTab:'active',f:{q:'',loc:'',st:'',page:1},size:15,chart:null,built:false};
 const DEF_VENDORS=[
  {id:'VND-01',name:'PT Dingin Sejahtera',service:'Perawatan & Servis AC / Chiller',phone:'021-5551234',expiry:'2026-11-15'},
  {id:'VND-02',name:'CV Generator Utama',service:'Maintenance Genset & Listrik',phone:'021-7789012',expiry:'2026-12-30'},
@@ -1842,23 +1842,25 @@ const th=(...h)=>`<thead><tr class="bg-cocoa-900/90 text-dobah-200 font-mono tex
 const tbl=(head,rows,empty='Tidak ada data.')=>`<div class="glass-panel overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">${head}<tbody class="divide-y divide-white/5 text-xs sm:text-sm font-medium text-dobah-100">${rows||`<tr><td colspan="9" class="p-8 text-center text-dobah-200/50 italic">${empty}</td></tr>`}</tbody></table></div></div>`;
 const sub=a=>`<br><span class="text-[11px] text-dobah-200/60 font-normal">${a}</span>`;
 const days=d=>Math.ceil((new Date(d)-new Date(today()))/864e5);
+const q=a=>Math.max(1,parseInt(a.qty)||1),sq=L=>L.reduce((n,a)=>n+q(a),0),tot=a=>(a.price||0)*q(a);
+const onLoan=a=>AM.loans.filter(l=>l.assetId===a.id&&!l.returnedAt).reduce((n,l)=>n+l.qty,0),overdue=()=>AM.loans.filter(l=>!l.returnedAt&&l.due&&days(l.due)<0);
 
 /* --- penyimpanan --- */
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.life=d.life||{}}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS))}
-async function save(){const d={assets:AM.assets,vendors:AM.vendors,life:AM.life};localStorage.setItem(LS,JSON.stringify(d));
+function migrate(){let ch=false;AM.assets.forEach(a=>{if(a.assigned){const o=a.assigned;AM.loans.push({id:'LN-M'+Date.now().toString(36).toUpperCase()+AM.loans.length,assetId:a.id,qty:1,name:o.name,nik:o.nik||'',dept:o.dept||'',purpose:'',date:today(),due:o.due||'',returnedAt:'',retCond:'',retNote:''});a.assigned=null;ch=true}});return ch}
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.life=d.life||{};AM.loans=d.loans||[];migrate()}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS))}
+async function save(){const d={assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans};localStorage.setItem(LS,JSON.stringify(d));
  if(window.db){try{await window.fbDeps.setDoc(window.fbDeps.doc(window.db,'settings','asset_registry'),d)}catch(e){}}
  renderActive();updateNotifications()}
 function subscribe(){if(AM.sub||!window.db)return;AM.sub=1;try{const{doc,onSnapshot}=window.fbDeps;
- onSnapshot(doc(window.db,'settings','asset_registry'),s=>{if(s.exists()){const d=s.data();AM.assets=d.assets||[];AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.life=d.life||{};localStorage.setItem(LS,JSON.stringify(d));renderActive();updateNotifications()}})}catch(e){}}
+ onSnapshot(doc(window.db,'settings','asset_registry'),s=>{if(s.exists()){const d=s.data();AM.assets=d.assets||[];AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.life=d.life||{};AM.loans=d.loans||[];const mg=migrate();localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans}));renderActive();updateNotifications();if(mg)save()}})}catch(e){}}
 
 /* --- sinkron dari permintaan yang selesai --- */
-function pendingImport(){const have=new Set(AM.assets.map(a=>a.src)),out=[];
- (appState.requests||[]).forEach(r=>(r.items||[]).forEach((it,i)=>{if(it.itemStatus!=='Selesai'&&r.status!=='Completed')return;
-  const n=Math.min(Math.max(parseInt(it.qty)||1,1),50);for(let k=1;k<=n;k++){const src=`${r.id}|${i}|${k}`;if(!have.has(src))out.push({r,it,i,k,n,src})}}));return out}
+function pendingImport(){const have=new Set(AM.assets.map(a=>String(a.src||'').split('|').slice(0,2).join('|'))),out=[];
+ (appState.requests||[]).forEach(r=>(r.items||[]).forEach((it,i)=>{if(it.itemStatus!=='Selesai'&&r.status!=='Completed')return;const key=`${r.id}|${i}`;if(!have.has(key))out.push({r,it,i,key})}));return out}
 function syncReq(){const p=pendingImport();if(!p.length)return Swal.fire({title:'Sudah Sinkron',text:'Semua item permintaan berstatus Selesai sudah terdaftar sebagai aset.',icon:'info',background:'#22120a',color:'#fcf6f0'});
- p.forEach(({r,it,i,k,n,src})=>{const a={id:`AST-${r.id.replace('TKT-','')}-${i+1}${n>1?'-'+k:''}`,name:it.name+(n>1?` (Unit ${k})`:''),category:it.category||'-',branch:r.branch,date:r.submissionDate||today(),status:'Good',price:Number(it.cost)||0,assigned:null,src,history:[]};
+ p.forEach(({r,it,i,key})=>{let id=`AST-${r.id.replace('TKT-','')}-${i+1}`;while(find(id))id+='x';const a={id,name:it.name,category:it.category||'-',branch:r.branch,qty:Math.min(Math.max(parseInt(it.qty)||1,1),100000),date:r.submissionDate||today(),status:'Good',price:Number(it.cost)||0,assigned:null,src:key+'|1',history:[]};
   hist(a,`Terdaftar otomatis dari tiket ${r.id}`);AM.assets.push(a)});
- save();Swal.fire({title:'Berhasil',text:`${p.length} aset baru didaftarkan dari permintaan yang selesai.`,icon:'success',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})}
+ save();Swal.fire({title:'Berhasil',text:`${p.length} item permintaan didaftarkan sebagai aset. Qty mengikuti jumlah di permintaan.`,icon:'success',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})}
 
 /* --- dialog form --- */
 async function ask(title,fields,ok='Simpan'){const inp='w-full px-3 py-2 text-sm rounded-lg bg-[#150a05] border border-white/10 text-white';
@@ -1870,47 +1872,48 @@ const confirmBox=(t,txt)=>Swal.fire({title:t,text:txt,icon:'warning',showCancelB
 const deny=()=>Swal.fire({title:'Akses Dibatasi',text:'Aksi ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});
 const find=id=>AM.assets.find(a=>a.id===id);
 const vOpts=()=>AM.vendors.map(v=>[v.id,v.name]);
+const opt0=(l,cur)=>{const o=(l||[]).map(x=>[x,x]);if(cur&&!o.some(x=>x[0]===cur))o.unshift([cur,cur]);o.unshift(['','— Belum diisi —']);return o};
 
 /* --- depresiasi garis lurus --- */
 function dep(a){const life=Number(AM.life[a.category])||5,yrs=Math.max(0,(Date.now()-new Date(a.date))/31557600000);
- if(a.status==='Disposed')return{life,annual:0,acc:a.price,book:0,pct:1};
- const annual=a.price/life,acc=Math.min(a.price,annual*yrs);return{life,annual,acc,book:a.price-acc,pct:a.price?acc/a.price:0}}
+ if(a.status==='Disposed')return{life,annual:0,acc:tot(a),book:0,pct:1};
+ const P=tot(a),annual=P/life,acc=Math.min(P,annual*yrs);return{life,annual,acc,book:P-acc,pct:P?acc/P:0}}
 
 /* --- render --- */
-function dash(){const L=mine(),c=s=>L.filter(a=>a.status===s).length,act=L.filter(a=>a.status!=='Disposed');
- const val=act.reduce((s,a)=>s+a.price,0),book=act.reduce((s,a)=>s+dep(a).book,0),imp=pendingImport().length;
+function dash(){const L=mine(),c=s=>sq(L.filter(a=>a.status===s)),act=L.filter(a=>a.status!=='Disposed');
+ const val=act.reduce((s,a)=>s+tot(a),0),book=act.reduce((s,a)=>s+dep(a).book,0),imp=pendingImport().length,od=overdue().length;
  const exp=AM.vendors.filter(v=>days(v.expiry)<=60);
- const al=[];if(c('Broken'))al.push(`<i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i>${c('Broken')} aset berstatus <b>Rusak</b> belum ditangani.`);
+ const al=[];const inN=L.filter(a=>inc(a)&&a.status!=='Disposed').length;if(inN)al.push(`<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>${inN} aset datanya belum lengkap. <button onclick="AM.f.st='INCOMPLETE';AM.f.page=1;switchTab('areg')" class="underline font-bold text-dobah-300">Lengkapi</button>`);if(c('Broken'))al.push(`<i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i>${c('Broken')} aset berstatus <b>Rusak</b> belum ditangani.`);
  exp.forEach(v=>al.push(`<i class="fa-solid fa-file-contract text-amber-400 mr-2"></i>Kontrak <b>${esc(v.name)}</b> ${days(v.expiry)<0?'sudah berakhir':'berakhir dalam '+days(v.expiry)+' hari'}.`));
- if(isGA()&&imp)al.push(`<i class="fa-solid fa-link text-dobah-400 mr-2"></i>${imp} unit dari permintaan <b>Selesai</b> belum masuk registry. <button onclick="AM.sync()" class="underline font-bold text-dobah-300">Sinkronkan</button>`);
- $('view-adash').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">${kpi('Total Aset',L.length,'fa-boxes-stacked')}${kpi('Kondisi Baik',c('Good'),'fa-circle-check','emerald')}${kpi('Maintenance',c('Maintenance'),'fa-screwdriver-wrench','amber')}${kpi('Rusak',c('Broken'),'fa-circle-xmark','rose')}${kpi('Dihapus Buku',c('Disposed'),'fa-ban','slate')}</div>
+ if(isGA()&&od)al.push(`<i class="fa-solid fa-clock text-rose-400 mr-2"></i>${od} peminjaman aset sudah <b>lewat batas pengembalian</b>.`);if(isGA()&&imp)al.push(`<i class="fa-solid fa-link text-dobah-400 mr-2"></i>${imp} item dari permintaan <b>Selesai</b> belum masuk registry. <button onclick="AM.sync()" class="underline font-bold text-dobah-300">Sinkronkan</button>`);
+ $('view-adash').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">${kpi('Total Aset (unit)',sq(L),'fa-boxes-stacked')}${kpi('Kondisi Baik',c('Good'),'fa-circle-check','emerald')}${kpi('Maintenance',c('Maintenance'),'fa-screwdriver-wrench','amber')}${kpi('Rusak',c('Broken'),'fa-circle-xmark','rose')}${kpi('Dihapus Buku',c('Disposed'),'fa-ban','slate')}</div>
  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${kpi('Nilai Perolehan (aktif)',rp(val),'fa-wallet')}${kpi('Nilai Buku (aktif)',rp(book),'fa-scale-balanced','blue')}</div>
  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4"><div class="glass-panel p-5"><h3 class="text-sm font-bold text-white mb-3">Aset per Kategori</h3><div class="h-64"><canvas id="amChart"></canvas></div></div>
  <div class="glass-panel p-5"><h3 class="text-sm font-bold text-white mb-3">Peringatan &amp; Tindak Lanjut</h3><div class="space-y-2 text-xs text-dobah-100">${al.length?al.map(x=>`<div class="p-3 bg-cocoa-900/70 rounded-xl border border-white/5">${x}</div>`).join(''):'<p class="italic text-dobah-200/50">Tidak ada peringatan.</p>'}</div></div></div>`;
- if(AM.chart)AM.chart.destroy();const cat={};act.forEach(a=>cat[a.category]=(cat[a.category]||0)+1);
+ if(AM.chart)AM.chart.destroy();const cat={};act.forEach(a=>{const k=a.category||'(Belum dikategorikan)';cat[k]=(cat[k]||0)+q(a)});
  if(window.Chart&&Object.keys(cat).length)AM.chart=new Chart($('amChart'),{type:'doughnut',data:{labels:Object.keys(cat),datasets:[{data:Object.values(cat),backgroundColor:COL,borderColor:'#22120a'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#edd5b3'}}}}})}
 
-function filtered(){const f=AM.f,q=f.q.toLowerCase();return mine().filter(a=>(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))&&(!f.loc||a.branch===f.loc)&&(!f.st||a.status===f.st))}
+function filtered(){const f=AM.f,q=f.q.toLowerCase();return mine().filter(a=>(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))&&(!f.loc||a.branch===f.loc)&&(!f.st||(f.st==='INCOMPLETE'?inc(a):a.status===f.st)))}
 function reg(){const v=$('view-areg'),inp='glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold';
  if(!AM.built){AM.built=true;v.innerHTML=`<div class="glass-panel p-4 flex flex-wrap gap-3 items-center"><input id="amQ" placeholder="Cari nama / ID aset..." class="${inp} flex-1 min-w-[180px]"><select id="amLoc" class="${inp}"></select>
- <select id="amSt" class="${inp}"><option value="">Semua Status</option><option value="Good">Baik</option><option value="Maintenance">Maintenance</option><option value="Broken">Rusak</option><option value="Disposed">Dihapus Buku</option></select>
+ <select id="amSt" class="${inp}"><option value="">Semua Status</option><option value="Good">Baik</option><option value="Maintenance">Maintenance</option><option value="Broken">Rusak</option><option value="Disposed">Dihapus Buku</option><option value="INCOMPLETE">Data Belum Lengkap</option></select>
  <button onclick="AM.csv()" class="modern-button bg-cocoa-800 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10"><i class="fa-solid fa-file-csv mr-1"></i>Export</button>
- <span id="amGA" class="flex gap-2"><button onclick="AM.sync()" class="modern-button bg-cocoa-800 text-dobah-300 text-xs font-bold px-4 py-2 border border-dobah-400/30"><i class="fa-solid fa-link mr-1"></i>Sinkron dari Permintaan</button><button onclick="AM.add()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Aset</button></span></div>
- <div id="amTbl"></div><div class="flex justify-between items-center text-xs text-dobah-200"><span id="amInfo"></span><span><button onclick="AM.pg(-1)" class="modern-button bg-cocoa-800 px-3 py-1.5 border border-white/10">&lsaquo; Prev</button> <button onclick="AM.pg(1)" class="modern-button bg-cocoa-800 px-3 py-1.5 border border-white/10">Next &rsaquo;</button></span></div>`;
+ <span id="amGA" class="flex gap-2"><button onclick="AM.sync()" class="modern-button bg-cocoa-800 text-dobah-300 text-xs font-bold px-4 py-2 border border-dobah-400/30"><i class="fa-solid fa-link mr-1"></i>Sinkron dari Permintaan</button><button onclick="AM.bulk()" class="modern-button bg-cocoa-800 text-dobah-300 text-xs font-bold px-4 py-2 border border-dobah-400/30"><i class="fa-solid fa-file-arrow-up mr-1"></i>Upload Massal</button><button onclick="AM.add()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Aset</button></span></div>
+ <div id="amSel"></div><div id="amTbl"></div><div class="flex justify-between items-center text-xs text-dobah-200"><span id="amInfo"></span><span><button onclick="AM.pg(-1)" class="modern-button bg-cocoa-800 px-3 py-1.5 border border-white/10">&lsaquo; Prev</button> <button onclick="AM.pg(1)" class="modern-button bg-cocoa-800 px-3 py-1.5 border border-white/10">Next &rsaquo;</button></span></div>`;
   $('amQ').oninput=e=>{AM.f.q=e.target.value;AM.f.page=1;regRows()};$('amLoc').onchange=e=>{AM.f.loc=e.target.value;AM.f.page=1;regRows()};$('amSt').onchange=e=>{AM.f.st=e.target.value;AM.f.page=1;regRows()}}
- const br=[...new Set([...(appState.branches||[]),...AM.assets.map(a=>a.branch)])].filter(b=>isGA()||mine().some(a=>a.branch===b));
+ const br=[...new Set([...(appState.branches||[]),...AM.assets.map(a=>a.branch)])].filter(b=>b&&(isGA()||mine().some(a=>a.branch===b)));
  $('amLoc').innerHTML='<option value="">Semua Cabang</option>'+br.map(b=>`<option value="${esc(b)}" ${AM.f.loc===b?'selected':''}>${esc(b)}</option>`).join('');$('amLoc').className=inp;
- $('amGA').style.display=isGA()?'flex':'none';regRows()}
+ $('amSt').value=AM.f.st;$('amQ').value=AM.f.q;$('amGA').style.display=isGA()?'flex':'none';regRows()}
 function regRows(){const L=filtered(),tp=Math.max(1,Math.ceil(L.length/AM.size));AM.f.page=Math.min(AM.f.page,tp);const s=(AM.f.page-1)*AM.size;
  const rows=L.slice(s,s+AM.size).map(a=>{const ga=isGA(),d=a.status==='Disposed';
-  return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id))}</td><td class="p-4">${esc(a.branch)}${sub(esc(a.category))}</td><td class="p-4">${esc(a.date)}</td><td class="p-4 font-mono">${rp(a.price)}</td><td class="p-4">${badge(a.status)}${a.assigned?sub('<i class="fa-solid fa-user mr-1"></i>'+esc(a.assigned.name)):''}</td>
-  <td class="p-4 whitespace-nowrap">${btn(`AM.act('${a.id}','hist')`,'fa-clock-rotate-left','Riwayat')}${d?'':(ga?btn(`AM.act('${a.id}','st')`,'fa-pen','Ubah status')+btn(`AM.act('${a.id}','disp')`,'fa-ban','Hapus buku','text-amber-400'):(a.status==='Good'?btn(`AM.act('${a.id}','rep')`,'fa-flag','Lapor rusak','text-rose-400'):''))}${ga?btn(`AM.act('${a.id}','del')`,'fa-trash','Hapus permanen','text-rose-400'):''}</td></tr>`}).join('');
- $('amTbl').innerHTML=tbl(th('Aset','Cabang / Kategori','Tgl Perolehan','Harga','Status','Aksi'),rows,'Belum ada aset. Gunakan “Sinkron dari Permintaan” atau “Tambah Aset”.');
- $('amInfo').textContent=`${L.length} aset · Hal ${AM.f.page}/${tp}`}
+  return `<tr class="hover:bg-white/[0.02]"><td class="p-4 w-8">${ga?`<input type="checkbox" ${AM.sel.has(a.id)?'checked':''} onchange="AM.selOne('${a.id}',this.checked)">`:''}</td><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+(inc(a)?' · <span class="text-amber-400">Data belum lengkap</span>':''))}</td><td class="p-4">${esc(a.branch)||'<span class="text-amber-400">Cabang kosong</span>'}${sub(esc(a.category)||'<span class="text-amber-400">Kategori kosong</span>')}</td><td class="p-4 font-mono font-bold text-white text-base">${q(a)}</td><td class="p-4">${esc(a.date)}</td><td class="p-4 font-mono">${rp(a.price)}${q(a)>1?sub('Total '+rp(tot(a))):''}</td><td class="p-4">${badge(a.status)}${onLoan(a)?sub('<i class="fa-solid fa-right-left mr-1"></i>Dipinjam '+onLoan(a)+' unit'):''}</td>
+  <td class="p-4 whitespace-nowrap">${btn(`AM.act('${a.id}','hist')`,'fa-clock-rotate-left','Riwayat')}${d?'':(ga?btn(`AM.act('${a.id}','edit')`,'fa-pen','Edit aset')+(q(a)>1?btn(`AM.act('${a.id}','split')`,'fa-share-nodes','Alokasikan ke cabang / kategori lain','text-emerald-400'):'')+btn(`AM.act('${a.id}','disp')`,'fa-ban','Hapus buku','text-amber-400'):(a.status==='Good'?btn(`AM.act('${a.id}','rep')`,'fa-flag','Lapor rusak','text-rose-400'):''))}${ga?btn(`AM.act('${a.id}','del')`,'fa-trash','Hapus permanen','text-rose-400'):''}</td></tr>`}).join('');
+ $('amTbl').innerHTML=tbl(th(isGA()?`<input type="checkbox" onchange="AM.selAll(this.checked)" ${L.length&&L.every(a=>AM.sel.has(a.id))?'checked':''}>`:'','Aset','Cabang / Kategori','Qty','Tgl Perolehan','Harga / Unit','Status','Aksi'),rows,'Belum ada aset. Gunakan “Sinkron dari Permintaan” atau “Tambah Aset”.');
+ $('amInfo').textContent=`${L.length} baris · ${sq(L)} unit · Hal ${AM.f.page}/${tp}`;selBar()}
 
-function map(){const br=[...new Set(mine().map(a=>a.branch))];
- $('view-amap').innerHTML=br.length?`<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${br.map(b=>{const L=mine().filter(a=>a.branch===b),c=s=>L.filter(a=>a.status===s).length,act=L.filter(a=>a.status!=='Disposed'),h=act.length?Math.round(c('Good')/act.length*100):0;
-  return `<div class="glass-panel p-5"><div class="flex justify-between items-start"><h3 class="font-bold text-white text-sm"><i class="fa-solid fa-location-dot text-dobah-400 mr-2"></i>${esc(b)}</h3><span class="font-mono text-xs text-dobah-200">${L.length} aset</span></div>
+function map(){const br=[...new Set(mine().map(a=>a.branch||''))];
+ $('view-amap').innerHTML=br.length?`<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${br.map(b=>{const L=mine().filter(a=>a.branch===b),c=s=>sq(L.filter(a=>a.status===s)),act=L.filter(a=>a.status!=='Disposed'),h=act.length?Math.round(c('Good')/sq(act)*100):0;
+  return `<div class="glass-panel p-5"><div class="flex justify-between items-start"><h3 class="font-bold text-white text-sm"><i class="fa-solid fa-location-dot text-dobah-400 mr-2"></i>${esc(b)||'(Belum ada cabang)'}</h3><span class="font-mono text-xs text-dobah-200">${sq(L)} unit</span></div>
   <div class="flex justify-between text-[10px] font-mono text-dobah-200 mt-4 mb-1"><span>Kesehatan aset</span><span class="font-bold text-dobah-400">${h}%</span></div><div class="w-full bg-cocoa-800 h-2 rounded-full overflow-hidden border border-white/5"><div class="bg-dobah-400 h-full" style="width:${h}%"></div></div>
   <div class="grid grid-cols-3 gap-2 mt-4 text-center text-[11px]"><div class="bg-emerald-500/10 text-emerald-400 rounded-lg py-2"><b class="text-base font-mono">${c('Good')}</b><br>Baik</div><div class="bg-amber-500/10 text-amber-400 rounded-lg py-2"><b class="text-base font-mono">${c('Maintenance')}</b><br>Mtc</div><div class="bg-rose-500/10 text-rose-400 rounded-lg py-2"><b class="text-base font-mono">${c('Broken')}</b><br>Rusak</div></div>
   <p class="text-[11px] text-dobah-200/70 mt-3">Nilai buku: <b class="text-white font-mono">${rp(act.reduce((s,a)=>s+dep(a).book,0))}</b></p>
@@ -1921,18 +1924,26 @@ function mtc(){const L=mine().filter(a=>a.status==='Maintenance'||a.status==='Br
  const rows=L.map(a=>{const v=AM.vendors.find(x=>x.id===a.vendorId);
   return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+' · '+esc(a.branch))}</td><td class="p-4">${badge(a.status)}</td><td class="p-4">${v?esc(v.name):'<span class="text-dobah-200/40">Belum ditentukan</span>'}${a.mtcNote?sub(esc(a.mtcNote)):''}${a.mtcDate?sub('Jadwal: '+esc(a.mtcDate)):''}</td>
   <td class="p-4 whitespace-nowrap">${ga?btn(`AM.act('${a.id}','mtc')`,'fa-calendar-plus','Jadwalkan servis')+btn(`AM.act('${a.id}','fin')`,'fa-circle-check','Selesai servis','text-emerald-400'):'<span class="text-[11px] text-dobah-200/50">Diproses GA</span>'}</td></tr>`}).join('');
- $('view-amtc').innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">${kpi('Dalam Perbaikan',L.length,'fa-screwdriver-wrench','amber')}${kpi('Total Biaya Servis',rp(cost),'fa-money-bill-wave','rose')}${kpi('Vendor Aktif',AM.vendors.filter(v=>days(v.expiry)>=0).length,'fa-handshake')}</div>`+tbl(th('Aset','Status','Vendor / Catatan','Aksi'),rows,'Tidak ada aset yang sedang rusak atau dalam maintenance.')}
+ $('view-amtc').innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">${kpi('Dalam Perbaikan (unit)',sq(L),'fa-screwdriver-wrench','amber')}${kpi('Total Biaya Servis',rp(cost),'fa-money-bill-wave','rose')}${kpi('Vendor Aktif',AM.vendors.filter(v=>days(v.expiry)>=0).length,'fa-handshake')}</div>`+tbl(th('Aset','Status','Vendor / Catatan','Aksi'),rows,'Tidak ada aset yang sedang rusak atau dalam maintenance.')}
 
-function depr(){const L=mine().filter(a=>a.status!=='Disposed'),cats=[...new Set([...(appState.categories||[]),...AM.assets.map(a=>a.category)])],ga=isGA();let P=0,A_=0,B=0;
- const rows=L.slice().sort((a,b)=>dep(b).book-dep(a).book).slice(0,300).map(a=>{const d=dep(a);return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+' · '+esc(a.category))}</td><td class="p-4">${esc(a.date)}${sub(d.life+' thn')}</td><td class="p-4 font-mono">${rp(a.price)}</td><td class="p-4 font-mono text-rose-300">${rp(d.acc)}</td><td class="p-4 font-mono font-bold text-emerald-300">${rp(d.book)}</td><td class="p-4 w-32"><div class="w-full bg-cocoa-800 h-2 rounded-full overflow-hidden"><div class="bg-dobah-400 h-full" style="width:${Math.round(d.pct*100)}%"></div></div><span class="text-[10px] font-mono">${Math.round(d.pct*100)}% tersusut</span></td></tr>`}).join('');
- L.forEach(a=>{const d=dep(a);P+=a.price;A_+=d.acc;B+=d.book});
+function depr(){const L=mine().filter(a=>a.status!=='Disposed'),cats=[...new Set([...(appState.categories||[]),...AM.assets.map(a=>a.category)])].filter(Boolean),ga=isGA();let P=0,A_=0,B=0;
+ const rows=L.slice().sort((a,b)=>dep(b).book-dep(a).book).slice(0,300).map(a=>{const d=dep(a);return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+' · '+esc(a.category)+' · Qty '+q(a))}</td><td class="p-4">${esc(a.date)}${sub(d.life+' thn')}</td><td class="p-4 font-mono">${rp(tot(a))}</td><td class="p-4 font-mono text-rose-300">${rp(d.acc)}</td><td class="p-4 font-mono font-bold text-emerald-300">${rp(d.book)}</td><td class="p-4 w-32"><div class="w-full bg-cocoa-800 h-2 rounded-full overflow-hidden"><div class="bg-dobah-400 h-full" style="width:${Math.round(d.pct*100)}%"></div></div><span class="text-[10px] font-mono">${Math.round(d.pct*100)}% tersusut</span></td></tr>`}).join('');
+ L.forEach(a=>{const d=dep(a);P+=tot(a);A_+=d.acc;B+=d.book});
  $('view-adep').innerHTML=`<div class="grid grid-cols-1 md:grid-cols-3 gap-4">${kpi('Nilai Perolehan',rp(P),'fa-wallet')}${kpi('Akumulasi Penyusutan',rp(A_),'fa-arrow-trend-down','rose')}${kpi('Nilai Buku',rp(B),'fa-scale-balanced','emerald')}</div>
  <div class="glass-panel p-5"><h3 class="text-sm font-bold text-white mb-1">Umur Ekonomis per Kategori (tahun)</h3><p class="text-[11px] text-dobah-200/60 mb-3">Metode garis lurus tanpa nilai sisa. Default 5 tahun.${ga?'':' Hanya GA Manager yang dapat mengubah.'}</p><div class="flex flex-wrap gap-3">${cats.map(c=>`<label class="text-xs text-dobah-200">${esc(c)}<br><input type="number" min="1" max="50" value="${AM.life[c]||5}" ${ga?'':'disabled'} onchange="AM.setLife(this.dataset.c,this.value)" data-c="${esc(c)}" class="glass-input w-24 px-3 py-1.5 mt-1 font-mono"></label>`).join('')}</div></div>`
- +tbl(th('Aset','Perolehan','Harga','Akumulasi','Nilai Buku','Progres'),rows,'Belum ada aset aktif.')+(L.length>300?'<p class="text-[11px] text-dobah-200/50">Menampilkan 300 aset dengan nilai buku tertinggi.</p>':'')}
+ +tbl(th('Aset','Perolehan','Total Perolehan','Akumulasi','Nilai Buku','Progres'),rows,'Belum ada aset aktif.')+(L.length>300?'<p class="text-[11px] text-dobah-200/50">Menampilkan 300 aset dengan nilai buku tertinggi.</p>':'')}
 
-function asg(){const L=mine().filter(a=>a.assigned),ga=isGA();
- const rows=L.map(a=>{const o=a.assigned,late=o.due&&days(o.due)<0;return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+' · '+esc(a.branch))}</td><td class="p-4">${esc(o.name)}${sub('NIK '+esc(o.nik||'-')+' · '+esc(o.dept||'-'))}</td><td class="p-4 ${late?'text-rose-400 font-bold':''}">${esc(o.due||'-')}${late?sub('Lewat jatuh tempo'):''}</td><td class="p-4">${ga?btn(`AM.act('${a.id}','ret')`,'fa-rotate-left','Kembalikan aset'):''}</td></tr>`}).join('');
- $('view-aasg').innerHTML=`<div class="flex justify-between items-center"><p class="text-xs text-dobah-200/70">${L.length} aset sedang dipegang karyawan.</p>${ga?`<button onclick="AM.assign()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tugaskan Aset</button>`:''}</div>`+tbl(th('Aset','Pemegang','Jatuh Tempo','Aksi'),rows,'Belum ada penugasan aset.')}
+function loanView(){const ga=isGA(),act=AM.loans.filter(l=>!l.returnedAt),done=AM.loans.filter(l=>l.returnedAt),od=overdue(),tab=AM.loanTab||'active';
+ const asset=l=>{const a=find(l.assetId);return a?`${esc(a.name)}${sub(esc(a.id)+' · '+(esc(a.branch)||'cabang kosong'))}`:'<span class="text-dobah-200/50">(aset dihapus)</span>'};
+ const who=l=>`${esc(l.name)}${sub('NIK '+esc(l.nik||'-')+' · '+esc(l.dept||'-'))}${l.purpose?sub('Keperluan: '+esc(l.purpose)):''}`;
+ let t;
+ if(tab==='active'){const rows=act.slice().sort((a,b)=>String(a.due||'9999').localeCompare(String(b.due||'9999'))).map(l=>{const d=l.due?days(l.due):null,late=d!==null&&d<0;
+  return `<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${asset(l)}</td><td class="p-4">${who(l)}</td><td class="p-4 font-mono font-bold text-white text-base">${l.qty}</td><td class="p-4">${esc(l.date)}</td><td class="p-4 ${late?'text-rose-400 font-bold':''}">${esc(l.due||'-')}${d===null?'':sub(late?'Terlambat '+(-d)+' hari':d===0?'Jatuh tempo hari ini':d+' hari lagi')}</td><td class="p-4 whitespace-nowrap">${ga?btn(`AM.loanRet('${l.id}')`,'fa-rotate-left','Kembalikan','text-emerald-400')+btn(`AM.loanExt('${l.id}')`,'fa-calendar-plus','Perpanjang'):''}</td></tr>`}).join('');
+  t=tbl(th('Aset','Peminjam','Qty','Tgl Pinjam','Batas Kembali','Aksi'),rows,'Tidak ada aset yang sedang dipinjam.')}
+ else{const rows=done.slice().sort((a,b)=>String(b.returnedAt).localeCompare(String(a.returnedAt))).map(l=>`<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${asset(l)}</td><td class="p-4">${who(l)}</td><td class="p-4 font-mono font-bold text-white text-base">${l.qty}</td><td class="p-4">${esc(l.date)}</td><td class="p-4">${esc(l.returnedAt)}</td><td class="p-4">${badge(l.retCond||'Good')}${l.retNote?sub(esc(l.retNote)):''}</td></tr>`).join('');
+  t=tbl(th('Aset','Peminjam','Qty','Tgl Pinjam','Tgl Kembali','Kondisi Kembali'),rows,'Belum ada riwayat pengembalian.')}
+ $('view-aasg').innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">${kpi('Sedang Dipinjam (unit)',act.reduce((n,l)=>n+l.qty,0),'fa-right-left')}${kpi('Lewat Batas Kembali',od.length,'fa-clock','rose')}${kpi('Sudah Dikembalikan',done.length,'fa-circle-check','emerald')}</div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2">${[['active','Sedang Dipinjam ('+act.length+')'],['done','Riwayat ('+done.length+')']].map(([k,l])=>`<button onclick="AM.setLoanTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${tab===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('')}</div>${ga?`<button onclick="AM.loan()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Pinjamkan Aset</button>`:''}</div>`+t}
 
 function ven(){const ga=isGA();
  $('view-aven').innerHTML=`<div class="flex justify-between items-center"><p class="text-xs text-dobah-200/70">${AM.vendors.length} vendor terdaftar.</p>${ga?`<button onclick="AM.vendor()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Vendor</button>`:''}</div>
@@ -1940,7 +1951,7 @@ function ven(){const ga=isGA();
  <p class="text-xs text-dobah-200/80 mt-2">${esc(v.service)}</p><p class="text-xs text-dobah-200/60 mt-2"><i class="fa-solid fa-phone mr-1"></i>${esc(v.phone)}</p><p class="text-xs text-dobah-200/60"><i class="fa-regular fa-calendar mr-1"></i>Kontrak s/d ${esc(v.expiry)}</p>
  ${ga?`<div class="mt-3">${btn(`AM.vendor('${v.id}')`,'fa-pen','Edit')}${btn(`AM.delVendor('${v.id}')`,'fa-trash','Hapus','text-rose-400')}</div>`:''}</div>`}).join('')}</div>`}
 
-const R={adash:dash,areg:reg,amap:map,amtc:mtc,adep:depr,aasg:asg,aven:ven};
+const R={adash:dash,areg:reg,amap:map,amtc:mtc,adep:depr,aasg:loanView,aven:ven};
 function renderActive(){const t=appState.activeTab;if(R[t])R[t]()}
 
 /* --- aksi --- */
@@ -1948,21 +1959,49 @@ AM.act=async function(id,k){const a=find(id);if(!a)return;
  if(k==='hist')return Swal.fire({title:esc(a.name),html:`<div class="text-left text-xs space-y-2 max-h-72 overflow-y-auto">${a.history.slice().reverse().map(h=>`<div class="p-2 bg-[#150a05] rounded-lg"><b>${esc(h.t)}</b> — ${esc(h.by)}<br>${esc(h.act)}</div>`).join('')}</div>`,background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
  if(k==='rep'){if(!(await confirmBox('Lapor aset rusak?',a.name)))return;a.status='Broken';hist(a,'Dilaporkan rusak oleh cabang');return save()}
  if(!isGA())return deny();
+ if(k==='edit'){const r=await ask('Edit Aset',[{k:'name',l:'Nama aset',v:a.name,req:1},{k:'category',l:'Kategori',v:a.category,opts:opt0(appState.categories,a.category)},{k:'branch',l:'Cabang / Lokasi',v:a.branch,opts:opt0(appState.branches,a.branch)},{k:'qty',l:'Qty (jumlah unit)',t:'number',v:q(a)},{k:'price',l:'Harga per unit (Rp)',t:'number',v:a.price},{k:'date',l:'Tanggal perolehan',t:'date',v:a.date},{k:'status',l:'Status',v:a.status,opts:[['Good','Baik'],['Maintenance','Maintenance'],['Broken','Rusak']]}]);if(!r)return;
+  const nq=Math.max(1,parseInt(r.qty)||1),oq=q(a),np=Number(r.price)||0,ch=[];
+  if(nq<onLoan(a))return Swal.fire({title:'Qty terlalu kecil',text:`${onLoan(a)} unit sedang dipinjam. Qty tidak boleh di bawah jumlah itu.`,icon:'info',background:'#22120a',color:'#fcf6f0'});
+  [['name','Nama'],['category','Kategori'],['branch','Cabang'],['date','Tanggal']].forEach(([f,l])=>{if((a[f]||'')!==r[f]){ch.push(`${l}: ${a[f]||'-'} → ${r[f]||'-'}`);a[f]=r[f]}});
+  if(nq!==oq){ch.push(`Qty: ${oq} → ${nq}`);a.qty=nq}if(np!==(a.price||0)){ch.push(`Harga/unit: ${rp(a.price)} → ${rp(np)}`);a.price=np}
+  if(r.status!==a.status){ch.push(`Status: ${ST[a.status][1]} → ${ST[r.status][1]}`);a.status=r.status}
+  if(ch.length)hist(a,'Diedit: '+ch.join('; '));return save()}
+ if(k==='split'){const have=q(a);if(have<2)return;
+  const r=await ask(`Alokasikan dari “${a.name}” (Qty ${have})`,[{k:'n',l:`Jumlah unit yang dialokasikan (1–${have-Math.max(1,onLoan(a))})`,t:'number',v:1},{k:'branch',l:'Cabang tujuan',v:a.branch,opts:opt0(appState.branches,a.branch)},{k:'category',l:'Kategori tujuan',v:a.category,opts:opt0(appState.categories,a.category)},{k:'status',l:'Status unit tersebut',v:a.status,opts:[['Good','Baik'],['Maintenance','Maintenance'],['Broken','Rusak']]}],'Alokasikan');if(!r)return;
+  const n=parseInt(r.n);if(!(n>=1&&n<=have-Math.max(1,onLoan(a))))return Swal.fire({title:'Jumlah tidak valid',text:`Isi antara 1 dan ${have-Math.max(1,onLoan(a))} (unit yang sedang dipinjam tidak bisa dialokasikan).`,icon:'warning',background:'#22120a',color:'#fcf6f0'});
+  let id,x=2;do{id=`${a.id}-A${x++}`}while(find(id));
+  const b={...a,id,qty:n,branch:r.branch,category:r.category,status:r.status,assigned:null,history:[]};a.qty=have-n;
+  hist(a,`${n} unit dialokasikan ke ${r.branch||'(cabang kosong)'} / ${r.category||'(kategori kosong)'} sebagai ${id}`);hist(b,`Hasil alokasi ${n} unit dari ${a.id}`);AM.assets.push(b);return save()}
  if(k==='st'){const r=await ask('Ubah Status',[{k:'s',l:'Status baru',v:a.status,opts:[['Good','Baik'],['Maintenance','Maintenance'],['Broken','Rusak']]}]);if(!r)return;a.status=r.s;hist(a,'Status diubah menjadi '+ST[r.s][1]);return save()}
- if(k==='disp'){if(!(await confirmBox('Hapus buku aset ini?','Nilai buku menjadi Rp 0 dan aset tidak lagi dihitung aktif.')))return;a.status='Disposed';a.assigned=null;hist(a,'Dihapus buku (disposal)');return save()}
- if(k==='del'){if(!(await confirmBox('Hapus permanen?','Data dan riwayat aset akan hilang. Aset dari tiket yang sama bisa terdaftar ulang saat sinkron.')))return;AM.assets=AM.assets.filter(x=>x.id!==id);return save()}
+ if(k==='disp'){if(onLoan(a))return Swal.fire({title:'Aset masih dipinjam',text:'Selesaikan pengembalian dulu sebelum dihapus buku.',icon:'info',background:'#22120a',color:'#fcf6f0'});if(!(await confirmBox('Hapus buku aset ini?','Nilai buku menjadi Rp 0 dan aset tidak lagi dihitung aktif.')))return;a.status='Disposed';a.assigned=null;hist(a,'Dihapus buku (disposal)');return save()}
+ if(k==='del'){if(!(await confirmBox('Hapus permanen?','Data dan riwayat aset akan hilang. Aset dari tiket yang sama bisa terdaftar ulang saat sinkron.')))return;AM.assets=AM.assets.filter(x=>x.id!==id);AM.loans=AM.loans.filter(l=>l.assetId!==id);return save()}
  if(k==='mtc'){const r=await ask('Jadwalkan Servis',[{k:'v',l:'Vendor',v:a.vendorId,opts:[['','— Tanpa vendor —'],...vOpts()]},{k:'d',l:'Tanggal servis',t:'date',v:a.mtcDate||today()},{k:'n',l:'Catatan kerusakan / pekerjaan',v:a.mtcNote||''}]);if(!r)return;
   a.vendorId=r.v;a.mtcDate=r.d;a.mtcNote=r.n;if(a.status==='Good')a.status='Maintenance';hist(a,`Servis dijadwalkan ${r.d}${r.v?' (vendor '+(AM.vendors.find(v=>v.id===r.v)||{}).name+')':''}. ${r.n}`);return save()}
  if(k==='fin'){const r=await ask('Selesai Servis',[{k:'c',l:'Biaya servis (Rp)',t:'number',v:0},{k:'n',l:'Catatan hasil',v:''}]);if(!r)return;const c=Number(r.c)||0;a.mtcCost=(a.mtcCost||0)+c;a.status='Good';hist(a,`Servis selesai. Biaya ${rp(c)}. ${r.n}`);a.vendorId='';a.mtcDate='';a.mtcNote='';return save()}
- if(k==='ret'){if(!(await confirmBox('Kembalikan aset?',`${a.name} dari ${a.assigned.name}`)))return;hist(a,'Dikembalikan oleh '+a.assigned.name);a.assigned=null;return save()}
-};
+ };
 AM.add=async function(){if(!isGA())return deny();const brs=(appState.branches||[]).map(b=>[b,b]),cats=(appState.categories||[]).map(c=>[c,c]);
- const r=await ask('Tambah Aset Manual',[{k:'name',l:'Nama aset',req:1},{k:'category',l:'Kategori',opts:cats},{k:'branch',l:'Cabang',opts:brs},{k:'date',l:'Tanggal perolehan',t:'date',v:today()},{k:'price',l:'Harga perolehan (Rp)',t:'number',v:0}]);if(!r)return;
+ const r=await ask('Tambah Aset Manual',[{k:'name',l:'Nama aset',req:1},{k:'category',l:'Kategori',opts:cats},{k:'branch',l:'Cabang',opts:brs},{k:'qty',l:'Qty (jumlah unit)',t:'number',v:1},{k:'date',l:'Tanggal perolehan',t:'date',v:today()},{k:'price',l:'Harga per unit (Rp)',t:'number',v:0}]);if(!r)return;
  let id,n=AM.assets.length+1;do{id='AST-M'+String(n++).padStart(4,'0')}while(find(id));
- const a={id,name:r.name,category:r.category,branch:r.branch,date:r.date||today(),status:'Good',price:Number(r.price)||0,assigned:null,src:'manual|'+id,history:[]};hist(a,'Didaftarkan manual');AM.assets.push(a);save()};
-AM.assign=async function(){const free=mine().filter(a=>a.status==='Good'&&!a.assigned).slice(0,300);if(!free.length)return Swal.fire({title:'Tidak ada aset tersedia',text:'Semua aset berstatus Baik sudah ditugaskan.',icon:'info',background:'#22120a',color:'#fcf6f0'});
- const r=await ask('Tugaskan Aset',[{k:'a',l:'Aset',opts:free.map(a=>[a.id,`${a.name} — ${a.branch}`])},{k:'n',l:'Nama karyawan',req:1},{k:'nik',l:'NIK'},{k:'dept',l:'Divisi / Departemen',v:''},{k:'due',l:'Jatuh tempo pengembalian',t:'date'}],'Tugaskan');if(!r)return;
- const a=find(r.a);a.assigned={name:r.n,nik:r.nik,dept:r.dept,due:r.due};hist(a,'Ditugaskan kepada '+r.n);save()};
+ const a={id,name:r.name,category:r.category,branch:r.branch,qty:Math.max(1,parseInt(r.qty)||1),date:r.date||today(),status:'Good',price:Number(r.price)||0,assigned:null,src:'manual|'+id,history:[]};hist(a,'Didaftarkan manual');AM.assets.push(a);save()};
+AM.setLoanTab=function(k){AM.loanTab=k;loanView()};
+AM.loan=async function(){if(!isGA())return deny();const free=mine().filter(a=>a.status==='Good'&&q(a)-onLoan(a)>0).slice(0,300),W={background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'};
+ if(!free.length)return Swal.fire({title:'Tidak ada aset tersedia',text:'Belum ada aset berstatus Baik yang bisa dipinjam, atau semuanya sedang dipinjam.',icon:'info',...W});
+ const r=await ask('Pinjamkan Aset',[{k:'a',l:'Aset',opts:free.map(a=>[a.id,`${a.name} — ${a.branch||'-'} (tersedia ${q(a)-onLoan(a)})`])},{k:'qty',l:'Jumlah dipinjam',t:'number',v:1},{k:'n',l:'Nama peminjam',req:1},{k:'nik',l:'NIK'},{k:'dept',l:'Divisi / Departemen'},{k:'purpose',l:'Keperluan'},{k:'date',l:'Tanggal pinjam',t:'date',v:today()},{k:'due',l:'Batas pengembalian',t:'date',req:1}],'Pinjamkan');if(!r)return;
+ const a=find(r.a),qty=parseInt(r.qty)||0,av=q(a)-onLoan(a);
+ if(qty<1||qty>av)return Swal.fire({title:'Jumlah tidak valid',text:`Unit yang tersedia: ${av}.`,icon:'warning',...W});
+ if(r.date&&r.due<r.date)return Swal.fire({title:'Tanggal tidak valid',text:'Batas pengembalian tidak boleh sebelum tanggal pinjam.',icon:'warning',...W});
+ AM.loans.push({id:'LN-'+Date.now().toString(36).toUpperCase(),assetId:a.id,qty,name:r.n,nik:r.nik,dept:r.dept,purpose:r.purpose,date:r.date||today(),due:r.due,returnedAt:'',retCond:'',retNote:''});
+ hist(a,`Dipinjam ${qty} unit oleh ${r.n}${r.dept?' ('+r.dept+')':''}, batas kembali ${r.due}`);AM.loanTab='active';save()};
+AM.loanRet=async function(id){if(!isGA())return deny();const L=AM.loans.find(x=>x.id===id);if(!L)return;const a=find(L.assetId),W={background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'};
+ const r=await ask('Pengembalian Aset',[{k:'n',l:`Jumlah dikembalikan (dipinjam ${L.qty})`,t:'number',v:L.qty},{k:'date',l:'Tanggal kembali',t:'date',v:today()},{k:'cond',l:'Kondisi saat kembali',opts:[['Good','Baik'],['Maintenance','Perlu servis (Maintenance)'],['Broken','Rusak']]},{k:'note',l:'Catatan'}],'Kembalikan');if(!r)return;
+ const n=parseInt(r.n)||0;if(n<1||n>L.qty)return Swal.fire({title:'Jumlah tidak valid',text:`Isi antara 1 dan ${L.qty}.`,icon:'warning',...W});
+ let rec=L;if(n<L.qty){rec={...L,id:L.id+'-R'+Date.now().toString(36).toUpperCase(),qty:n};L.qty-=n;AM.loans.push(rec)}
+ rec.returnedAt=r.date||today();rec.retCond=r.cond;rec.retNote=r.note;
+ if(a){hist(a,`Dikembalikan ${n} unit oleh ${L.name}, kondisi ${ST[r.cond][1]}${r.note?'. '+r.note:''}`);
+  if(r.cond!=='Good'){if(q(a)===n)a.status=r.cond;else{let x=2,nid;do{nid=`${a.id}-R${x++}`}while(find(nid));const b={...a,id:nid,qty:n,status:r.cond,history:[]};a.qty=q(a)-n;hist(b,`Dipisah otomatis dari ${a.id}: ${n} unit kembali dalam kondisi ${ST[r.cond][1]}`);AM.assets.push(b)}}}
+ save()};
+AM.loanExt=async function(id){if(!isGA())return deny();const L=AM.loans.find(x=>x.id===id);if(!L)return;const r=await ask('Perpanjang Peminjaman',[{k:'due',l:'Batas pengembalian baru',t:'date',v:L.due,req:1}],'Perpanjang');if(!r)return;
+ const a=find(L.assetId);if(a)hist(a,`Peminjaman oleh ${L.name} diperpanjang ${L.due||'-'} → ${r.due}`);L.due=r.due;save()};
 AM.vendor=async function(id){if(!isGA())return deny();const v=AM.vendors.find(x=>x.id===id)||{};
  const r=await ask(id?'Edit Vendor':'Tambah Vendor',[{k:'name',l:'Nama vendor',v:v.name,req:1},{k:'service',l:'Layanan',v:v.service},{k:'phone',l:'Telepon',v:v.phone},{k:'expiry',l:'Kontrak berakhir',t:'date',v:v.expiry||today(),req:1}]);if(!r)return;
  if(id)Object.assign(v,r);else AM.vendors.push({id:'VND-'+Date.now().toString(36).toUpperCase(),...r});save()};
@@ -1972,19 +2011,81 @@ AM.pg=function(d){const tp=Math.max(1,Math.ceil(filtered().length/AM.size));AM.f
 AM.goBranch=function(b){AM.f.loc=b;AM.f.page=1;switchTab('areg')};
 AM.sync=function(){if(!isGA())return deny();syncReq()};
 AM.csv=function(){const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"',L=filtered();
- const t=['ID,Nama,Kategori,Cabang,Tgl Perolehan,Harga,Nilai Buku,Status,Pemegang'].concat(L.map(a=>[a.id,a.name,a.category,a.branch,a.date,a.price,Math.round(dep(a).book),ST[a.status][1],a.assigned?a.assigned.name:''].map(q).join(','))).join('\n');
+ const t=['ID,Nama,Kategori,Cabang,Qty,Tgl Perolehan,Harga / Unit,Nilai Buku,Status,Dipinjam Oleh'].concat(L.map(a=>[a.id,a.name,a.category,a.branch,q(a),a.date,a.price,Math.round(dep(a).book),ST[a.status][1],AM.loans.filter(l=>l.assetId===a.id&&!l.returnedAt).map(l=>l.name+' ('+l.qty+')').join('; ')].map(q).join(','))).join('\n');
  const l=document.createElement('a');l.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));l.download='registry_aset.csv';l.click()};
+
+/* --- upload aset massal (CSV / XLSX) --- */
+const HMAP={id:['id','id (opsional)','id aset','kode','kode aset'],name:['nama','nama aset','name','aset'],category:['kategori','category'],branch:['cabang','branch','lokasi'],date:['tanggal','tanggal perolehan','tgl perolehan','date'],price:['harga','harga perolehan','price','nilai'],status:['status','kondisi'],qty:['jumlah','qty','unit']};
+function parseCSV(t){t=t.replace(/^\ufeff/,'');const f=t.split(/\r?\n/)[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?';':',',rows=[];let r=[],c='',q=false;
+ for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===d){r.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);c='';rows.push(r);r=[]}else c+=ch}
+ if(c!==''||r.length){r.push(c);rows.push(r)}return rows.filter(x=>x.some(v=>String(v).trim()!==''))}
+function loadXLSX(){return new Promise((ok,no)=>{if(window.XLSX)return ok();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=ok;s.onerror=()=>no(new Error('Library XLSX gagal dimuat. Simpan file sebagai CSV lalu coba lagi.'));document.head.appendChild(s)})}
+function pDate(v){if(v==null||v==='')return today();const p=n=>String(n).padStart(2,'0');
+ if(v instanceof Date)return `${v.getFullYear()}-${p(v.getMonth()+1)}-${p(v.getDate())}`;
+ if(typeof v==='number'&&v>20000)return new Date(Math.round((v-25569)*864e5)).toISOString().slice(0,10);
+ const s=String(v).trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return `${m[1]}-${p(m[2])}-${p(m[3])}`;
+ m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);if(m)return `${m[3]}-${p(m[2])}-${p(m[1])}`;return null}
+function buildRows(tb){if(tb.length<2)return{err:'File kosong atau hanya berisi header.'};
+ const norm=s=>String(s==null?'':s).trim().toLowerCase(),H=tb[0].map(norm),ix={};
+ for(const k in HMAP){ix[k]=H.findIndex(h=>HMAP[k].includes(h))}
+ if(ix.name<0)return{err:'Kolom “Nama” tidak ditemukan. Gunakan template.'};
+ const cats=Object.fromEntries((appState.categories||[]).map(c=>[c.toLowerCase(),c])),brs=Object.fromEntries((appState.branches||[]).map(b=>[b.toLowerCase(),b])),
+  SM={baik:'Good',good:'Good',maintenance:'Maintenance',servis:'Maintenance',rusak:'Broken',broken:'Broken'},seen=new Set(AM.assets.map(a=>a.id)),ok=[],bad=[],warn=[];
+ tb.slice(1).forEach((r,n)=>{const g=k=>ix[k]<0?'':r[ix[k]],line=n+2,e=[],wn=[],name=String(g('name')).trim(),cat=cats[norm(g('category'))],br=brs[norm(g('branch'))],date=pDate(g('date')),
+  st=norm(g('status'))===''?'Good':SM[norm(g('status'))],price=Number(String(g('price')).replace(/[^\d]/g,''))||0,qty=Math.min(100000,Math.max(1,parseInt(g('qty'))||1)),id=String(g('id')).trim().replace(/[^\w-]/g,'');
+  if(!name)e.push('Nama kosong');if(String(g('category')).trim()&&!cat)wn.push(`Kategori “${g('category')}” tidak dikenali`);if(String(g('branch')).trim()&&!br)wn.push(`Cabang “${g('branch')}” tidak dikenali`);
+  if(!date)e.push('Format tanggal tidak dikenali');if(!st)e.push(`Status “${g('status')}” tidak valid`);
+  if(id){const ids=[id];if(ids.some(x=>seen.has(x)))e.push(`ID “${id}” sudah dipakai`);else if(!e.length)ids.forEach(x=>seen.add(x))}
+  if(wn.length&&!e.length)warn.push({line,name,e:wn.join('; ')});e.length?bad.push({line,name,e:e.join('; ')}):ok.push({name,category:cat||'',branch:br||'',date,price,status:st,qty,id})});
+ return{ok,bad,warn}}
+AM.tpl=function(){const c=(appState.categories||[])[0]||'PERALATAN',b=(appState.branches||[])[0]||'CABANG A';
+ const t=['ID (opsional),Nama,Kategori,Cabang,Tanggal Perolehan,Harga,Status,Jumlah',`,Showcase Chiller,${c},${b},${today()},4500000,Baik,1`,`,Kursi Kasir,${c},${b},${today()},350000,Baik,5`,',Meja Kasir (kolom lain diisi nanti),,,,,,'].join('\r\n');
+ const l=document.createElement('a');l.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));l.download='template_upload_aset.csv';l.click()};
+AM.bulk=function(){if(!isGA())return deny();AM._rows=null;
+ Swal.fire({title:'Upload Aset Massal',width:680,background:'#22120a',color:'#fcf6f0',showCancelButton:true,confirmButtonText:'Impor',cancelButtonText:'Batal',confirmButtonColor:'#f4a23a',
+  html:`<div class="text-left text-xs space-y-3"><p class="text-[#edd5b3]">Unggah file <b>.csv</b> atau <b>.xlsx</b>. Hanya kolom <b>Nama</b> yang wajib. Kolom lain (Kategori, Cabang, Tanggal Perolehan, Harga, Status, Jumlah, ID) boleh dikosongkan dan diisi belakangan lewat <b>Isi Kolom</b> di Registry. Kategori/cabang yang tidak sama dengan Master Data akan dikosongkan.</p>
+  <button type="button" onclick="AM.tpl()" class="px-3 py-2 rounded-lg bg-[#331d14] border border-white/10 text-[#e1b782] font-bold"><i class="fa-solid fa-download mr-1"></i>Unduh Template CSV</button>
+  <input id="amFile" type="file" accept=".csv,.xlsx,.xls" class="block w-full text-xs file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#f4a23a] file:text-[#150a05] file:font-bold"><div id="amPrev"></div></div>`,
+  didOpen:()=>{Swal.disableButtons();$('amFile').onchange=async e=>{const f=e.target.files[0],pv=$('amPrev');if(!f)return;pv.innerHTML='<p class="italic text-[#edd5b3]">Membaca file...</p>';AM._rows=null;Swal.disableButtons();
+   try{let tb;if(/\.xlsx?$/i.test(f.name)){await loadXLSX();const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});tb=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''}).filter(r=>r.some(v=>String(v).trim()!==''))}else tb=parseCSV(await f.text());
+    const r=buildRows(tb);if(r.err){pv.innerHTML=`<p class="text-rose-400 font-bold">${esc(r.err)}</p>`;return}
+    const total=r.ok.reduce((s,x)=>s+x.qty,0);AM._rows=r.ok;
+    pv.innerHTML=`<div class="p-3 bg-[#150a05] rounded-lg"><span class="text-emerald-400 font-bold">${r.ok.length} baris valid (${total} unit aset)</span>${r.bad.length?` · <span class="text-rose-400 font-bold">${r.bad.length} baris bermasalah (dilewati)</span>`:''}${r.warn.length?` · <span class="text-amber-400 font-bold">${r.warn.length} baris kategori/cabang tidak dikenali dikosongkan (baris ${r.warn.slice(0,5).map(x=>x.line).join(', ')}${r.warn.length>5?'…':''})</span>`:''}</div>
+    ${r.ok.length?`<div class="overflow-x-auto max-h-40 mt-2"><table class="w-full text-[11px]"><tr class="text-[#e1b782] text-left"><th class="p-1">Nama</th><th>Cabang</th><th>Harga</th><th>Jml</th></tr>${r.ok.slice(0,6).map(x=>`<tr class="border-t border-white/5"><td class="p-1">${esc(x.name)}</td><td>${esc(x.branch)||'—'}</td><td>${rp(x.price)}</td><td>${x.qty}</td></tr>`).join('')}</table>${r.ok.length>6?`<p class="text-[#edd5b3]/60 mt-1">…dan ${r.ok.length-6} baris lainnya</p>`:''}</div>`:''}
+    ${r.bad.length?`<div class="mt-2 max-h-32 overflow-y-auto text-[11px] text-rose-300">${r.bad.slice(0,15).map(x=>`<div>Baris ${x.line}: ${esc(x.e)}</div>`).join('')}${r.bad.length>15?`<div>…dan ${r.bad.length-15} masalah lain</div>`:''}</div>`:''}`;
+    if(r.ok.length){Swal.enableButtons();Swal.getConfirmButton().textContent=`Impor ${total} aset`}
+   }catch(err){pv.innerHTML=`<p class="text-rose-400 font-bold">${esc(err.message||'Gagal membaca file.')}</p>`}}},
+  preConfirm:()=>AM._rows}).then(r=>{if(!r.isConfirmed||!r.value)return;let n=0,k=AM.assets.length+1;const ts=Date.now().toString(36).toUpperCase();
+   r.value.forEach(x=>{let id=x.id||null;if(!id)do{id=`AST-U${ts}-${String(k++).padStart(4,'0')}`}while(find(id));
+    const a={id,name:x.name,category:x.category,branch:x.branch,qty:x.qty,date:x.date,status:x.status,price:x.price,assigned:null,src:'upload|'+id,history:[]};hist(a,'Diimpor via upload massal');AM.assets.push(a);n+=x.qty});
+   save();Swal.fire({title:'Berhasil',text:`${r.value.length} baris aset (${n} unit) berhasil diimpor.`,icon:'success',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})})};
+
+
+/* --- pilih banyak & isi kolom massal --- */
+const inc=a=>!a.category||!a.branch||!a.price;AM.sel=new Set();
+function selBar(){const k=AM.sel.size,e=$('amSel');if(!e)return;e.innerHTML=k?`<div class="glass-panel p-3 flex flex-wrap items-center gap-3 border border-dobah-400/30"><span class="text-xs font-bold text-dobah-300">${k} aset dipilih</span><button onclick="AM.fill()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-table-columns mr-1"></i>Isi Kolom</button><button onclick="AM.selAll(false)" class="modern-button bg-cocoa-800 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10">Batal Pilih</button></div>`:''}
+AM.selOne=function(id,c){c?AM.sel.add(id):AM.sel.delete(id);regRows()};
+AM.selAll=function(c){if(c)filtered().forEach(a=>AM.sel.add(a.id));else AM.sel.clear();regRows()};
+AM.fill=async function(){if(!isGA())return deny();const ids=[...AM.sel].filter(id=>find(id));if(!ids.length)return;
+ const c=await ask(`Isi Kolom untuk ${ids.length} aset`,[{k:'col',l:'Kolom yang diisi',opts:[['category','Kategori'],['branch','Cabang'],['price','Harga per Unit'],['qty','Qty (jumlah unit)'],['date','Tanggal Perolehan'],['status','Status']]},{k:'mode',l:'Jika kolom sudah terisi (Kategori / Cabang / Harga)',opts:[['empty','Lewati — hanya isi yang kosong'],['all','Timpa semua']]}],'Lanjut');if(!c)return;
+ const F={category:{l:'Kategori',opts:(appState.categories||[]).map(x=>[x,x])},branch:{l:'Cabang',opts:(appState.branches||[]).map(x=>[x,x])},date:{l:'Tanggal Perolehan',t:'date',v:today()},price:{l:'Harga per Unit (Rp)',t:'number',v:0},qty:{l:'Qty (jumlah unit)',t:'number',v:1},status:{l:'Status',opts:[['Good','Baik'],['Maintenance','Maintenance'],['Broken','Rusak']]}}[c.col];
+ if(F.opts&&!F.opts.length)return Swal.fire({title:'Master Data kosong',text:'Tambahkan dulu kategori/cabang di Master Data & Akun.',icon:'info',background:'#22120a',color:'#fcf6f0'});
+ const r=await ask(F.l,[{k:'v',...F,req:1}],'Terapkan');if(!r)return;
+ const only=['category','branch','price'].includes(c.col)&&c.mode==='empty';let n=0;
+ ids.forEach(id=>{const a=find(id),emp=c.col==='price'?!a.price:!a[c.col];if(only&&!emp)return;if(c.col==='status'&&a.status==='Disposed')return;
+  const v=c.col==='price'?Number(r.v)||0:c.col==='qty'?Math.max(1,parseInt(r.v)||1):r.v;if(c.col==='qty'&&v<onLoan(a))return;a[c.col]=v;hist(a,`${F.l} diisi massal: ${c.col==='price'?rp(v):v}`);n++});
+ AM.sel.clear();save();Swal.fire({title:'Selesai',text:`${n} dari ${ids.length} aset diperbarui.`,icon:'success',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})};
 
 /* --- integrasi dengan aplikasi permintaan --- */
 const TABS=['form','list','master','adash','areg','amap','amtc','adep','aasg','aven'],GA_ONLY=['master','adep','aasg','aven'],
- TT={form:'Buat Permintaan Aset',list:'Daftar & Status Permintaan',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',adep:'Depresiasi & Nilai Buku',aasg:'Penugasan Karyawan',aven:'Manajemen Vendor'};
+ TT={form:'Buat Permintaan Aset',list:'Daftar & Status Permintaan',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',aven:'Manajemen Vendor'};
 window.switchTab=function(t){const s=user();if(s&&s.role==='Staff Store'&&GA_ONLY.includes(t)){Swal.fire({title:'Akses Dibatasi',text:'Menu ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});return}
  appState.activeTab=t;TABS.forEach(x=>{$('view-'+x).classList.add('hidden');$('tab-'+x).className=NAV_IDLE_CLS});$('view-'+t).classList.remove('hidden');$('tab-'+t).className=NAV_ACTIVE_CLS;
  const pt=$('page-title');if(pt)pt.textContent=TT[t]||'';if(window.innerWidth<768)toggleSidebar(false);
  if(t==='list'){applyTableFilters();updateMetrics()}else if(t==='master')renderMasterDataView();else if(R[t])R[t]()};
 const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','aven'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive()};
 const _un=window.updateNotifications;window.updateNotifications=function(){_un();if(!isGA())return;const n=[],b=mine().filter(a=>a.status==='Broken').length,e=AM.vendors.filter(v=>days(v.expiry)<=30).length,i=pendingImport().length;
- if(b)n.push(`${b} aset berstatus Rusak perlu penanganan.`);if(e)n.push(`${e} kontrak vendor berakhir dalam 30 hari.`);if(i)n.push(`${i} unit dari permintaan Selesai belum masuk registry aset.`);if(!n.length)return;
+ if(b)n.push(`${b} aset berstatus Rusak perlu penanganan.`);if(e)n.push(`${e} kontrak vendor berakhir dalam 30 hari.`);if(i)n.push(`${i} item dari permintaan Selesai belum masuk registry aset.`);const od=overdue().length;if(od)n.push(`${od} peminjaman aset lewat batas pengembalian.`);if(!n.length)return;
  const l=$('notifList'),bd=$('notifBadge');if(!l||!bd)return;const p=l.querySelector('p');if(p)p.remove();
  l.insertAdjacentHTML('beforeend',n.map(x=>`<div class="p-2.5 bg-dobah-400/10 rounded-xl border border-dobah-400/20 font-semibold text-dobah-100">${x}</div>`).join(''));
  const old=bd.classList.contains('hidden')?0:(parseInt(bd.innerText)||0);bd.innerText=old+n.length;bd.classList.remove('hidden')};
