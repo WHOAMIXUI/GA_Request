@@ -248,6 +248,7 @@
                     <button onclick="switchTab('amtc')" id="tab-amtc" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-screwdriver-wrench w-4 text-center"></i> Maintenance</button>
                     <button onclick="switchTab('adep')" id="tab-adep" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-chart-line w-4 text-center"></i> Depresiasi &amp; Nilai Buku</button>
                     <button onclick="switchTab('aasg')" id="tab-aasg" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-right-left w-4 text-center"></i> Peminjaman Aset</button>
+                    <button onclick="switchTab('amkt')" id="tab-amkt" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-store w-4 text-center"></i> Jual Beli Antar Toko</button>
                     <button onclick="switchTab('aven')" id="tab-aven" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-handshake w-4 text-center"></i> Manajemen Vendor</button>
                 </div>
 
@@ -576,6 +577,7 @@
         <section id="view-amtc" class="hidden space-y-6"></section>
         <section id="view-adep" class="hidden space-y-6"></section>
         <section id="view-aasg" class="hidden space-y-6"></section>
+        <section id="view-amkt" class="hidden space-y-6"></section>
         <section id="view-aven" class="hidden space-y-6"></section>
 
         <section id="view-master" class="hidden space-y-6">
@@ -1824,11 +1826,12 @@
 /* ===== MODUL MANAJEMEN ASET (digabung dari Sistem Manajemen Aset GA) ===== */
 (function(){
 const LS='assetRegistryV1', $=id=>document.getElementById(id);
-const AM=window.AM={assets:[],vendors:[],life:{},loans:[],loanTab:'active',f:{q:'',loc:'',st:'',div:'',page:1},size:15,chart:null,built:false};
+const AM=window.AM={assets:[],vendors:[],life:{},loans:[],market:[],trades:[],mktTab:'browse',mq:'',vf:{t:'all',q:''},loanTab:'active',f:{q:'',loc:'',st:'',div:'',page:1},size:15,chart:null,built:false};
 const DEF_VENDORS=[
- {id:'VND-01',name:'PT Dingin Sejahtera',service:'Perawatan & Servis AC / Chiller',phone:'021-5551234',expiry:'2026-11-15'},
- {id:'VND-02',name:'CV Generator Utama',service:'Maintenance Genset & Listrik',phone:'021-7789012',expiry:'2026-12-30'},
- {id:'VND-03',name:'Solusi IT Mandiri',service:'Support Kasir, Server & Jaringan',phone:'021-8899441',expiry:'2027-01-10'}];
+ {id:'VND-01',type:'contract',name:'PT Dingin Sejahtera',service:'Perawatan & Servis AC / Chiller',phone:'021-5551234',expiry:'2026-11-15'},
+ {id:'VND-02',type:'contract',name:'CV Generator Utama',service:'Maintenance Genset & Listrik',phone:'021-7789012',expiry:'2026-12-30'},
+ {id:'VND-03',type:'contract',name:'Solusi IT Mandiri',service:'Support Kasir, Server & Jaringan',phone:'021-8899441',expiry:'2027-01-10'},
+ {id:'VND-04',type:'none',name:'Tukang Harian (contoh)',service:'Perbaikan ringan & bongkar pasang',phone:'',expiry:'',note:'Tanpa kontrak, dibayar per pekerjaan.'}];
 const ST={Good:['emerald','Baik'],Maintenance:['amber','Maintenance'],Broken:['rose','Rusak'],Disposed:['slate','Dimusnahkan']};
 const COL=['#f4a23a','#d97d26','#e1b782','#a75d22','#34d399','#60a5fa','#fb7185','#a78bfa'];
 const user=()=>getCurrentUser(), isGA=()=>{const u=user();return !!u&&u.role==='General Affair Manager'};
@@ -1847,12 +1850,12 @@ const onLoan=a=>AM.loans.filter(l=>l.assetId===a.id&&!l.returnedAt).reduce((n,l)
 
 /* --- penyimpanan --- */
 function migrate(){let ch=false;AM.assets.forEach(a=>{if(a.assigned){const o=a.assigned;AM.loans.push({id:'LN-M'+Date.now().toString(36).toUpperCase()+AM.loans.length,assetId:a.id,qty:1,name:o.name,nik:o.nik||'',dept:o.dept||'',purpose:'',date:today(),due:o.due||'',returnedAt:'',retCond:'',retNote:''});a.assigned=null;ch=true}});return ch}
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.life=d.life||{};AM.loans=d.loans||[];migrate()}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS));AM.loaded=true}
-async function save(){const d={assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans};localStorage.setItem(LS,JSON.stringify(d));
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];migrate()}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS));AM.loaded=true}
+async function save(){const d={assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades};localStorage.setItem(LS,JSON.stringify(d));
  if(window.db){try{await window.fbDeps.setDoc(window.fbDeps.doc(window.db,'settings','asset_registry'),d)}catch(e){}}
  renderActive();updateNotifications()}
 function subscribe(){if(AM.sub||!window.db)return;AM.sub=1;try{const{doc,onSnapshot}=window.fbDeps;
- onSnapshot(doc(window.db,'settings','asset_registry'),s=>{if(s.exists()){const d=s.data();AM.assets=d.assets||[];AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.life=d.life||{};AM.loans=d.loans||[];const mg=migrate();localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans}));renderActive();updateNotifications();if(mg)save()}})}catch(e){}}
+ onSnapshot(doc(window.db,'settings','asset_registry'),s=>{if(s.exists()){const d=s.data();AM.assets=d.assets||[];AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];const mg=migrate();localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades}));renderActive();updateNotifications();if(mg)save()}})}catch(e){}}
 
 /* --- sinkron dari permintaan yang selesai --- */
 function pendingImport(){const have=new Set(AM.assets.map(a=>String(a.src||'').split('|').slice(0,2).join('|'))),out=[];
@@ -1871,7 +1874,7 @@ async function ask(title,fields,ok='Simpan',x){const inp='w-full px-3 py-2 text-
 const confirmBox=(t,txt)=>Swal.fire({title:t,text:txt,icon:'warning',showCancelButton:true,confirmButtonText:'Ya, lanjutkan',cancelButtonText:'Batal',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#e11d48'}).then(r=>r.isConfirmed);
 const deny=()=>Swal.fire({title:'Akses Dibatasi',text:'Aksi ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});
 const find=id=>AM.assets.find(a=>a.id===id);
-const vOpts=()=>AM.vendors.map(v=>[v.id,v.name]);
+const vOpts=()=>AM.vendors.map(v=>[v.id,v.name+(v.type==='none'||(!v.type&&!v.expiry)?' (tanpa kontrak)':'')]);
 const opt0=(l,cur)=>{const o=(l||[]).map(x=>[x,x]);if(cur&&!o.some(x=>x[0]===cur))o.unshift([cur,cur]);o.unshift(['','— Belum diisi —']);return o};
 
 /* --- depresiasi garis lurus --- */
@@ -1906,8 +1909,8 @@ function reg(){const v=$('view-areg'),inp='glass-input px-3.5 py-2 text-xs sm:te
  $('amSt').value=AM.f.st;$('amQ').value=AM.f.q;$('amGA').style.display=isGA()?'flex':'none';regRows()}
 function regRows(){const L=filtered(),tp=Math.max(1,Math.ceil(L.length/AM.size));AM.f.page=Math.min(AM.f.page,tp);const s=(AM.f.page-1)*AM.size;
  const rows=L.slice(s,s+AM.size).map(a=>{const ga=isGA(),d=a.status==='Disposed';
-  return `<tr class="hover:bg-white/[0.02]"><td class="p-4 w-8">${ga?`<input type="checkbox" ${AM.sel.has(a.id)?'checked':''} onchange="AM.selOne('${a.id}',this.checked)">`:''}</td><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+(inc(a)?' · <span class="text-amber-400">Data belum lengkap</span>':''))}</td><td class="p-4">${esc(a.branch)||'<span class="text-amber-400">Cabang kosong</span>'}${sub(esc(a.category)||'<span class="text-amber-400">Kategori kosong</span>')}</td><td class="p-4 text-xs">${esc(a.division)||'<span class="text-dobah-200/40">—</span>'}</td><td class="p-4 font-mono font-bold text-white text-base">${q(a)}</td><td class="p-4">${esc(a.date)}</td><td class="p-4 font-mono">${rp(a.price)}${q(a)>1?sub('Total '+rp(tot(a))):''}</td><td class="p-4">${badge(a.status)}${a.disposal?sub(esc(a.disposal.method)+' · '+esc(a.disposal.date)):''}${onLoan(a)?sub('<i class="fa-solid fa-right-left mr-1"></i>Dipinjam '+onLoan(a)+' unit'):''}</td>
-  <td class="p-4 whitespace-nowrap">${btn(`AM.act('${a.id}','hist')`,'fa-clock-rotate-left','Riwayat')}${d?btn(`AM.act('${a.id}','photo')`,'fa-image','Lihat foto bukti pemusnahan')+(ga?btn(`AM.act('${a.id}','restore')`,'fa-rotate-left','Batalkan pemusnahan (pulihkan)','text-emerald-400'):''):(ga?btn(`AM.act('${a.id}','edit')`,'fa-pen','Edit aset')+(q(a)>1?btn(`AM.act('${a.id}','split')`,'fa-share-nodes','Alokasikan ke cabang / kategori lain','text-emerald-400'):'')+btn(`AM.act('${a.id}','disp')`,'fa-fire','Pemusnahan aset','text-amber-400'):(a.status==='Good'?btn(`AM.act('${a.id}','rep')`,'fa-flag','Lapor rusak','text-rose-400'):''))}${ga?btn(`AM.act('${a.id}','del')`,'fa-trash','Hapus permanen','text-rose-400'):''}</td></tr>`}).join('');
+  return `<tr class="hover:bg-white/[0.02]"><td class="p-4 w-8">${ga?`<input type="checkbox" ${AM.sel.has(a.id)?'checked':''} onchange="AM.selOne('${a.id}',this.checked)">`:''}</td><td class="p-4 font-bold text-white">${esc(a.name)}${sub(esc(a.id)+(inc(a)?' · <span class="text-amber-400">Data belum lengkap</span>':''))}</td><td class="p-4">${esc(a.branch)||'<span class="text-amber-400">Cabang kosong</span>'}${sub(esc(a.category)||'<span class="text-amber-400">Kategori kosong</span>')}</td><td class="p-4 text-xs">${esc(a.division)||'<span class="text-dobah-200/40">—</span>'}</td><td class="p-4 font-mono font-bold text-white text-base">${q(a)}</td><td class="p-4">${esc(a.date)}</td><td class="p-4 font-mono">${rp(a.price)}${q(a)>1?sub('Total '+rp(tot(a))):''}</td><td class="p-4">${badge(a.status)}${a.disposal?sub(esc(a.disposal.method)+' · '+esc(a.disposal.date)):''}${onLoan(a)?sub('<i class="fa-solid fa-right-left mr-1"></i>Dipinjam '+onLoan(a)+' unit'):''}${reserved(a.id)?sub('<i class="fa-solid fa-tag mr-1"></i>Dijual '+reserved(a.id)+' unit'):''}</td>
+  <td class="p-4 whitespace-nowrap">${btn(`AM.act('${a.id}','hist')`,'fa-clock-rotate-left','Riwayat')}${isGA()&&a.status==='Good'&&freeQty(a)>=1&&a.branch?btn(`AM.sell('${a.id}')`,'fa-tag','Jual ke toko lain','text-emerald-400'):''}${d?btn(`AM.act('${a.id}','photo')`,'fa-image','Lihat foto bukti pemusnahan')+(ga?btn(`AM.act('${a.id}','restore')`,'fa-rotate-left','Batalkan pemusnahan (pulihkan)','text-emerald-400'):''):(ga?btn(`AM.act('${a.id}','edit')`,'fa-pen','Edit aset')+(q(a)>1?btn(`AM.act('${a.id}','split')`,'fa-share-nodes','Alokasikan ke cabang / kategori lain','text-emerald-400'):'')+btn(`AM.act('${a.id}','disp')`,'fa-fire','Pemusnahan aset','text-amber-400'):(a.status==='Good'?btn(`AM.act('${a.id}','rep')`,'fa-flag','Lapor rusak','text-rose-400'):''))}${ga?btn(`AM.act('${a.id}','del')`,'fa-trash','Hapus permanen','text-rose-400'):''}</td></tr>`}).join('');
  $('amTbl').innerHTML=tbl(th(isGA()?`<input type="checkbox" onchange="AM.selAll(this.checked)" ${L.length&&L.every(a=>AM.sel.has(a.id))?'checked':''}>`:'','Aset','Cabang / Kategori','Divisi','Qty','Tgl Perolehan','Harga / Unit','Status','Aksi'),rows,'Belum ada aset. Gunakan “Sinkron dari Permintaan” atau “Tambah Aset”.');
  $('amInfo').textContent=`${L.length} baris · ${sq(L)} unit · Hal ${AM.f.page}/${tp}`;selBar()}
 
@@ -1945,11 +1948,97 @@ function loanView(){const ga=isGA(),act=AM.loans.filter(l=>!l.returnedAt),done=A
  $('view-aasg').innerHTML=`<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">${kpi('Sedang Dipinjam (unit)',act.reduce((n,l)=>n+l.qty,0),'fa-right-left')}${kpi('Lewat Batas Kembali',od.length,'fa-clock','rose')}${kpi('Sudah Dikembalikan',done.length,'fa-circle-check','emerald')}</div>
  <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2">${[['active','Sedang Dipinjam ('+act.length+')'],['done','Riwayat ('+done.length+')']].map(([k,l])=>`<button onclick="AM.setLoanTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${tab===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('')}</div>${ga?`<button onclick="AM.loan()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Pinjamkan Aset</button>`:''}</div>`+t}
 
-function ven(){const ga=isGA();
- $('view-aven').innerHTML=`<div class="flex justify-between items-center"><p class="text-xs text-dobah-200/70">${AM.vendors.length} vendor terdaftar.</p>${ga?`<button onclick="AM.vendor()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Vendor</button>`:''}</div>
- <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${AM.vendors.map(v=>{const d=days(v.expiry),c=d<0?'rose':d<=60?'amber':'emerald';return `<div class="glass-panel p-5"><div class="flex justify-between items-start"><h3 class="font-bold text-white text-sm">${esc(v.name)}</h3><span class="px-2 py-1 text-[10px] font-bold rounded border bg-${c}-500/10 text-${c}-400 border-${c}-500/20">${d<0?'Kontrak berakhir':d+' hari lagi'}</span></div>
- <p class="text-xs text-dobah-200/80 mt-2">${esc(v.service)}</p><p class="text-xs text-dobah-200/60 mt-2"><i class="fa-solid fa-phone mr-1"></i>${esc(v.phone)}</p><p class="text-xs text-dobah-200/60"><i class="fa-regular fa-calendar mr-1"></i>Kontrak s/d ${esc(v.expiry)}</p>
- ${ga?`<div class="mt-3">${btn(`AM.vendor('${v.id}')`,'fa-pen','Edit')}${btn(`AM.delVendor('${v.id}')`,'fa-trash','Hapus','text-rose-400')}</div>`:''}</div>`}).join('')}</div>`}
+/* --- manajemen vendor: berkontrak & tanpa kontrak --- */
+const vt=v=>(v.type==='none'||(!v.type&&!v.expiry))?'none':'contract';
+function vcard(v){const ga=isGA(),n=vt(v)==='none';let b;
+ if(n)b=`<span class="px-2 py-1 text-[10px] font-bold rounded border bg-slate-500/10 text-slate-300 border-slate-500/30 whitespace-nowrap">Tanpa Kontrak</span>`;
+ else{const d=days(v.expiry),c=d<0?'rose':d<=60?'amber':'emerald';b=`<span class="px-2 py-1 text-[10px] font-bold rounded border bg-${c}-500/10 text-${c}-400 border-${c}-500/20 whitespace-nowrap">${d<0?'Kontrak berakhir':d+' hari lagi'}</span>`}
+ return `<div class="glass-panel p-5"><div class="flex justify-between items-start gap-2"><h3 class="font-bold text-white text-sm">${esc(v.name)}</h3>${b}</div>
+ <p class="text-xs text-dobah-200/80 mt-2">${esc(v.service)}</p>
+ ${v.phone?`<p class="text-xs text-dobah-200/60 mt-2"><i class="fa-solid fa-phone mr-1"></i>${esc(v.phone)}</p>`:''}
+ ${n?`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-solid fa-file-circle-xmark mr-1"></i>Tidak terikat kontrak (per panggilan / per pekerjaan)</p>`
+ :`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${v.start?esc(v.start)+' s/d '+esc(v.expiry):'Kontrak s/d '+esc(v.expiry)}</p>${v.contractNo?`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-solid fa-file-signature mr-1"></i>No. ${esc(v.contractNo)}</p>`:''}`}
+ ${v.note?`<p class="text-[11px] text-dobah-200/60 mt-2 italic">${esc(v.note)}</p>`:''}
+ ${ga?`<div class="mt-3">${btn(`AM.vendor('${v.id}')`,'fa-pen','Edit')}${btn(`AM.delVendor('${v.id}')`,'fa-trash','Hapus','text-rose-400')}</div>`:''}</div>`}
+function venGrid(){const el=$('amVenGrid');if(!el)return;const f=AM.vf,qq=(f.q||'').toLowerCase();
+ const L=AM.vendors.filter(v=>(f.t==='all'||vt(v)===f.t)&&(!qq||((v.name||'')+' '+(v.service||'')).toLowerCase().includes(qq)));
+ el.innerHTML=L.length?L.map(vcard).join(''):'<div class="glass-panel p-10 text-center text-dobah-200/50 italic md:col-span-2 xl:col-span-3">Tidak ada vendor pada filter ini.</div>'}
+function ven(){const ga=isGA(),V=AM.vendors,f=AM.vf,nC=V.filter(v=>vt(v)==='contract').length,nN=V.length-nC,soon=V.filter(v=>vt(v)==='contract'&&v.expiry&&days(v.expiry)<=60).length;
+ const tabs=[['all','Semua ('+V.length+')'],['contract','Berkontrak ('+nC+')'],['none','Tanpa Kontrak ('+nN+')']].map(([k,l])=>`<button onclick="AM.vTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${f.t===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('');
+ $('view-aven').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${kpi('Total Vendor',V.length,'fa-handshake')}${kpi('Berkontrak',nC,'fa-file-signature','emerald')}${kpi('Tanpa Kontrak',nN,'fa-file-circle-xmark','slate')}${kpi('Kontrak ≤ 60 hari',soon,'fa-hourglass-half','amber')}</div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div>${ga?`<button onclick="AM.vendor()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Vendor</button>`:''}</div>
+ <div class="glass-panel p-4"><input placeholder="Cari nama vendor / layanan..." value="${esc(f.q)}" oninput="AM.vQ(this.value)" class="w-full glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"></div>
+ <div id="amVenGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>`;venGrid()}
+AM.vTab=function(k){AM.vf.t=k;ven()};
+AM.vQ=function(v){AM.vf.q=v;venGrid()};
+
+/* --- jual beli aset antar toko --- */
+const myBranches=()=>((user()||{}).branches||[]).filter(b=>b!=='ALL');
+const canAll=()=>{const u=user();return isGA()||!!(u&&(u.branches||[]).includes('ALL'))};
+const reserved=(aid,ex)=>AM.market.filter(m=>m.assetId===aid&&m.status==='Open'&&m.id!==ex).reduce((n,m)=>n+m.left,0);
+const freeQty=(a,ex)=>q(a)-onLoan(a)-reserved(a.id,ex);
+const perUnit=a=>Math.round(dep(a).book/q(a));
+const mOwn=m=>canAll()||myBranches().includes(m.branch);
+const stamp=()=>new Date().toLocaleString('id-ID');
+const WN={background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'};
+const mbadge=s=>{const[c,l]={Open:['emerald','Dijual'],Sold:['blue','Terjual'],Cancelled:['slate','Dibatalkan']}[s]||['slate',s];return `<span class="px-2.5 py-1 text-[10px] uppercase font-bold rounded border bg-${c}-500/10 text-${c}-400 border-${c}-500/20">${l}</span>`};
+function mktCards(){const el=$('amMktGrid');if(!el)return;const all=canAll(),mb=myBranches(),qq=(AM.mq||'').toLowerCase();
+ const L=AM.market.filter(m=>m.status==='Open'&&(all||!mb.includes(m.branch))&&(!qq||(m.name+' '+m.branch+' '+(m.category||'')).toLowerCase().includes(qq))).sort((a,b)=>(b.ts||0)-(a.ts||0));
+ el.innerHTML=L.length?L.map(m=>{const a=find(m.assetId),bk=a?perUnit(a):null,age=a?Math.max(0,Math.floor((Date.now()-new Date(a.date))/2629800000)):null;
+  return `<div class="glass-panel p-5 flex flex-col"><div class="flex justify-between items-start gap-2"><h3 class="font-bold text-white text-sm">${esc(m.name)}</h3><span class="px-2 py-1 text-[10px] font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 whitespace-nowrap">${m.left} unit</span></div>
+  <p class="text-xs text-dobah-200/70 mt-1">${esc(m.category)||'—'}</p>
+  <p class="text-xs text-dobah-200/80 mt-2"><i class="fa-solid fa-store mr-1"></i>${esc(m.branch)}</p>
+  <p class="font-mono font-black text-xl text-white mt-3">${rp(m.price)}<span class="text-[11px] font-semibold text-dobah-200/60"> / unit</span></p>
+  ${bk!=null?`<p class="text-[11px] text-dobah-200/60 mt-1">Nilai buku ± ${rp(bk)} / unit · umur ${age} bln</p>`:''}
+  ${m.note?`<p class="text-xs text-dobah-200/70 mt-2 italic">“${esc(m.note)}”</p>`:''}
+  <p class="text-[10px] text-dobah-200/50 mt-2">Oleh ${esc(m.createdBy)} · ${esc(m.createdAt)}</p>
+  <div class="mt-auto pt-4"><button onclick="AM.buy('${m.id}')" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-cart-shopping mr-1"></i>Beli</button></div></div>`}).join('')
+ :'<div class="glass-panel p-10 text-center text-dobah-200/50 italic md:col-span-2 xl:col-span-3">Belum ada aset yang dijual toko lain.</div>'}
+function mkt(){const all=canAll(),mb=myBranches(),t=AM.mktTab||'browse';
+ const browse=AM.market.filter(m=>m.status==='Open'&&(all||!mb.includes(m.branch))),mineL=AM.market.filter(mOwn).sort((a,b)=>(b.ts||0)-(a.ts||0)),
+  T=AM.trades.filter(x=>all||mb.includes(x.from)||mb.includes(x.to)).sort((a,b)=>(b.ts||0)-(a.ts||0)),sum=T.reduce((n,x)=>n+x.total,0);
+ const tabs=[['browse','Pasar Aset ('+browse.length+')'],['mine',(all?'Semua Listing':'Listing Cabang Saya')+' ('+mineL.length+')'],['hist','Riwayat Transaksi ('+T.length+')']].map(([k,l])=>`<button onclick="AM.mTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${t===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('');
+ let body='';
+ if(t==='browse')body=`<div class="glass-panel p-4"><input placeholder="Cari aset / cabang penjual..." value="${esc(AM.mq)}" oninput="AM.mQ(this.value)" class="w-full glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"></div><div id="amMktGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>`;
+ else if(t==='mine'){const rows=mineL.map(m=>`<tr class="hover:bg-white/[0.02]"><td class="p-4 font-bold text-white">${esc(m.name)}${sub(esc(m.assetId)+' · '+esc(m.createdAt))}</td><td class="p-4">${esc(m.branch)}</td><td class="p-4 font-mono font-bold text-white">${m.left}<span class="text-dobah-200/50 text-xs"> / ${m.qty}</span></td><td class="p-4 font-mono">${rp(m.price)}</td><td class="p-4">${mbadge(m.status)}</td><td class="p-4 whitespace-nowrap">${m.status==='Open'?btn(`AM.mktEdit('${m.id}')`,'fa-pen','Ubah harga / jumlah')+btn(`AM.mktCancel('${m.id}')`,'fa-ban','Batalkan listing','text-rose-400'):''}</td></tr>`).join('');
+  body=tbl(th('Aset','Cabang Penjual','Sisa / Awal','Harga / Unit','Status','Aksi'),rows,'Belum ada listing. Klik “Jual Aset” untuk memasang aset ke toko lain.')}
+ else{const rows=T.map(x=>`<tr class="hover:bg-white/[0.02]"><td class="p-4 whitespace-nowrap">${esc(x.date)}${sub(esc(x.id))}</td><td class="p-4 font-bold text-white">${esc(x.name)}${sub(esc(x.category)||'—')}</td><td class="p-4 text-xs">${esc(x.from)} <i class="fa-solid fa-arrow-right mx-1 text-dobah-400"></i> ${esc(x.to)}${sub('Penjual: '+esc(x.seller)+' · Pembeli: '+esc(x.buyer))}</td><td class="p-4 font-mono font-bold text-white">${x.qty}</td><td class="p-4 font-mono">${rp(x.price)}</td><td class="p-4 font-mono font-bold text-white">${rp(x.total)}</td></tr>`).join('');
+  body=tbl(th('Tanggal','Aset','Dari → Ke','Qty','Harga / Unit','Total'),rows,'Belum ada transaksi jual beli antar toko.')}
+ $('view-amkt').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${kpi('Dijual Toko Lain',sq(browse.map(m=>({qty:m.left}))),'fa-store')}${kpi('Listing Aktif Saya',mineL.filter(m=>m.status==='Open').length,'fa-tag','emerald')}${kpi('Transaksi',T.length,'fa-handshake','blue')}${kpi('Nilai Transaksi',rp(sum),'fa-wallet')}</div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div><button onclick="AM.sell()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-tag mr-1"></i>Jual Aset</button></div>${body}`;
+ if(t==='browse')mktCards()}
+AM.mTab=function(k){AM.mktTab=k;mkt()};
+AM.mQ=function(v){AM.mq=v;mktCards()};
+AM.sell=async function(pre){if(!isGA())return deny();const E=mine().filter(a=>a.status==='Good'&&a.branch&&freeQty(a)>=1);
+ if(!E.length)return Swal.fire({title:'Tidak ada aset yang bisa dijual',text:'Hanya aset berstatus Baik, sudah punya cabang, dan tidak sedang dipinjam / dilisting penuh yang bisa dijual.',icon:'info',...WN});
+ const pa=pre&&find(pre);
+ const r=await ask('Jual Aset ke Toko Lain',[{k:'a',l:'Aset',v:pre,opts:E.map(a=>[a.id,`${a.name} — ${a.branch} (tersedia ${freeQty(a)} unit · nilai buku ±${rp(perUnit(a))}/unit)`])},{k:'qty',l:'Jumlah unit dijual',t:'number',v:1},{k:'price',l:'Harga jual per unit (Rp)',t:'number',v:pa?perUnit(pa):0},{k:'note',l:'Catatan (kondisi, alasan jual, dll)'}],'Pasang Listing',{check:o=>{const a=find(o.a);if(!a)return 'Aset tidak ditemukan';const n=parseInt(o.qty),mx=freeQty(a);if(!(n>=1&&n<=mx))return `Jumlah harus antara 1 dan ${mx}`;if(o.price===''||!(Number(o.price)>=0))return 'Harga jual wajib diisi';return ''}});
+ if(!r)return;const a=find(r.a),n=parseInt(r.qty),p=Number(r.price)||0;
+ AM.market.push({id:'MKT-'+Date.now().toString(36).toUpperCase(),assetId:a.id,name:a.name,category:a.category,branch:a.branch,qty:n,left:n,price:p,note:r.note,status:'Open',createdBy:(user()||{}).name||'-',createdAt:stamp(),ts:Date.now()});
+ hist(a,`Dilisting dijual ${n} unit @ ${rp(p)} di Pasar Antar Toko`);AM.mktTab='mine';await save();switchTab('amkt')};
+AM.buy=async function(id){if(!isGA())return deny();const m=AM.market.find(x=>x.id===id);if(!m||m.status!=='Open')return Swal.fire({title:'Listing tidak tersedia',text:'Aset ini sudah terjual atau dibatalkan.',icon:'info',...WN});
+ const opts=(canAll()?(appState.branches||[]):myBranches()).filter(b=>b!==m.branch);
+ if(!opts.length)return Swal.fire({title:'Tidak bisa membeli',text:'Akun Anda tidak terhubung ke cabang lain selain cabang penjual.',icon:'warning',...WN});
+ const a=find(m.assetId);if(!a||a.status!=='Good'){m.status='Cancelled';await save();return Swal.fire({title:'Aset tidak lagi tersedia',text:'Listing dibatalkan otomatis karena aset berubah status atau dihapus.',icon:'info',...WN})}
+ const mx=Math.min(m.left,q(a)-onLoan(a));
+ if(mx<1)return Swal.fire({title:'Stok tidak cukup',text:'Unit sedang dipinjam sehingga belum bisa dijual.',icon:'info',...WN});
+ const r=await ask(`Beli “${m.name}”`,[{k:'branch',l:'Masuk ke cabang',opts:opts.map(b=>[b,b])},{k:'qty',l:`Jumlah unit (maks ${mx}) — ${rp(m.price)} / unit`,t:'number',v:1},{k:'note',l:'Catatan pembeli (opsional)'}],'Lanjut',{check:o=>{const n=parseInt(o.qty);return n>=1&&n<=mx?'':`Jumlah harus antara 1 dan ${mx}`}});
+ if(!r)return;const n=parseInt(r.qty),total=n*m.price;
+ if(!(await confirmBox(`Beli ${n} unit seharga ${rp(total)}?`,`Aset berpindah dari ${m.branch} ke ${r.branch}. Pembayaran antar cabang diselesaikan di luar sistem.`)))return;
+ const A=find(m.assetId),me=(user()||{}).name||'-';
+ if(!A||A.status!=='Good'||n>Math.min(m.left,q(A)-onLoan(A)))return Swal.fire({title:'Stok berubah',text:'Jumlah tersedia sudah berubah. Coba lagi.',icon:'warning',...WN});
+ const tid='TRD-'+Date.now().toString(36).toUpperCase();let tgt;
+ if(n===q(A)){A.branch=r.branch;A.division='';tgt=A;hist(A,`Dibeli ${n} unit dari ${m.branch} oleh ${r.branch} @ ${rp(m.price)} (${tid})`)}
+ else{let id2,x=2;do{id2=`${A.id}-T${x++}`}while(find(id2));
+  tgt={...A,id:id2,qty:n,branch:r.branch,division:'',assigned:null,history:[],src:'trade|'+tid};A.qty=q(A)-n;
+  hist(A,`${n} unit dijual ke ${r.branch} @ ${rp(m.price)} (${tid})`);hist(tgt,`Dibeli ${n} unit dari ${m.branch} (aset ${A.id}) @ ${rp(m.price)} (${tid})`);AM.assets.push(tgt)}
+ m.left-=n;if(m.left<=0){m.left=0;m.status='Sold'}
+ AM.trades.push({id:tid,listingId:m.id,assetId:A.id,newAssetId:tgt.id,name:m.name,category:m.category,from:m.branch,to:r.branch,qty:n,price:m.price,total,date:today(),ts:Date.now(),seller:m.createdBy,buyer:me,note:r.note||''});
+ AM.mktTab='hist';await save();switchTab('amkt');Swal.fire({title:'Pembelian berhasil',text:`${n} unit “${m.name}” kini terdaftar di ${r.branch}.`,icon:'success',...WN})};
+AM.mktCancel=async function(id){if(!isGA())return deny();const m=AM.market.find(x=>x.id===id);if(!m||!mOwn(m))return deny();if(!(await confirmBox('Batalkan listing?',m.name)))return;m.status='Cancelled';const a=find(m.assetId);if(a)hist(a,'Listing penjualan dibatalkan');save()};
+AM.mktEdit=async function(id){if(!isGA())return deny();const m=AM.market.find(x=>x.id===id);if(!m||!mOwn(m))return deny();const a=find(m.assetId);if(!a)return;const mx=freeQty(a,m.id);
+ const r=await ask('Ubah Listing',[{k:'price',l:'Harga jual per unit (Rp)',t:'number',v:m.price},{k:'qty',l:`Jumlah unit masih dijual (1–${mx})`,t:'number',v:m.left},{k:'note',l:'Catatan',v:m.note}],'Simpan',{check:o=>{const n=parseInt(o.qty);if(!(n>=1&&n<=mx))return `Jumlah harus antara 1 dan ${mx}`;if(o.price===''||!(Number(o.price)>=0))return 'Harga wajib diisi';return ''}});
+ if(!r)return;const n=parseInt(r.qty),sold=m.qty-m.left;m.price=Number(r.price)||0;m.left=n;m.qty=sold+n;m.note=r.note;hist(a,`Listing diubah: ${n} unit @ ${rp(m.price)}`);save()};
 
 function divBlock(){const L=mine().filter(a=>a.status!=='Disposed'),g={};L.forEach(a=>{const k=a.division||'(Belum dialokasikan)';const x=g[k]=g[k]||{u:0,v:0,b:0};x.u+=q(a);x.v+=tot(a);x.b+=dep(a).book});
  AM._dk=Object.keys(g).sort((a,b)=>g[b].u-g[a].u);
@@ -1957,7 +2046,7 @@ function divBlock(){const L=mine().filter(a=>a.status!=='Disposed'),g={};L.forEa
  return `<h3 class="text-sm font-bold text-white mt-2"><i class="fa-solid fa-sitemap text-dobah-400 mr-2"></i>Alokasi per Divisi</h3>`+tbl(th('Divisi','Unit','Nilai Perolehan','Nilai Buku','Aksi'),rows,'Belum ada aset.')}
 function mapAll(){map();$('view-amap').insertAdjacentHTML('beforeend',divBlock())}
 AM.goDiv=function(i){const k=AM._dk[i];AM.f.div=k==='(Belum dialokasikan)'?'__NONE':k;AM.f.page=1;switchTab('areg')};
-const R={adash:dash,areg:reg,amap:mapAll,amtc:mtc,adep:depr,aasg:loanView,aven:ven};
+const R={adash:dash,areg:reg,amap:mapAll,amtc:mtc,adep:depr,aasg:loanView,amkt:mkt,aven:ven};
 function renderActive(){const t=appState.activeTab;if(R[t])R[t]()}
 
 /* --- aksi --- */
@@ -2019,7 +2108,10 @@ AM.loanRet=async function(id){if(!isGA())return deny();const L=AM.loans.find(x=>
 AM.loanExt=async function(id){if(!isGA())return deny();const L=AM.loans.find(x=>x.id===id);if(!L)return;const r=await ask('Perpanjang Peminjaman',[{k:'due',l:'Batas pengembalian baru',t:'date',v:L.due,req:1}],'Perpanjang');if(!r)return;
  const a=find(L.assetId);if(a)hist(a,`Peminjaman oleh ${L.name} diperpanjang ${L.due||'-'} → ${r.due}`);L.due=r.due;save()};
 AM.vendor=async function(id){if(!isGA())return deny();const v=AM.vendors.find(x=>x.id===id)||{};
- const r=await ask(id?'Edit Vendor':'Tambah Vendor',[{k:'name',l:'Nama vendor',v:v.name,req:1},{k:'service',l:'Layanan',v:v.service},{k:'phone',l:'Telepon',v:v.phone},{k:'expiry',l:'Kontrak berakhir',t:'date',v:v.expiry||today(),req:1}]);if(!r)return;
+ const r=await ask(id?'Edit Vendor':'Tambah Vendor',[{k:'type',l:'Status kerja sama',v:id?vt(v):'contract',opts:[['contract','Ada kontrak'],['none','Tanpa kontrak (per panggilan / per pekerjaan)']]},{k:'name',l:'Nama vendor',v:v.name,req:1},{k:'service',l:'Layanan',v:v.service},{k:'phone',l:'Telepon',v:v.phone},{k:'contractNo',l:'No. kontrak (opsional)',v:v.contractNo},{k:'start',l:'Kontrak mulai',t:'date',v:v.start||''},{k:'expiry',l:'Kontrak berakhir',t:'date',v:v.expiry||''},{k:'note',l:'Catatan / ketentuan (tarif, sistem bayar, dll)',v:v.note}],'Simpan',{
+  open:()=>{const t=$('sw_type'),sync=()=>{const off=t.value==='none';['contractNo','start','expiry'].forEach(k=>{const e=$('sw_'+k);e.disabled=off;e.style.opacity=off?.35:1})};t.onchange=sync;sync()},
+  check:o=>{if(o.type==='contract'){if(!o.expiry)return 'Tanggal berakhir kontrak wajib diisi';if(o.start&&o.start>o.expiry)return 'Tanggal mulai tidak boleh setelah tanggal berakhir'}return ''}});
+ if(!r)return;if(r.type==='none'){r.contractNo='';r.start='';r.expiry=''}
  if(id)Object.assign(v,r);else AM.vendors.push({id:'VND-'+Date.now().toString(36).toUpperCase(),...r});save()};
 AM.delVendor=async function(id){if(!isGA())return deny();if(!(await confirmBox('Hapus vendor?','')))return;AM.vendors=AM.vendors.filter(v=>v.id!==id);save()};
 AM.setLife=function(c,v){if(!isGA())return;AM.life[c]=Math.max(1,Number(v)||5);save()};
@@ -2142,23 +2234,23 @@ AM.reset=async function(){if(!isGA())return deny();const n=AM.assets.length,l=AM
  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({exportedAt:new Date().toISOString(),assets:AM.assets,loans:AM.loans},null,1)],{type:'application/json'}));a.download=`backup_registry_aset_${today()}.json`;a.click()}catch(e){}
  const ids=AM.assets.flatMap(a=>(a.disposal&&a.disposal.photos)||[]);
  for(const id of ids){try{localStorage.removeItem('ga_ph_'+id)}catch(e){}if(window.db){try{await window.fbDeps.deleteDoc(window.fbDeps.doc(window.db,'asset_photos',id))}catch(e){}}}
- AM._ph={};AM.assets=[];AM.loans=[];AM.sel.clear();AM.f={q:'',loc:'',st:'',div:'',page:1};
+ AM._ph={};AM.assets=[];AM.loans=[];AM.market=[];AM.sel.clear();AM.f={q:'',loc:'',st:'',div:'',page:1};
  await save();Swal.fire({title:'Registry dikosongkan',text:'Seluruh data aset dan peminjaman sudah dihapus.',icon:'success',...W,confirmButtonColor:'#f4a23a'})};
 
 /* --- integrasi dengan aplikasi permintaan --- */
-const TABS=['form','list','master','adash','areg','amap','amtc','adep','aasg','aven'],GA_ONLY=['master','adep','aasg','aven'],
- TT={form:'Buat Permintaan Aset',list:'Daftar & Status Permintaan',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',aven:'Manajemen Vendor'};
+const TABS=['form','list','master','adash','areg','amap','amtc','adep','aasg','amkt','aven'],GA_ONLY=['master','adep','aasg','amkt','aven'],
+ TT={form:'Buat Permintaan Aset',list:'Daftar & Status Permintaan',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',amkt:'Jual Beli Aset Antar Toko',aven:'Manajemen Vendor'};
 window.switchTab=function(t){const s=user();if(s&&s.role==='Staff Store'&&GA_ONLY.includes(t)){Swal.fire({title:'Akses Dibatasi',text:'Menu ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});return}
  appState.activeTab=t;TABS.forEach(x=>{$('view-'+x).classList.add('hidden');$('tab-'+x).className=NAV_IDLE_CLS});$('view-'+t).classList.remove('hidden');$('tab-'+t).className=NAV_ACTIVE_CLS;
  const pt=$('page-title');if(pt)pt.textContent=TT[t]||'';if(window.innerWidth<768)toggleSidebar(false);
  if(t==='list'){applyTableFilters();updateMetrics()}else if(t==='master')renderMasterDataView();else if(R[t])R[t]()};
-const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','aven'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive();NC.start()};
+const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','amkt','aven'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive();NC.start()};
 /* ===== PUSAT NOTIFIKASI REALTIME ===== */
 const ld=()=>{const t=new Date(),p=n=>String(n).padStart(2,'0');return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`};
 const NC=window.NC={store:null,uid:null,built:false,live:false,fresh:[]};
 const SL={Pending:'Menunggu',Approved:'Diproses',Completed:'Selesai',Rejected:'Ditolak'};
 const LV={info:['dobah','text-dobah-400','bg-dobah-500/15'],success:['emerald','text-emerald-400','bg-emerald-500/15'],warn:['amber','text-amber-400','bg-amber-500/15'],danger:['rose','text-rose-400','bg-rose-500/15']};
-const IC={'req-new':'fa-file-circle-plus','req-ok':'fa-circle-check','req-no':'fa-circle-xmark','req-done':'fa-flag-checkered','req-upd':'fa-pen-to-square','ast-bad':'fa-triangle-exclamation','ast-mtc':'fa-screwdriver-wrench','ast-ok':'fa-circle-check','ast-new':'fa-box-open',loan:'fa-right-left',vendor:'fa-handshake',pend:'fa-hourglass-half',imp:'fa-link',inc:'fa-pen-to-square',mtc:'fa-calendar-check',more:'fa-bell'};
+const IC={'req-new':'fa-file-circle-plus','req-ok':'fa-circle-check','req-no':'fa-circle-xmark','req-done':'fa-flag-checkered','req-upd':'fa-pen-to-square','ast-bad':'fa-triangle-exclamation','ast-mtc':'fa-screwdriver-wrench','ast-ok':'fa-circle-check','ast-new':'fa-box-open',mkt:'fa-store',loan:'fa-right-left',vendor:'fa-handshake',pend:'fa-hourglass-half',imp:'fa-link',inc:'fa-pen-to-square',mtc:'fa-calendar-check',more:'fa-bell'};
 const skey=()=>'ga_nc_v1_'+((user()||{}).id);
 function nload(){const u=user();if(!u){NC.store=null;return null}
  if(NC.uid!==u.id||!NC.store){NC.uid=u.id;try{NC.store=JSON.parse(localStorage.getItem(skey())||'null')}catch(e){NC.store=null}if(!NC.store)NC.store={items:[],req:null,ast:null,fired:{}}}
@@ -2192,6 +2284,11 @@ function astDiff(st){const me=user();if(!AM.assets.length&&st.ast)return;const f
   else if(a.status==='Good'&&(pv==='Maintenance'||pv==='Broken')){if(!isGA())add({key:`ag|${a.id}|${h.length}`,type:'ast-ok',level:'success',tab:'areg',title:'Aset kembali berfungsi',msg:`${a.name} · ${a.branch||'-'}`})}});
  st.ast=nb}
 
+function mktDiff(st){if(!AM.market.length&&!st.mkt)return;const first=!st.mkt,nb={},me=user(),all=canAll();
+ AM.market.forEach(m=>{nb[m.id]=[m.status,m.left];if(first)return;const pv=st.mkt[m.id],own=!all&&myBranches().includes(m.branch);
+  if(!pv){if(m.status==='Open'&&!own&&!isGA()&&m.createdBy!==me.name)add({key:'mn|'+m.id,type:'mkt',level:'info',tab:'amkt',title:'Aset dijual di Pasar Antar Toko',msg:`${m.name} · ${m.left} unit · ${rp(m.price)}/unit · ${m.branch}`});return}
+  if(pv[1]>m.left&&own){const t=AM.trades.filter(x=>x.listingId===m.id).slice(-1)[0]||{};add({key:`ms|${m.id}|${m.left}`,type:'mkt',level:'success',tab:'amkt',title:'Aset Anda terjual',msg:`${m.name} · ${pv[1]-m.left} unit ke ${t.to||'-'}`})}});
+ st.mkt=nb}
 function periodic(){const d=ld(),R=getAccessibleRequests().filter(r=>r.status==='Pending');
  if(R.length){const age=r=>r.submissionDate?Math.max(0,Math.floor((new Date(d)-new Date(r.submissionDate))/864e5)):0,old=R.slice().sort((a,b)=>age(b)-age(a))[0],ag=age(old);
   add({key:'pend|'+d,type:'pend',level:ag>=2?'warn':'info',tab:'list',title:`${R.length} pengajuan menunggu proses`,msg:ag>=1?`Terlama ${ag} hari (${old.id} · ${old.branch})`:'Segera tinjau pengajuan yang masuk.'})}
@@ -2209,7 +2306,7 @@ function periodic(){const d=ld(),R=getAccessibleRequests().filter(r=>r.status===
  const inN=mine().filter(a=>inc(a)&&a.status!=='Disposed').length;if(inN)add({key:'in|'+d,type:'inc',level:'info',tab:'areg',title:`${inN} aset datanya belum lengkap`,msg:'Lengkapi kategori, cabang, dan harga lewat Isi Kolom.'})}
 
 NC.scan=function(){if(!AM.loaded)return;const st=nload();if(!st)return;NC.fresh=[];
- try{reqDiff(st);astDiff(st);if(isGA())periodic()}catch(e){console.error('Notifikasi:',e)}
+ try{reqDiff(st);astDiff(st);if(isGA()){mktDiff(st);periodic()}}catch(e){console.error('Notifikasi:',e)}
  const cut=new Date(Date.now()-30*864e5).toISOString().slice(0,10);Object.keys(st.fired).forEach(k=>{if(st.fired[k]<cut)delete st.fired[k]});
  st.items=st.items.slice(0,80);nsave();ui();announce(NC.fresh)};
 
