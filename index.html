@@ -208,6 +208,37 @@
         .site-footer img { height: 1.6rem; width: auto; }
         @media (prefers-reduced-motion: reduce) { .sprinkle, .welcome-btn, #view-list > .grid > .glass-panel { animation: none; transition: none; } }
         th.sortable:hover { color: #f4a23a; cursor: pointer; }
+
+        /* ===== DASHBOARD TIKET (mengikuti rekaman layar) ===== */
+        #view-list > .grid > .glass-panel::after { display: none; }
+        #view-list > .grid > .tk-card { border-radius: 1.15rem; padding: 1.1rem 1.25rem; min-height: 7.6rem; display: flex; flex-direction: column; justify-content: space-between; gap: .9rem; }
+        .tk-label { font-size: .72rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #e9cfa6; line-height: 1.25; }
+        .tk-ico { width: 2.1rem; height: 2.1rem; flex-shrink: 0; border-radius: .7rem; border-width: 1px; display: grid; place-items: center; font-size: .85rem; }
+        .tk-num { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 2rem; line-height: 1; display: block; }
+        .tk-sub { font-size: .72rem; font-weight: 500; color: rgba(237,213,179,.72); margin-top: .4rem; }
+        #view-list > .grid > .tk-alert { background: linear-gradient(135deg, #e8335f 0%, #c3123f 100%); border-color: rgba(255,140,165,.4); box-shadow: 0 14px 30px -14px rgba(232,51,95,.7); }
+
+        .tk-seg { display: inline-flex; gap: .15rem; padding: .3rem; background: #150a05; border: 1px solid rgba(255,255,255,.06); border-radius: .95rem; }
+        .tk-seg button { padding: .45rem 1rem; border-radius: .7rem; font-size: .78rem; font-weight: 700; color: #e1b782; transition: background .15s, color .15s; }
+        .tk-seg button:hover { color: #fff; }
+        .tk-seg button.is-active { background: #3a2218; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+        .tk-seg button:focus-visible { outline: 2px solid #f4a23a; outline-offset: 1px; }
+
+        .tk-thead th { background: rgba(21,10,5,.55); color: #e1b782; font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .tk-id { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .75rem; color: #f4a23a; }
+        .tk-id:hover { text-decoration: underline; }
+        .tk-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .7rem; border-radius: 9999px; border-width: 1px; font-size: .68rem; font-weight: 800; }
+        .tk-bar { height: .42rem; border-radius: 9999px; background: #150a05; border: 1px solid rgba(255,255,255,.05); overflow: hidden; }
+        .tk-bar > div { height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #f4a23a, #ffbd5c); transition: width .5s; }
+        .tk-act { display: inline-flex; align-items: center; padding: .4rem .8rem; border-radius: .65rem; font-size: .7rem; font-weight: 800; background: rgba(244,162,58,.16); color: #ffc97a; border: 1px solid rgba(244,162,58,.3); transition: background .15s; }
+        .tk-act:hover { background: rgba(244,162,58,.28); }
+        .tk-del { display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem; margin-left: .35rem; border-radius: .6rem; color: #fb7185; transition: background .15s; }
+        .tk-del:hover { background: rgba(244,63,94,.15); }
+        .empty-donut { width: 3.6rem; height: 3.6rem; background: radial-gradient(circle, #150a05 0 13%, #ee6a95 14%); opacity: 1; }
+        #view-list > .grid > .tk-card { cursor: pointer; }
+        #view-list > .grid > .tk-card:focus-visible { outline: 2px solid #f4a23a; outline-offset: 3px; }
+        #urgentChip.is-on { display: inline-flex; }
+        @media (prefers-reduced-motion: reduce) { .tk-bar > div { transition: none; } }
     </style>
 </head>
 <body class="h-full overflow-hidden antialiased selection:bg-dobah-400 selection:text-slate-950">
@@ -292,10 +323,10 @@
             <header class="drip relative h-16 bg-cocoa-900/95 border-b border-dobah-400/20 flex items-center justify-between px-4 sm:px-6 z-20 shrink-0">
                 <div class="flex items-center gap-3">
                     <button onclick="toggleSidebar()" class="md:hidden text-dobah-200/80 hover:text-white"><i class="fa-solid fa-bars text-xl"></i></button>
-                    <h1 id="page-title" class="text-base font-bold text-white">Daftar &amp; Status Permintaan</h1>
+                    <h1 id="page-title" class="font-brand text-lg font-bold text-white">Dashboard &amp; Status Pengajuan Tiket</h1>
                 </div>
                 <div class="flex items-center gap-3 relative">
-                    <span id="cloudStatusBadge" class="hidden sm:inline-block bg-dobah-400/20 text-dobah-300 border border-dobah-400/40 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Syncing...</span>
+                    <span id="cloudStatusBadge" class="hidden sm:inline-flex items-center gap-2 bg-cocoa-950 text-dobah-100 border border-white/10 text-xs font-bold px-3.5 py-1.5 rounded-full">Syncing...</span>
 
                     <!-- Notifikasi Bell -->
                     <button onclick="toggleNotifMenu()" class="text-dobah-200 hover:text-dobah-400 relative p-2.5 bg-cocoa-800 rounded-xl border border-white/5 transition-colors">
@@ -425,145 +456,120 @@
 
         <!-- TAB 2: LIST & METRICS -->
         <section id="view-list" class="space-y-6">
-            
-            <!-- 5 Dashboard Cards -->
+
+            <!-- 5 kartu ringkasan -->
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <!-- Card 1: Total Tiket -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Total Tiket</span>
-                        <div class="w-8 h-8 rounded-lg bg-dobah-400/20 text-dobah-300 flex items-center justify-center border border-dobah-400/30"><i class="fa-solid fa-ticket"></i></div>
+                <div class="glass-panel tk-card" role="button" tabindex="0" onclick="openTicketList('')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTicketList('')}">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="tk-label">Total Tiket</span>
+                        <div class="tk-ico bg-amber-500/15 text-[#f4a23a] border-amber-500/25"><i class="fa-solid fa-ticket"></i></div>
                     </div>
                     <div>
-                        <span id="metric-total" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Pengajuan Terdaftar</p>
+                        <span id="metric-total" class="tk-num text-white">0</span>
+                        <p class="tk-sub">Pengajuan Terdaftar</p>
                     </div>
                 </div>
-                <!-- Card 2: Menunggu -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Menunggu</span>
-                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30"><i class="fa-regular fa-clock"></i></div>
+                <div class="glass-panel tk-card" role="button" tabindex="0" onclick="openTicketList('Pending')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTicketList('Pending')}">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="tk-label">Menunggu</span>
+                        <div class="tk-ico bg-amber-400/15 text-[#ffd65a] border-amber-400/25"><i class="fa-regular fa-clock"></i></div>
                     </div>
                     <div>
-                        <span id="metric-pending" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Menunggu Respons</p>
+                        <span id="metric-pending" class="tk-num text-[#ffd65a]">0</span>
+                        <p class="tk-sub">Menunggu Respons</p>
                     </div>
                 </div>
-                <!-- Card 3: Diproses -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Diproses</span>
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-arrows-rotate"></i></div>
+                <div class="glass-panel tk-card" role="button" tabindex="0" onclick="openTicketList('Approved')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTicketList('Approved')}">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="tk-label">Diproses</span>
+                        <div class="tk-ico bg-sky-500/15 text-[#6fb7ff] border-sky-400/25"><i class="fa-solid fa-arrows-rotate"></i></div>
                     </div>
                     <div>
-                        <span id="metric-progress" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Sedang Diperbaiki</p>
+                        <span id="metric-progress" class="tk-num text-[#6fb7ff]">0</span>
+                        <p class="tk-sub">Sedang Diperbaiki</p>
                     </div>
                 </div>
-                <!-- Card 4: Selesai -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-dobah-200/70">Selesai</span>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30"><i class="fa-regular fa-circle-check"></i></div>
+                <div class="glass-panel tk-card" role="button" tabindex="0" onclick="openTicketList('Completed')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTicketList('Completed')}">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="tk-label">Selesai</span>
+                        <div class="tk-ico bg-emerald-500/15 text-[#6ee7a0] border-emerald-400/25"><i class="fa-regular fa-circle-check"></i></div>
                     </div>
                     <div>
-                        <span id="metric-completed" class="font-mono font-black text-3xl text-white">0</span>
-                        <p class="text-[10px] text-dobah-200/50 mt-1 font-medium">Telah Ditangani</p>
+                        <span id="metric-completed" class="tk-num text-[#6ee7a0]">0</span>
+                        <p class="tk-sub">Telah Ditangani</p>
                     </div>
                 </div>
-                <!-- Card 5: Item Darurat/Tinggi -->
-                <div class="glass-panel p-5 flex flex-col justify-between relative overflow-hidden bg-rose-600/20 border border-rose-500/30 shadow-[0_0_15px_rgba(225,29,72,0.15)] col-span-2 lg:col-span-1">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wide text-rose-300">Item Darurat/Tinggi</span>
-                        <div class="w-8 h-8 rounded-lg bg-rose-500/30 text-rose-300 flex items-center justify-center border border-rose-500/50"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="glass-panel tk-card tk-alert col-span-2 lg:col-span-1" role="button" tabindex="0" onclick="openTicketList('', true)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTicketList('', true)}">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="tk-label !text-white/90">Item Darurat/Tinggi</span>
+                        <div class="tk-ico bg-white/20 text-white border-white/30"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     </div>
                     <div>
-                        <span id="metric-emergency" class="font-mono font-black text-3xl text-rose-300">0</span>
-                        <p class="text-[10px] text-rose-400/80 mt-1 font-medium">Butuh Penanganan Cepat</p>
+                        <span id="metric-emergency" class="tk-num text-white">0</span>
+                        <p class="tk-sub !text-white/85">Item Membutuhkan Penanganan Cepat</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Chart Section -->
-            <div class="glass-panel p-5 sm:p-6 flex flex-col">
-                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
-                    <h3 class="font-extrabold text-xs uppercase text-dobah-200 flex items-center">
-                        <i class="fa-solid fa-chart-simple text-dobah-400 mr-2"></i>Estimasi Anggaran per Cabang
-                    </h3>
-                    <div class="bg-cocoa-900/80 px-3 py-1 rounded-lg border border-white/10 text-xs font-mono font-bold text-dobah-400">
-                        Total: <span id="metric-budget">Rp 0</span>
+            <!-- Bar filter: tab status + ekspor + cabang + cari -->
+            <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                <div class="tk-seg" role="tablist" aria-label="Filter status tiket">
+                    <button type="button" role="tab" data-status="" class="is-active" onclick="setStatusTab('')">Semua</button>
+                    <button type="button" role="tab" data-status="Pending" onclick="setStatusTab('Pending')">Menunggu</button>
+                    <button type="button" role="tab" data-status="Approved" onclick="setStatusTab('Approved')">Diproses</button>
+                    <button type="button" role="tab" data-status="Completed" onclick="setStatusTab('Completed')">Selesai</button>
+                </div>
+                <button type="button" id="urgentChip" onclick="setStatusTab('')" class="hidden items-center gap-2 px-3 py-2 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-bold" title="Hapus filter darurat"><i class="fa-solid fa-triangle-exclamation"></i> Darurat/Tinggi <i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <button type="button" onclick="exportTicketsCSV()" class="modern-button bg-cocoa-900 hover:bg-cocoa-950 text-dobah-100 text-xs font-bold px-4 py-2.5 border border-white/10 flex items-center gap-2 flex-shrink-0">
+                        <i class="fa-solid fa-download text-[11px]"></i> Ekspor CSV
+                    </button>
+                    <select id="filterBranch" onchange="applyTableFilters()" aria-label="Filter cabang" class="glass-input px-3.5 py-2.5 text-xs sm:text-sm font-semibold flex-1 min-w-[170px]"></select>
+                    <div class="relative flex-1 min-w-[200px] md:flex-none md:w-60">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-dobah-300/60 text-xs"></i>
+                        <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari Kode, Pemohon, Detail..." aria-label="Cari tiket" class="w-full pl-9 pr-3 py-2.5 glass-input text-xs sm:text-sm font-semibold">
                     </div>
                 </div>
-                <div class="flex-1 min-h-[160px] w-full relative">
-                    <canvas id="budgetChart"></canvas>
-                </div>
             </div>
 
-            <!-- Filter Bar Terpadu -->
-            <div class="glass-panel p-4 flex flex-wrap items-center gap-3">
-                <div class="w-full md:w-64 relative flex-shrink-0">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-dobah-300/60 text-xs"></i>
-                    <input type="text" id="filterSearch" oninput="applyTableFilters()" placeholder="Cari ID, Divisi, Item..." class="w-full pl-9 pr-3 py-2 glass-input text-xs sm:text-sm font-semibold">
-                </div>
-                
-                <div class="flex items-center space-x-2 glass-input px-3 py-1 flex-shrink-0">
-                    <i class="fa-regular fa-calendar text-dobah-300/60 text-xs"></i>
-                    <input type="date" id="filterStartDate" onchange="applyTableFilters()" title="Tanggal Mulai" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-dobah-100">
-                    <span class="text-dobah-300/40 font-bold">-</span>
-                    <input type="date" id="filterEndDate" onchange="applyTableFilters()" title="Tanggal Akhir" class="bg-transparent py-1 text-xs font-semibold focus:outline-none text-dobah-100">
-                </div>
-
-                <select id="filterBranch" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-1 min-w-[150px]"></select>
-                
-                <select id="filterStatus" onchange="applyTableFilters()" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold flex-shrink-0">
-                    <option value="" class="bg-cocoa-900">Semua Status</option>
-                    <option value="Pending" class="bg-cocoa-900">Pending</option>
-                    <option value="Approved" class="bg-cocoa-900">Approved</option>
-                    <option value="Completed" class="bg-cocoa-900">Completed</option>
-                    <option value="Rejected" class="bg-cocoa-900">Rejected</option>
-                </select>
-                
-                <button onclick="clearFilters()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-200 text-xs font-bold px-4 py-2 border border-white/10 flex-shrink-0">Reset</button>
-            </div>
-
-            <!-- Table & Pagination Container -->
-            <div class="glass-panel overflow-hidden">
+            <!-- Tabel -->
+            <div id="ticketTablePanel" class="glass-panel overflow-hidden scroll-mt-4">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full min-w-[880px] text-left border-collapse">
                         <thead>
-                            <tr class="bg-cocoa-900/90 text-dobah-200 font-mono text-xs uppercase border-b border-white/10 select-none">
-                                <th class="p-4 pl-6 w-12 text-center">NO</th>
-                                <th class="p-4 sortable" onclick="handleSort('id')">KODE TIKET & TANGGAL <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-id"></i></th>
-                                <th class="p-4 sortable" onclick="handleSort('division')">PEMOHON & CABANG <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-division"></i></th>
-                                <th class="p-4 text-center">JUMLAH ITEM</th>
-                                <th class="p-4 w-48">PROGRESS PERBAIKAN</th>
-                                <th class="p-4 text-center sortable" onclick="handleSort('status')">STATUS TIKET <i class="fa-solid fa-sort ml-1 text-dobah-300/40" id="sortIcon-status"></i></th>
-                                <th class="p-4 pr-6 text-center">AKSI</th>
+                            <tr class="tk-thead select-none">
+                                <th class="p-4 pl-6 sortable" onclick="handleSort('id')">Kode Tiket &amp; Tanggal <i class="fa-solid fa-sort ml-1 text-dobah-300/30" id="sortIcon-id"></i></th>
+                                <th class="p-4 sortable" onclick="handleSort('division')">Pemohon &amp; Cabang <i class="fa-solid fa-sort ml-1 text-dobah-300/30" id="sortIcon-division"></i></th>
+                                <th class="p-4 text-center">Jumlah Item</th>
+                                <th class="p-4 w-56">Progress Perbaikan</th>
+                                <th class="p-4 text-center sortable" onclick="handleSort('status')">Status Tiket <i class="fa-solid fa-sort ml-1 text-dobah-300/30" id="sortIcon-status"></i></th>
+                                <th class="p-4 pr-6 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="requestsTableBody" class="divide-y divide-white/5 text-xs sm:text-sm font-medium text-dobah-100"></tbody>
                     </table>
                 </div>
 
-                <!-- Control Bar Pagination -->
-                <div class="bg-cocoa-900/60 p-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <div class="flex items-center space-x-2 text-xs font-semibold text-dobah-200/70">
-                        <span>Tampilkan per halaman:</span>
+                <div class="bg-cocoa-950/50 px-5 py-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-dobah-200/80">
+                        <span class="font-bold text-dobah-100">Tampilkan per halaman:</span>
                         <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="glass-input px-2.5 py-1 text-xs font-bold">
                             <option value="10" class="bg-cocoa-900" selected>10</option>
                             <option value="25" class="bg-cocoa-900">25</option>
                             <option value="50" class="bg-cocoa-900">50</option>
                         </select>
-                        <span id="paginationInfo" class="text-dobah-200/60 font-medium ml-2">Menampilkan 0-0 dari 0 tiket</span>
+                        <span id="paginationInfo" class="text-dobah-200/70 font-medium ml-2">Menampilkan 0-0 dari 0 data</span>
                     </div>
 
-                    <div class="flex items-center space-x-2">
-                        <button id="btnPrevPage" onclick="prevPage()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
+                    <div id="pagerControls" class="hidden items-center space-x-2">
+                        <button id="btnPrevPage" onclick="prevPage()" aria-label="Halaman sebelumnya" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
                             <i class="fa-solid fa-chevron-left"></i>
                         </button>
                         <span id="pageNumbersContainer" class="font-mono font-bold text-xs px-2 text-dobah-400"></span>
-                        <button id="btnNextPage" onclick="nextPage()" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
+                        <button id="btnNextPage" onclick="nextPage()" aria-label="Halaman berikutnya" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 disabled:opacity-30 disabled:cursor-not-allowed text-dobah-200 text-xs px-3.5 py-1.5 border border-white/10 flex items-center">
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
@@ -998,10 +1004,10 @@
 
         function updateCloudBadge(statusText) {
             const badge = document.getElementById('cloudStatusBadge');
-            if (badge) {
-                badge.innerText = statusText;
-                badge.className = statusText.includes('Live') ? "bg-dobah-400/20 text-dobah-300 border border-dobah-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider" : "bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider";
-            }
+            if (!badge) return;
+            const live = statusText.includes('Live');
+            badge.className = 'hidden sm:inline-flex items-center gap-2 bg-cocoa-950 border border-white/10 text-xs font-bold px-3.5 py-1.5 rounded-full ' + (live ? 'text-dobah-100' : 'text-amber-300');
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${live ? 'bg-emerald-400' : 'bg-amber-400'}"></span>` + (live ? 'Cloud Firestore Active' : esc(statusText));
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1201,7 +1207,7 @@
         /* --- NAVIGATION --- */
         const NAV_ACTIVE_CLS = "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-sm transition-all bg-dobah-400/15 text-dobah-300 border border-dobah-400/20";
         const NAV_IDLE_CLS = "nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white";
-        const TAB_TITLES = { form: 'Buat Permintaan Aset', list: 'Daftar & Status Permintaan', master: 'Master Data & Akun' };
+        const TAB_TITLES = { form: 'Buat Permintaan Aset', list: 'Dashboard & Status Pengajuan Tiket', master: 'Master Data & Akun' };
 
         function toggleSidebar(force) {
             const sb = document.getElementById('sidebar');
@@ -1224,6 +1230,7 @@
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = NAV_ACTIVE_CLS;
             const pt = document.getElementById('page-title'); if (pt) pt.textContent = TAB_TITLES[tabId] || '';
+            const wb = document.getElementById('welcomeBanner'); if (wb) wb.style.display = (tabId === 'list') ? 'none' : '';
             if (window.innerWidth < 768) toggleSidebar(false);
             if (tabId === 'list') { applyTableFilters(); updateMetrics(); } else if (tabId === 'master') { renderMasterDataView(); }
         }
@@ -1394,19 +1401,31 @@
             });
         }
 
+        let ticketStatusFilter = '';
+        let ticketUrgentOnly = false;
+        function ticketApplicant(req) { return (req.audit && req.audit.length > 0 && req.audit[0].actor) ? req.audit[0].actor : req.division; }
+
+        function setStatusTab(val, urgent) {
+            ticketStatusFilter = val || '';
+            ticketUrgentOnly = !!urgent;
+            const chip = document.getElementById('urgentChip'); if (chip) chip.classList.toggle('is-on', ticketUrgentOnly);
+            document.querySelectorAll('.tk-seg button').forEach(btn => {
+                const on = !ticketUrgentOnly && (btn.dataset.status || '') === ticketStatusFilter;
+                btn.classList.toggle('is-active', on);
+                btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            applyTableFilters();
+        }
+
         function applyTableFilters() {
-            const q = document.getElementById('filterSearch').value.toLowerCase();
-            const b = document.getElementById('filterBranch').value;
-            const s = document.getElementById('filterStatus').value;
-            const dStart = document.getElementById('filterStartDate').value;
-            const dEnd = document.getElementById('filterEndDate').value;
+            const q = ((document.getElementById('filterSearch') || {}).value || '').toLowerCase().trim();
+            const b = (document.getElementById('filterBranch') || {}).value || '';
+            const s = ticketStatusFilter;
 
             let filtered = getAccessibleRequests().filter(r => {
-                const matchQ = r.id.toLowerCase().includes(q) || r.division.toLowerCase().includes(q) || (r.items && r.items.some(i => i.name.toLowerCase().includes(q)));
-                let matchDate = true;
-                if (dStart) matchDate = matchDate && (r.submissionDate >= dStart);
-                if (dEnd) matchDate = matchDate && (r.submissionDate <= dEnd);
-                return matchQ && matchDate && (!b || r.branch === b) && (!s || r.status === s);
+                const hay = [r.id, ticketApplicant(r), r.division, r.branch, r.justification]
+                    .concat((r.items || []).map(i => i.name)).join(' ').toLowerCase();
+                return (!q || hay.includes(q)) && (!b || r.branch === b) && (!s || r.status === s) && (!ticketUrgentOnly || r.urgency === 'Critical' || r.urgency === 'High');
             });
 
             appState.pagination.filteredData = sortDataList(filtered);
@@ -1419,7 +1438,7 @@
             const tbody = document.getElementById('requestsTableBody');
             if (!tbody) return; tbody.innerHTML = '';
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-12 text-center text-dobah-200/70 font-bold"><div class="empty-donut"></div>Belum ada tiket yang cocok.<br><button type="button" onclick="switchTab(\'form\')" class="mt-3 modern-button bg-dobah-400 text-slate-950 text-xs px-5 py-2">Buat permintaan pertama</button></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-14 text-center text-dobah-200/70 font-semibold text-xs"><div class="empty-donut"></div>Belum ada tiket yang cocok.</td></tr>`;
                 updatePaginationControls(0, 0, 0, 0); return;
             }
 
@@ -1430,69 +1449,99 @@
 
             const startIdx = (appState.pagination.currentPage - 1) * ps;
             const pageData = list.slice(startIdx, startIdx + ps);
+            const role = getCurrentUser().role;
+            const isGA = role === 'General Affair Manager';
 
-            pageData.forEach((req, idx) => {
-                const rowNo = startIdx + idx + 1;
+            const STAT = {
+                Pending:   { label: 'Menunggu', cls: 'bg-amber-400/15 text-[#ffd65a] border-amber-400/30',     icon: 'fa-regular fa-clock' },
+                Approved:  { label: 'Diproses', cls: 'bg-sky-500/15 text-[#7cc1ff] border-sky-400/30',         icon: 'fa-solid fa-arrows-rotate' },
+                Completed: { label: 'Selesai',  cls: 'bg-emerald-500/15 text-[#6ee7a0] border-emerald-400/30', icon: 'fa-regular fa-circle-check' },
+                Rejected:  { label: 'Ditolak',  cls: 'bg-rose-500/15 text-rose-300 border-rose-400/30',        icon: 'fa-solid fa-xmark' }
+            };
+
+            pageData.forEach(req => {
                 const actIdx = appState.requests.indexOf(req);
-                const role = getCurrentUser().role;
-                
-                let namaPemohon = req.division;
-                if (req.audit && req.audit.length > 0) namaPemohon = req.audit[0].actor;
-                
                 const totalItemsCount = req.items ? req.items.length : 0;
-                
-                let completedCount = 0;
-                if (req.items) {
-                    completedCount = req.items.filter(i => i.itemStatus === 'Selesai').length;
-                }
+                let completedCount = req.items ? req.items.filter(i => i.itemStatus === 'Selesai').length : 0;
                 if (req.status === 'Completed' && completedCount === 0) completedCount = totalItemsCount;
-                
                 const progressPercent = totalItemsCount > 0 ? Math.round((completedCount / totalItemsCount) * 100) : 0;
+                const st = STAT[req.status] || STAT.Approved;
 
-                let btns = `<button onclick="openDetailModal(${actIdx})" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 text-dobah-300 text-[11px] px-3 py-1.5 border border-white/5 font-bold"><i class="fa-solid fa-eye mr-1"></i>Detail</button>`;
-                if (role === 'General Affair Manager') {
-                    btns += `<button onclick="openEditModal(${actIdx})" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-[11px] px-2.5 py-1.5 ml-1 border border-dobah-400/30" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteRequest(${actIdx}, '${req.docId}')" class="modern-button bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] px-2.5 py-1.5 ml-1 border border-rose-500/20" title="Hapus"><i class="fa-solid fa-trash"></i></button>`;
-                }
-                
-                const statClass = req.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : (req.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : (req.status === 'Rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'));
-                const statLabel = req.status === 'Pending' ? 'Menunggu' : (req.status === 'Approved' ? 'Diproses' : (req.status === 'Completed' ? 'Selesai' : 'Ditolak'));
+                let btns = isGA
+                    ? `<button type="button" onclick="openEditModal(${actIdx})" class="tk-act">Detail / Ubah</button>
+                       <button type="button" onclick="deleteRequest(${actIdx}, '${req.docId}')" class="tk-del" title="Hapus tiket" aria-label="Hapus tiket"><i class="fa-regular fa-trash-can text-[13px]"></i></button>`
+                    : `<button type="button" onclick="openDetailModal(${actIdx})" class="tk-act">Detail</button>`;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-white/[0.02] transition-colors">
-                        <td class="p-4 pl-6 text-center font-bold text-dobah-200/50">${rowNo}</td>
-                        <td class="p-4 font-mono font-bold text-white">${req.id}<br><span class="text-[11px] text-dobah-200/60 font-normal"><i class="fa-regular fa-calendar mr-1"></i>${req.submissionDate}</span></td>
-                        <td class="p-4 font-bold text-dobah-100">${namaPemohon}<br><span class="text-[11px] text-dobah-200/60 font-normal"><i class="fa-solid fa-location-dot mr-1"></i>${req.branch}</span></td>
-                        <td class="p-4 text-center"><span class="bg-cocoa-800 text-dobah-200 border border-white/10 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold">${totalItemsCount} Item</span></td>
-                        <td class="p-4 w-48">
-                            <div class="flex justify-between text-[10px] font-mono text-dobah-200 mb-1">
-                                <span>${completedCount}/${totalItemsCount} Selesai</span>
-                                <span class="font-bold text-dobah-400">${progressPercent}%</span>
-                            </div>
-                            <div class="w-full bg-cocoa-800 h-2 rounded-full overflow-hidden border border-white/5">
-                                <div class="bg-dobah-400 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
-                            </div>
+                    <tr class="transition-colors">
+                        <td class="p-4 pl-6 whitespace-nowrap">
+                            <a href="javascript:void(0)" onclick="openDetailModal(${actIdx})" class="tk-id" title="Lihat detail tiket">${esc(req.id)}</a><br>
+                            <span class="text-[11px] text-dobah-200/60 font-normal"><i class="fa-regular fa-calendar mr-1"></i>${esc(req.submissionDate)}</span>
                         </td>
-                        <td class="p-4 text-center"><span class="px-3 py-1.5 text-[10px] uppercase font-bold rounded border ${statClass}"><i class="fa-regular fa-clock mr-1"></i>${statLabel}</span></td>
-                        <td class="p-4 pr-6 text-center whitespace-nowrap">${btns}</td>
+                        <td class="p-4">
+                            <span class="font-extrabold text-white uppercase text-xs">${esc(ticketApplicant(req))}</span><br>
+                            <span class="text-[11px] text-dobah-300 font-semibold uppercase"><i class="fa-solid fa-location-dot mr-1 text-[10px]"></i>${esc(req.branch)}</span>
+                        </td>
+                        <td class="p-4 text-center"><span class="bg-cocoa-950 text-dobah-100 border border-white/10 px-3 py-1 rounded-full text-[11px] font-bold">${totalItemsCount} Item</span></td>
+                        <td class="p-4 w-56">
+                            <div class="flex justify-between text-[10px] font-bold text-dobah-100 mb-1.5">
+                                <span>${completedCount}/${totalItemsCount} Selesai</span>
+                                <span class="text-dobah-400">${progressPercent}%</span>
+                            </div>
+                            <div class="tk-bar" role="progressbar" aria-valuenow="${progressPercent}" aria-valuemin="0" aria-valuemax="100"><div style="width:${progressPercent}%"></div></div>
+                        </td>
+                        <td class="p-4 text-center"><span class="tk-pill ${st.cls}"><i class="${st.icon} text-[10px]"></i>${st.label}</span></td>
+                        <td class="p-4 pr-6 text-right whitespace-nowrap">${btns}</td>
                     </tr>`;
             });
             updatePaginationControls(startIdx + 1, Math.min(startIdx + ps, list.length), list.length, tp);
         }
 
         function updatePaginationControls(s, e, t, tp) {
-            document.getElementById('paginationInfo').innerText = t === 0 ? "Menampilkan 0 tiket" : `Menampilkan ${s} - ${e} dari ${t} tiket`;
+            document.getElementById('paginationInfo').innerText = t === 0 ? 'Menampilkan 0-0 dari 0 data' : `Menampilkan ${s}-${e} dari ${t} data`;
             document.getElementById('btnPrevPage').disabled = (appState.pagination.currentPage <= 1 || t === 0);
             document.getElementById('btnNextPage').disabled = (appState.pagination.currentPage >= tp || t === 0);
             document.getElementById('pageNumbersContainer').innerText = t === 0 ? '' : `Hal ${appState.pagination.currentPage} / ${tp}`;
+            const pc = document.getElementById('pagerControls');
+            if (pc) { pc.classList.toggle('hidden', tp <= 1); pc.classList.toggle('flex', tp > 1); }
         }
         function nextPage() { if(appState.pagination.currentPage < Math.ceil(appState.pagination.filteredData.length / appState.pagination.pageSize)) { appState.pagination.currentPage++; renderRequestsTable(); } }
         function prevPage() { if(appState.pagination.currentPage > 1) { appState.pagination.currentPage--; renderRequestsTable(); } }
         function changePageSize(sz) { appState.pagination.pageSize = parseInt(sz); appState.pagination.currentPage = 1; renderRequestsTable(); }
-        function clearFilters() { 
-            document.getElementById('filterSearch').value = ''; document.getElementById('filterBranch').value = ''; 
-            document.getElementById('filterStatus').value = ''; 
-            document.getElementById('filterStartDate').value = ''; document.getElementById('filterEndDate').value = ''; 
-            applyTableFilters(); 
+        function clearFilters() {
+            const se = document.getElementById('filterSearch'); if (se) se.value = '';
+            const br = document.getElementById('filterBranch'); if (br) br.value = '';
+            setStatusTab('');
+        }
+
+        function openTicketList(status, urgent) {
+            const se = document.getElementById('filterSearch'); if (se) se.value = '';
+            const br = document.getElementById('filterBranch'); if (br) br.value = '';
+            setStatusTab(status, urgent);
+            const t = document.getElementById('ticketTablePanel');
+            if (t) t.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+        }
+
+        function exportTicketsCSV() {
+            const rows = appState.pagination.filteredData || [];
+            if (!rows.length) { Swal.fire('Belum ada data', 'Tidak ada tiket yang bisa diekspor dengan filter saat ini.', 'info'); return; }
+            const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+            const label = { Pending: 'Menunggu', Approved: 'Diproses', Completed: 'Selesai', Rejected: 'Ditolak' };
+            const head = ['Kode Tiket', 'Tanggal', 'Pemohon', 'Divisi', 'Cabang', 'Jumlah Item', 'Item Selesai', 'Progress (%)', 'Status', 'Urgensi', 'Daftar Item'];
+            const lines = [head.map(q).join(',')];
+            rows.forEach(r => {
+                const items = r.items || [];
+                let done = items.filter(i => i.itemStatus === 'Selesai').length;
+                if (r.status === 'Completed' && done === 0) done = items.length;
+                const pct = items.length ? Math.round(done / items.length * 100) : 0;
+                lines.push([r.id, r.submissionDate, ticketApplicant(r), r.division, r.branch, items.length, done, pct,
+                    label[r.status] || r.status, r.urgency, items.map(i => i.name).join('; ')].map(q).join(','));
+            });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+            a.download = 'tiket_' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         }
 
         function updateMetrics() {
@@ -2303,10 +2352,10 @@ AM.reset=async function(){if(!isGA())return deny();const n=AM.assets.length,l=AM
 
 /* --- integrasi dengan aplikasi permintaan --- */
 const TABS=['form','list','master','adash','areg','amap','amtc','ainc','adep','aasg','amkt','aven'],GA_ONLY=['master','adep','aasg','amkt','aven'],
- TT={form:'Buat Permintaan Aset',list:'Daftar & Status Permintaan',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',ainc:'Aset Rusak & Hilang',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',amkt:'Jual Beli Aset Antar Toko',aven:'Manajemen Vendor'};
+ TT={form:'Buat Permintaan Aset',list:'Dashboard & Status Pengajuan Tiket',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',ainc:'Aset Rusak & Hilang',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',amkt:'Jual Beli Aset Antar Toko',aven:'Manajemen Vendor'};
 window.switchTab=function(t){const s=user();if(s&&s.role==='Staff Store'&&GA_ONLY.includes(t)){Swal.fire({title:'Akses Dibatasi',text:'Menu ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});return}
  appState.activeTab=t;TABS.forEach(x=>{$('view-'+x).classList.add('hidden');$('tab-'+x).className=NAV_IDLE_CLS});$('view-'+t).classList.remove('hidden');$('tab-'+t).className=NAV_ACTIVE_CLS;
- const pt=$('page-title');if(pt)pt.textContent=TT[t]||'';if(window.innerWidth<768)toggleSidebar(false);
+ const pt=$('page-title');if(pt)pt.textContent=TT[t]||'';const wb=$('welcomeBanner');if(wb)wb.style.display=(t==='list')?'none':'';if(window.innerWidth<768)toggleSidebar(false);
  if(t==='list'){applyTableFilters();updateMetrics()}else if(t==='master')renderMasterDataView();else if(R[t])R[t]()};
 const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','amkt','aven'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive();NC.start()};
 /* ===== PUSAT NOTIFIKASI REALTIME ===== */
