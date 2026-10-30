@@ -57,6 +57,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
@@ -66,13 +67,45 @@
             messagingSenderId: "319679123678",
             appId: "1:319679123678:web:a0fcedfa4178ade4e8b24f"
         };
-
+        const EMAIL_DOMAIN = '@dobah.app';
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const auth = getAuth(app);
             window.db = db;
             window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot };
-            window.dispatchEvent(new Event('firebase-ready'));
+            window.fbAuth = {
+                login: (u, p) => signInWithEmailAndPassword(auth, u.toLowerCase() + EMAIL_DOMAIN, p),
+                logout: () => signOut(auth),
+                changePassword: async (oldP, newP) => {
+                    const cred = EmailAuthProvider.credential(auth.currentUser.email, oldP);
+                    await reauthenticateWithCredential(auth.currentUser, cred);
+                    await updatePassword(auth.currentUser, newP);
+                },
+                // Buat akun baru lewat app kedua agar sesi admin tidak ikut logout
+                createUser: async (username, password) => {
+                    const app2 = initializeApp(firebaseConfig, 'secondary-' + Date.now());
+                    const auth2 = getAuth(app2);
+                    const cred = await createUserWithEmailAndPassword(auth2, username.toLowerCase() + EMAIL_DOMAIN, password);
+                    await signOut(auth2);
+                    return cred.user.uid;
+                }
+            };
+            onAuthStateChanged(auth, async (fbUser) => {
+                if (!fbUser) {
+                    localStorage.removeItem('assetReqUserSession');
+                    window.dispatchEvent(new Event('auth-changed'));
+                    return;
+                }
+                try {
+                    const snap = await getDoc(doc(db, 'profiles', fbUser.uid));
+                    if (!snap.exists()) { await signOut(auth); window.dispatchEvent(new CustomEvent('auth-denied')); return; }
+                    const pr = snap.data();
+                    localStorage.setItem('assetReqUserSession', JSON.stringify({ id: fbUser.uid, username: pr.username, name: pr.name, role: pr.role, branches: pr.branches || [] }));
+                    window.dispatchEvent(new Event('auth-changed'));
+                    window.dispatchEvent(new Event('firebase-ready'));
+                } catch (e) { console.error(e); await signOut(auth); window.dispatchEvent(new CustomEvent('auth-denied')); }
+            });
         } catch (err) {
             console.error("Gagal Inisialisasi Firebase:", err);
         }
@@ -881,11 +914,7 @@
     <script>
         let appState = {
             activeTab: 'list',
-            users: [
-                { id: 'usr_1', username: 'admin', password: '123', name: 'Muhammad Taufik', role: 'General Affair Manager', branches: ['ALL'] },
-                { id: 'usr_2', username: 'headstore_cibeunying', password: '123', name: 'Hendra Wijaya', role: 'Staff Store', branches: ['DONAT BAHAGIA CIBEUNYING'] },
-                { id: 'usr_3', username: 'headstore_cilaki', password: '123', name: 'HEADSTORE CILAKI', role: 'Staff Store', branches: ['DONAT BAHAGIA CILAKI'] }
-            ],
+            users: [], // diisi dari koleksi 'profiles' (khusus GA)
             categories: ['SUPPORT EQUIPMENT', 'BANGUNAN', 'PERALATAN'],
             divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
             branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
@@ -933,22 +962,20 @@
                 try {
                     const { doc, setDoc } = window.fbDeps;
                     await setDoc(doc(window.db, "settings", "master_config"), {
-                        users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
+                        categories: appState.categories, divisions: appState.divisions, branches: appState.branches
                     }, { merge: true });
                 } catch(err) {}
             }
         }
 
         function saveMasterSettingsToLocal() {
-            localStorage.setItem('assetReqUsersData', JSON.stringify(appState.users));
             localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
             localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
             localStorage.setItem('assetReqBranchesData', JSON.stringify(appState.branches));
         }
 
         function loadMasterSettings() {
-            const u = localStorage.getItem('assetReqUsersData'); if (u) { try { appState.users = JSON.parse(u); } catch(e){} }
-            const c = localStorage.getItem('assetReqCategoriesData'); if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
+                        const c = localStorage.getItem('assetReqCategoriesData'); if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
             const d = localStorage.getItem('assetReqDivisionsData'); if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
             const b = localStorage.getItem('assetReqBranchesData'); if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
         }
@@ -987,10 +1014,16 @@
                     updateNotifications();
                 }, () => updateCloudBadge('Offline (Lokal)'));
 
+                const _me = getCurrentUser();
+                if (_me && _me.role === 'General Affair Manager') {
+                    onSnapshot(collection(window.db, "profiles"), (snap) => {
+                        appState.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        if (appState.activeTab === 'master') renderMasterDataView();
+                    });
+                }
                 onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        if (data.users) appState.users = data.users;
                         if (data.categories) appState.categories = data.categories;
                         if (data.divisions) appState.divisions = data.divisions;
                         if (data.branches) appState.branches = data.branches;
@@ -1134,21 +1167,27 @@
             }
         }
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             const uInput = document.getElementById('loginUsername').value.trim();
-            const pInput = document.getElementById('loginPassword').value.trim();
+            const pInput = document.getElementById('loginPassword').value;
             const errBox = document.getElementById('loginErrorMsg');
-            const found = appState.users.find(u => String(u.username).toLowerCase() === uInput.toLowerCase() && String(u.password) === pInput);
-            if (found) {
-                errBox.classList.add('hidden');
-                localStorage.setItem('assetReqUserSession', JSON.stringify({ id: found.id, username: found.username, name: found.name, role: found.role, branches: found.branches || [] }));
+            errBox.classList.add('hidden');
+            if (!window.fbAuth) { errBox.textContent = 'Koneksi ke server belum siap, coba lagi.'; errBox.classList.remove('hidden'); return; }
+            try {
+                await window.fbAuth.login(uInput, pInput);
                 document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = '';
-                checkUserSession();
-            } else { errBox.classList.remove('hidden'); }
+            } catch (err) {
+                errBox.textContent = 'Username atau password salah!';
+                errBox.classList.remove('hidden');
+            }
         }
-
-        function handleLogout() { localStorage.removeItem('assetReqUserSession'); location.reload(); }
+        window.addEventListener('auth-changed', () => checkUserSession());
+        window.addEventListener('auth-denied', () => {
+            const errBox = document.getElementById('loginErrorMsg');
+            errBox.textContent = 'Akun belum terdaftar / tidak punya akses. Hubungi GA.'; errBox.classList.remove('hidden'); checkUserSession();
+        });
+        async function handleLogout() { try { if (window.fbAuth) await window.fbAuth.logout(); } catch(e){} localStorage.removeItem('assetReqUserSession'); location.reload(); }
 
         function toggleUserMenu() {
             document.getElementById('userMenuDropdown').classList.toggle('hidden');
@@ -1160,20 +1199,18 @@
             document.getElementById('userMenuDropdown').classList.add('hidden');
         }
 
-        function handleChangePassword(e) {
+        async function handleChangePassword(e) {
             e.preventDefault();
-            const user = getCurrentUser();
             const oldP = document.getElementById('oldPasswordInput').value;
             const newP = document.getElementById('newPasswordInput').value;
-            const userIndex = appState.users.findIndex(u => u.id === user.id);
-            if(userIndex > -1 && appState.users[userIndex].password === oldP) {
-                appState.users[userIndex].password = newP;
-                saveMasterSettings();
+            if (newP.length < 6) return Swal.fire('Gagal', 'Password baru minimal 6 karakter.', 'warning');
+            try {
+                await window.fbAuth.changePassword(oldP, newP);
                 closeModal('passwordModal');
                 Swal.fire('Berhasil', 'Password telah diubah!', 'success');
                 document.getElementById('oldPasswordInput').value = '';
                 document.getElementById('newPasswordInput').value = '';
-            } else {
+            } catch (err) {
                 Swal.fire('Gagal', 'Password lama salah!', 'error');
             }
         }
@@ -1849,26 +1886,46 @@
         function promptAddUser() { document.getElementById('userForm').reset(); document.getElementById('userFormId').value=''; document.getElementById('userModalTitle').innerText='Buat Akun Baru'; renderBranchCheckboxes([]); toggleBranchCheckboxesByRole(); openModal('userModal'); }
         function promptEditUser(i) {
             const u = appState.users[i]; document.getElementById('userFormId').value = i; document.getElementById('userModalTitle').innerText = 'Edit: '+u.name;
-            document.getElementById('userFormUsername').value = u.username; document.getElementById('userFormName').value = u.name; document.getElementById('userFormPassword').value = u.password; document.getElementById('userFormRole').value = u.role;
+            document.getElementById('userFormUsername').value = u.username; document.getElementById('userFormUsername').disabled = true;
+            document.getElementById('userFormName').value = u.name; document.getElementById('userFormRole').value = u.role;
+            const pw = document.getElementById('userFormPassword'); pw.value = ''; pw.required = false; pw.disabled = true; pw.placeholder = 'Password diubah oleh pemilik akun';
             renderBranchCheckboxes(u.branches||[]); toggleBranchCheckboxesByRole(); openModal('userModal');
         }
-        function saveUserAccount(e) {
+        const _promptAddUser = promptAddUser;
+        promptAddUser = function() {
+            _promptAddUser();
+            const un = document.getElementById('userFormUsername'); un.disabled = false;
+            const pw = document.getElementById('userFormPassword'); pw.disabled = false; pw.required = true; pw.minLength = 6; pw.placeholder = 'Min. 6 karakter';
+        };
+        async function saveUserAccount(e) {
             e.preventDefault(); const idStr = document.getElementById('userFormId').value;
-            const uname = document.getElementById('userFormUsername').value.trim(); const nm = document.getElementById('userFormName').value.trim(); const pwd = document.getElementById('userFormPassword').value.trim(); const rl = document.getElementById('userFormRole').value;
+            const uname = document.getElementById('userFormUsername').value.trim().toLowerCase(); const nm = document.getElementById('userFormName').value.trim();
+            const pwd = document.getElementById('userFormPassword').value; const rl = document.getElementById('userFormRole').value;
             let br = []; if (rl === 'General Affair Manager') { br = ['ALL']; } else { document.querySelectorAll('.branch-checkbox:checked').forEach(cb => br.push(cb.value)); }
             if (br.length===0) return Swal.fire('Peringatan', 'Pilih minimal 1 cabang!', 'warning');
-            
-            if (idStr==='') {
-                if (appState.users.some(u=>u.username===uname)) return Swal.fire('Error', 'Username terpakai!', 'error');
-                appState.users.push({ id:'usr_'+Date.now(), username:uname, name:nm, password:pwd, role:rl, branches:br });
-            } else {
-                appState.users[parseInt(idStr)] = { ...appState.users[parseInt(idStr)], username:uname, name:nm, password:pwd, role:rl, branches:br };
+            if (!/^[a-z0-9._-]{3,30}$/.test(uname)) return Swal.fire('Peringatan', 'Username 3-30 karakter: huruf, angka, titik, strip, underscore.', 'warning');
+            const { doc, setDoc } = window.fbDeps;
+            try {
+                if (idStr==='') {
+                    if (pwd.length < 6) return Swal.fire('Peringatan', 'Password minimal 6 karakter.', 'warning');
+                    if (appState.users.some(u=>u.username===uname)) return Swal.fire('Error', 'Username terpakai!', 'error');
+                    const uid = await window.fbAuth.createUser(uname, pwd);
+                    await setDoc(doc(window.db, 'profiles', uid), { username: uname, name: nm, role: rl, branches: br });
+                } else {
+                    const cur = appState.users[parseInt(idStr)];
+                    await setDoc(doc(window.db, 'profiles', cur.id), { username: cur.username, name: nm, role: rl, branches: br });
+                }
+                closeModal('userModal'); Swal.fire('Tersimpan', '', 'success');
+            } catch (err) {
+                Swal.fire('Gagal', err && err.code === 'auth/email-already-in-use' ? 'Username sudah terdaftar di sistem.' : 'Tidak bisa menyimpan akun (cek koneksi/hak akses).', 'error');
             }
-            saveMasterSettings(); closeModal('userModal'); renderMasterDataView(); Swal.fire('Tersimpan', '', 'success');
         }
         function deleteUserAccount(i) {
-            Swal.fire({ title: 'Hapus akun?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f4a23a', cancelButtonColor: '#dc2626' }).then(r => {
-                if(r.isConfirmed) { appState.users.splice(i, 1); saveMasterSettings(); renderMasterDataView(); Swal.fire('Terhapus', '', 'success'); }
+            Swal.fire({ title: 'Hapus akun?', text: 'Akun tidak bisa login lagi setelah dihapus.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f4a23a', cancelButtonColor: '#dc2626' }).then(async r => {
+                if(r.isConfirmed) {
+                    try { await window.fbDeps.deleteDoc(window.fbDeps.doc(window.db, 'profiles', appState.users[i].id)); Swal.fire('Terhapus', '', 'success'); }
+                    catch(e) { Swal.fire('Gagal', 'Tidak punya hak akses.', 'error'); }
+                }
             });
         }
         function formatRupiah(amount) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount); }
