@@ -1178,7 +1178,21 @@
                 await window.fbAuth.login(uInput, pInput);
                 document.getElementById('loginUsername').value = ''; document.getElementById('loginPassword').value = '';
             } catch (err) {
-                errBox.textContent = 'Username atau password salah!';
+                console.error('Login gagal:', err);
+                const code = (err && err.code) || 'unknown';
+                const map = {
+                    'auth/invalid-credential': 'Username atau password salah.',
+                    'auth/invalid-login-credentials': 'Username atau password salah.',
+                    'auth/user-not-found': 'Username tidak ditemukan.',
+                    'auth/wrong-password': 'Password salah.',
+                    'auth/operation-not-allowed': 'Login Email/Password belum diaktifkan di Firebase Console.',
+                    'auth/unauthorized-domain': 'Domain website ini belum diizinkan di Firebase (Authentication > Settings > Authorized domains).',
+                    'auth/api-key-not-valid': 'API key ditolak. Cek pembatasan API key di Google Cloud.',
+                    'auth/network-request-failed': 'Gagal terhubung ke internet/server.',
+                    'auth/operation-not-supported-in-this-environment': 'Buka lewat alamat https:// atau localhost, bukan file langsung.',
+                    'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu beberapa menit.'
+                };
+                errBox.textContent = (map[code] || 'Login gagal.') + ' [' + code + ']';
                 errBox.classList.remove('hidden');
             }
         }
