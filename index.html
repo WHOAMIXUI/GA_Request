@@ -55,9 +55,7 @@
 
     <!-- Firebase SDK (Modular v10.8.0) dengan onSnapshot -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        const V = "10.8.0";
         const firebaseConfig = {
             apiKey: "AIzaSyC11ILYEak30-AKe55aPWMacdWKmm9it9g",
             authDomain: "assetreqpro-a67d7.firebaseapp.com",
@@ -68,13 +66,36 @@
         };
 
         try {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
+            // Dynamic import agar kegagalan memuat SDK (diblokir/jaringan) bisa ditangkap & ditampilkan
+            const [appMod, fs] = await Promise.all([
+                import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+                import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)
+            ]);
+            const app = appMod.initializeApp(firebaseConfig);
+
+            let db;
+            try {
+                // Auto-detect long polling: memperbaiki koneksi yang gagal di jaringan/ISP/proxy
+                // yang memblokir WebChannel/WebSocket. Persistent cache: data tetap ada saat offline.
+                db = fs.initializeFirestore(app, {
+                    experimentalAutoDetectLongPolling: true,
+                    localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() })
+                });
+            } catch (e) {
+                console.warn("Fallback ke getFirestore:", e);
+                db = fs.getFirestore(app);
+            }
+
             window.db = db;
-            window.fbDeps = { collection, getDocs, addDoc, setDoc, doc, deleteDoc, getDoc, onSnapshot };
+            window.fbDeps = {
+                collection: fs.collection, getDocs: fs.getDocs, addDoc: fs.addDoc, setDoc: fs.setDoc,
+                doc: fs.doc, deleteDoc: fs.deleteDoc, getDoc: fs.getDoc, onSnapshot: fs.onSnapshot
+            };
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (err) {
             console.error("Gagal Inisialisasi Firebase:", err);
+            window.__fbInitError = err;
+            window.dispatchEvent(new Event('firebase-failed'));
         }
     </script>
 
@@ -935,7 +956,7 @@
                     await setDoc(doc(window.db, "settings", "master_config"), {
                         users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
                     }, { merge: true });
-                } catch(err) {}
+                } catch(err) { console.error('[Firestore] gagal simpan master_config:', err.code, err.message); }
             }
         }
 
@@ -968,26 +989,57 @@
         }
 
         window.addEventListener('firebase-ready', () => initRealtimeSync());
+        window.addEventListener('firebase-failed', () => {
+            const e = window.__fbInitError;
+            updateCloudBadge('Offline (SDK gagal dimuat)');
+            console.error('[Firestore] SDK gagal dimuat. Cek internet / blokir gstatic.com:', e);
+        });
+        // Jika SDK tidak pernah selesai dimuat (mis. diblokir), jangan biarkan "Syncing..." selamanya
+        setTimeout(() => { if (!window.db) updateCloudBadge('Offline (SDK tidak termuat)'); }, 10000);
+
+        function firestoreErrMsg(err) {
+            const code = (err && err.code) || '';
+            if (code === 'permission-denied') return 'Offline (Akses ditolak - cek Firestore Rules)';
+            if (code === 'unavailable') return 'Offline (Server tidak terjangkau)';
+            if (code === 'failed-precondition') return 'Offline (Error: ' + code + ')';
+            return 'Offline (' + (code || 'Lokal') + ')';
+        }
 
         function initRealtimeSync() {
             loadLocalState();
             if (!window.db) { updateCloudBadge('Offline (Lokal)'); applyTableFilters(); updateMetrics(); updateNotifications(); return; }
             try {
-                const { collection, onSnapshot, doc, setDoc } = window.fbDeps;
-                onSnapshot(collection(window.db, "requests"), (snapshot) => {
-                    const cloudData = [];
-                    snapshot.forEach(docSnap => cloudData.push({ docId: docSnap.id, ...docSnap.data() }));
-                    if(cloudData.length > 0) {
-                        appState.requests = cloudData;
-                        saveLocalState();
+                const { collection, onSnapshot, doc } = window.fbDeps;
+                onSnapshot(collection(window.db, "requests"), { includeMetadataChanges: true }, (snapshot) => {
+                    // Data dari cache lokal (belum terhubung ke server) -> jangan tampilkan "Live"
+                    const fromCache = snapshot.metadata.fromCache;
+                    if (!fromCache) {
+                        const cloudData = [];
+                        snapshot.forEach(docSnap => cloudData.push({ docId: docSnap.id, ...docSnap.data() }));
+                        if (cloudData.length > 0) {
+                            appState.requests = cloudData;
+                            saveLocalState();
+                        }
                     }
-                    updateCloudBadge('Cloud Live');
+                    if (!fromCache) window.__cloudSynced = true;
+                    updateCloudBadge(fromCache ? 'Offline (Menghubungkan...)' : 'Cloud Live');
                     applyTableFilters();
                     updateMetrics();
                     updateNotifications();
-                }, () => updateCloudBadge('Offline (Lokal)'));
+                }, (err) => {
+                    console.error('[Firestore] requests listener error:', err.code, err.message);
+                    updateCloudBadge(firestoreErrMsg(err));
+                });
 
-                onSnapshot(doc(window.db, "settings", "master_config"), async (docSnap) => {
+                // Jika dalam 10 detik belum ada respons dari server, tampilkan status jelas (bukan "Syncing..." terus)
+                setTimeout(() => {
+                    if (!window.__cloudSynced) {
+                        console.warn('[Firestore] Tidak ada respons server dalam 10 detik. Cek internet, Firestore Rules, atau blokir firestore.googleapis.com');
+                        updateCloudBadge('Offline (Tidak bisa terhubung ke Firestore)');
+                    }
+                }, 10000);
+
+                onSnapshot(doc(window.db, "settings", "master_config"), (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         if (data.users) appState.users = data.users;
@@ -998,8 +1050,11 @@
                         if (appState.activeTab === 'master') renderMasterDataView();
                         populateDropdowns();
                     }
-                });
-            } catch (e) { updateCloudBadge('Offline (Lokal)'); }
+                }, (err) => console.error('[Firestore] master_config listener error:', err.code, err.message));
+            } catch (e) {
+                console.error('[Firestore] initRealtimeSync error:', e);
+                updateCloudBadge('Offline (Lokal)');
+            }
         }
 
         function updateCloudBadge(statusText) {
@@ -1360,7 +1415,7 @@
                 status: 'Pending', justification: document.getElementById('formJustification').value, gaNotes: '', items, audit: auditTrail
             };
 
-            if (window.db) { try { await window.fbDeps.addDoc(window.fbDeps.collection(window.db, "requests"), p); } catch(err){} } 
+            if (window.db) { try { await window.fbDeps.addDoc(window.fbDeps.collection(window.db, "requests"), p); } catch(err){ console.error("[Firestore] gagal tambah request:", err.code, err.message); } } 
             else { appState.requests.unshift(p); saveLocalState(); }
 
             launchSprinkles();
