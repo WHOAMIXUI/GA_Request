@@ -308,6 +308,7 @@
                     <button onclick="switchTab('aasg')" id="tab-aasg" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-right-left w-4 text-center"></i> Peminjaman Aset</button>
                     <button onclick="switchTab('amkt')" id="tab-amkt" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-store w-4 text-center"></i> Jual Beli Antar Toko</button>
                     <button onclick="switchTab('aven')" id="tab-aven" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-handshake w-4 text-center"></i> Manajemen Vendor</button>
+                    <button onclick="switchTab('acon')" id="tab-acon" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all text-dobah-200/60 hover:bg-cocoa-900 hover:text-white"><i class="fa-solid fa-address-book w-4 text-center"></i> Kontak Sales</button>
                 </div>
 
                 <div id="nav-master-section" class="pt-5">
@@ -613,6 +614,7 @@
         <section id="view-aasg" class="hidden space-y-6"></section>
         <section id="view-amkt" class="hidden space-y-6"></section>
         <section id="view-aven" class="hidden space-y-6"></section>
+        <section id="view-acon" class="hidden space-y-6"></section>
 
         <section id="view-master" class="hidden space-y-6">
             <div class="glass-panel p-5 border-l-4 border-l-dobah-400">
@@ -672,6 +674,16 @@
                         </button>
                     </div>
                     <div id="masterListBranches" class="space-y-2.5"></div>
+                </div>
+
+                <div class="glass-panel p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-dobah-200">Jenis kontak sales</h4>
+                        <button onclick="promptAddContactType()" class="modern-button bg-dobah-400/20 hover:bg-dobah-400/30 text-dobah-300 text-xs px-2.5 py-1 flex items-center border border-dobah-400/30">
+                            <i class="fa-solid fa-plus mr-1"></i>Tambah
+                        </button>
+                    </div>
+                    <div id="masterListContactTypes" class="space-y-2.5"></div>
                 </div>
             </div>
         </section>
@@ -915,6 +927,7 @@
             categories: ['SUPPORT EQUIPMENT', 'BANGUNAN', 'PERALATAN'],
             divisions: ['GA', 'HEAD STORE', 'ASST. HEAD STORE'],
             branches: ['DONAT BAHAGIA CILAKI', 'DONAT BAHAGIA CIBEUNYING', 'DONAT BAHAGIA MASKUMAMBANG'],
+            contactTypes: [{ id: 'lokasi', label: 'Tawaran Lokasi / Tempat' }, { id: 'mesin', label: 'Sales Mesin' }, { id: 'peralatan', label: 'Peralatan & Interior' }, { id: 'lain', label: 'Vendor Lainnya' }],
             
             requests: [
                 {
@@ -959,7 +972,7 @@
                 try {
                     const { doc, setDoc } = window.fbDeps;
                     await setDoc(doc(window.db, "settings", "master_config"), {
-                        users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches
+                        users: appState.users, categories: appState.categories, divisions: appState.divisions, branches: appState.branches, contactTypes: appState.contactTypes
                     }, { merge: true });
                 } catch(err) { console.error('[Firestore] gagal simpan master_config:', err.code, err.message); }
             }
@@ -970,6 +983,7 @@
             localStorage.setItem('assetReqCategoriesData', JSON.stringify(appState.categories));
             localStorage.setItem('assetReqDivisionsData', JSON.stringify(appState.divisions));
             localStorage.setItem('assetReqBranchesData', JSON.stringify(appState.branches));
+            localStorage.setItem('assetReqContactTypes', JSON.stringify(appState.contactTypes));
         }
 
         function loadMasterSettings() {
@@ -977,6 +991,7 @@
             const c = localStorage.getItem('assetReqCategoriesData'); if (c) { try { appState.categories = JSON.parse(c); } catch(e){} }
             const d = localStorage.getItem('assetReqDivisionsData'); if (d) { try { appState.divisions = JSON.parse(d); } catch(e){} }
             const b = localStorage.getItem('assetReqBranchesData'); if (b) { try { appState.branches = JSON.parse(b); } catch(e){} }
+            const ct = localStorage.getItem('assetReqContactTypes'); if (ct) { try { const v = JSON.parse(ct); if (Array.isArray(v)) appState.contactTypes = v; } catch(e){} }
         }
 
         function saveLocalState() { localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests)); }
@@ -1051,6 +1066,7 @@
                         if (data.categories) appState.categories = data.categories;
                         if (data.divisions) appState.divisions = data.divisions;
                         if (data.branches) appState.branches = data.branches;
+                        if (Array.isArray(data.contactTypes)) appState.contactTypes = data.contactTypes;
                         saveMasterSettingsToLocal();
                         if (appState.activeTab === 'master') renderMasterDataView();
                         populateDropdowns();
@@ -1896,6 +1912,40 @@
                 const el = document.getElementById('masterList' + k.charAt(0).toUpperCase() + k.slice(1));
                 if(el) el.innerHTML = appState[k].map((item, idx) => `<div class="flex items-center justify-between bg-cocoa-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold text-dobah-100"><span>${item}</span><button onclick="deleteMasterItem('${k}', ${idx})" class="text-rose-400 hover:text-rose-300 px-1 font-black">&times;</button></div>`).join('');
             });
+            const ce = document.getElementById('masterListContactTypes');
+            if (ce) ce.innerHTML = (appState.contactTypes || []).map(t => `<div class="flex items-center justify-between bg-cocoa-900/60 p-3 rounded-xl border border-white/10 text-xs font-semibold text-dobah-100"><span>${esc(t.label)}</span><span class="flex items-center gap-1"><button onclick="promptEditContactType('${t.id}')" title="Ubah nama" class="text-dobah-300 hover:text-white px-1"><i class="fa-solid fa-pen text-[11px]"></i></button><button onclick="deleteContactType('${t.id}')" title="Hapus" class="text-rose-400 hover:text-rose-300 px-1 font-black">&times;</button></span></div>`).join('') || '<p class="text-xs italic text-dobah-200/50">Belum ada jenis. Klik Tambah.</p>';
+        }
+        function contactTypeValidator(v, selfId) {
+            const t = (v || '').trim();
+            if (!t) return 'Nama jenis wajib diisi';
+            if ((appState.contactTypes || []).some(x => x.id !== selfId && x.label.toLowerCase() === t.toLowerCase())) return 'Jenis dengan nama itu sudah ada';
+            return null;
+        }
+        function afterContactTypeChange() { saveMasterSettings(); renderMasterDataView(); }
+        function promptAddContactType() {
+            Swal.fire({ title: 'Tambah Jenis Kontak', input: 'text', inputPlaceholder: 'mis. Sales Packaging', showCancelButton: true, confirmButtonColor: '#f4a23a', inputValidator: v => contactTypeValidator(v) }).then(r => {
+                if (!r.isConfirmed) return;
+                (appState.contactTypes = appState.contactTypes || []).push({ id: 'ct_' + Date.now().toString(36), label: r.value.trim() });
+                afterContactTypeChange();
+            });
+        }
+        function promptEditContactType(id) {
+            const t = (appState.contactTypes || []).find(x => x.id === id); if (!t) return;
+            Swal.fire({ title: 'Ubah Nama Jenis', input: 'text', inputValue: t.label, showCancelButton: true, confirmButtonColor: '#f4a23a', inputValidator: v => contactTypeValidator(v, id) }).then(r => {
+                if (!r.isConfirmed) return;
+                t.label = r.value.trim();
+                afterContactTypeChange();
+            });
+        }
+        function deleteContactType(id) {
+            const t = (appState.contactTypes || []).find(x => x.id === id); if (!t) return;
+            const used = ((window.AM && AM.contacts) || []).filter(c => c.type === id).length;
+            if (used > 0) return Swal.fire({ title: 'Jenis masih dipakai', text: `${used} kontak sales memakai jenis "${t.label}". Ubah jenis kontak tersebut dulu, atau cukup ganti nama jenisnya.`, icon: 'info', confirmButtonColor: '#f4a23a' });
+            Swal.fire({ title: 'Hapus jenis?', text: t.label, icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal', confirmButtonColor: '#e11d48' }).then(r => {
+                if (!r.isConfirmed) return;
+                appState.contactTypes = appState.contactTypes.filter(x => x.id !== id);
+                afterContactTypeChange();
+            });
         }
         function promptAddMasterItem(k) {
             Swal.fire({ title: `Tambah Data`, input: 'text', showCancelButton: true, confirmButtonColor: '#f4a23a' }).then(r => {
@@ -1943,7 +1993,7 @@
 /* ===== MODUL MANAJEMEN ASET (digabung dari Sistem Manajemen Aset GA) ===== */
 (function(){
 const LS='assetRegistryV1', $=id=>document.getElementById(id);
-const AM=window.AM={assets:[],vendors:[],life:{},loans:[],market:[],trades:[],incidents:[],incF:'all',mktTab:'browse',mq:'',vf:{t:'all',q:''},loanTab:'active',f:{q:'',loc:'',st:'',div:'',page:1},size:15,chart:null,built:false};
+const AM=window.AM={assets:[],vendors:[],contacts:[],cf:{t:'all',s:'',q:''},life:{},loans:[],market:[],trades:[],incidents:[],incF:'all',mktTab:'browse',mq:'',vf:{t:'all',q:''},loanTab:'active',f:{q:'',loc:'',st:'',div:'',page:1},size:15,chart:null,built:false};
 const DEF_VENDORS=[
  {id:'VND-01',type:'contract',name:'PT Dingin Sejahtera',service:'Perawatan & Servis AC / Chiller',phone:'021-5551234',expiry:'2026-11-15'},
  {id:'VND-02',type:'contract',name:'CV Generator Utama',service:'Maintenance Genset & Listrik',phone:'021-7789012',expiry:'2026-12-30'},
@@ -1967,7 +2017,7 @@ const onLoan=a=>AM.loans.filter(l=>l.assetId===a.id&&!l.returnedAt).reduce((n,l)
 
 /* --- penyimpanan --- */
 function migrate(){let ch=false;AM.assets.forEach(a=>{if(a.assigned){const o=a.assigned;AM.loans.push({id:'LN-M'+Date.now().toString(36).toUpperCase()+AM.loans.length,assetId:a.id,qty:1,name:o.name,nik:o.nik||'',dept:o.dept||'',purpose:'',date:today(),due:o.due||'',returnedAt:'',retCond:'',retNote:''});a.assigned=null;ch=true}});return ch}
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];AM.incidents=d.incidents||[];migrate()}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS));AM.loaded=true}
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){AM.assets=d.assets||[];AM.vendors=d.vendors||[];AM.contacts=d.contacts||[];AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];AM.incidents=d.incidents||[];migrate()}}catch(e){}if(!AM.vendors.length)AM.vendors=JSON.parse(JSON.stringify(DEF_VENDORS));AM.loaded=true}
 let wBusy=false,wDirty=false;
 const encU=new TextEncoder();
 function cloudWarn(msg){try{Swal.fire({toast:true,position:'top-end',icon:'error',title:'Gagal simpan ke cloud',text:msg,showConfirmButton:false,timer:8000})}catch(e){}}
@@ -1977,18 +2027,18 @@ async function doWrite(){const{setDoc,doc}=window.fbDeps,db=window.db;
   const n=parts.length-1,old=AM._rp||0;
   for(let i=1;i<=n;i++)await setDoc(doc(db,'settings','asset_registry_p'+(i+1)),{assets:parts[i],ts:Date.now()});
   for(let i=n+1;i<=old;i++)await setDoc(doc(db,'settings','asset_registry_p'+(i+1)),{assets:[],ts:Date.now()});
-  await setDoc(doc(db,'settings','asset_registry'),{vendors:AM.vendors,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents,assets:parts[0],parts:n});
+  await setDoc(doc(db,'settings','asset_registry'),{vendors:AM.vendors,contacts:AM.contacts,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents,assets:parts[0],parts:n});
   AM._rp=n;AM.cloudErr='';return true}
  catch(e){AM.cloudErr=String((e&&(e.code||e.message))||e||'tidak diketahui');console.error('Simpan cloud gagal:',e);return false}}
 async function cloudWrite(){if(wBusy){wDirty=true;return true}wBusy=true;let ok=true;try{do{wDirty=false;ok=await doWrite()}while(wDirty)}finally{wBusy=false}return ok}
-async function save(quiet){try{localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents}))}catch(e){console.warn('localStorage penuh',e)}
+async function save(quiet){try{localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,contacts:AM.contacts,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents}))}catch(e){console.warn('localStorage penuh',e)}
  let ok=true;if(window.db){ok=await cloudWrite();if(!ok&&!quiet)cloudWarn('Data baru hanya tersimpan di perangkat ini ('+AM.cloudErr+'). Coba lagi atau hubungi admin.')}
  renderActive();updateNotifications();return ok}
 AM.save=save;
 function applyCloud(){const d=AM._main;if(!d)return;const n=d.parts||0;let as=(d.assets||[]).slice();
  for(let i=2;i<=n+1;i++){if(AM._pd[i]===undefined)return;as=as.concat(AM._pd[i])}
- AM.assets=as;AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];AM.incidents=d.incidents||[];
- const mg=migrate();try{localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents}))}catch(e){}
+ AM.assets=as;AM.vendors=(d.vendors&&d.vendors.length)?d.vendors:AM.vendors;AM.contacts=Array.isArray(d.contacts)?d.contacts:(AM.contacts||[]);AM.life=d.life||{};AM.loans=d.loans||[];AM.market=d.market||[];AM.trades=d.trades||[];AM.incidents=d.incidents||[];
+ const mg=migrate();try{localStorage.setItem(LS,JSON.stringify({assets:AM.assets,vendors:AM.vendors,contacts:AM.contacts,life:AM.life,loans:AM.loans,market:AM.market,trades:AM.trades,incidents:AM.incidents}))}catch(e){}
  renderActive();updateNotifications();if(mg)save()}
 function subscribe(){if(AM.sub||!window.db)return;AM.sub=1;AM._pd={};AM._watch={};try{const{doc,onSnapshot}=window.fbDeps,db=window.db;
  onSnapshot(doc(db,'settings','asset_registry'),s=>{if(!s.exists())return;if(s.metadata&&s.metadata.hasPendingWrites)return;const d=s.data();AM._main=d;AM._rp=d.parts||0;
@@ -2105,7 +2155,7 @@ function venGrid(){const el=$('amVenGrid');if(!el)return;const f=AM.vf,qq=(f.q||
 function ven(){const ga=isGA(),V=AM.vendors,f=AM.vf,nC=V.filter(v=>vt(v)==='contract').length,nN=V.length-nC,soon=V.filter(v=>vt(v)==='contract'&&v.expiry&&days(v.expiry)<=60).length;
  const tabs=[['all','Semua ('+V.length+')'],['contract','Berkontrak ('+nC+')'],['none','Tanpa Kontrak ('+nN+')']].map(([k,l])=>`<button onclick="AM.vTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${f.t===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('');
  $('view-aven').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${kpi('Total Vendor',V.length,'fa-handshake')}${kpi('Berkontrak',nC,'fa-file-signature','emerald')}${kpi('Tanpa Kontrak',nN,'fa-file-circle-xmark','slate')}${kpi('Kontrak ≤ 60 hari',soon,'fa-hourglass-half','amber')}</div>
- <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div>${ga?`<button onclick="AM.vendor()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Vendor</button>`:''}</div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div><div class="flex gap-2"><button onclick="AM.vExport()" class="modern-button bg-cocoa-800 text-dobah-200 border border-white/10 text-xs font-bold px-4 py-2"><i class="fa-solid fa-file-excel mr-1"></i>Download Excel</button>${ga?`<button onclick="AM.vendor()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Vendor</button>`:''}</div></div>
  <div class="glass-panel p-4"><input placeholder="Cari nama vendor / layanan..." value="${esc(f.q)}" oninput="AM.vQ(this.value)" class="w-full glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"></div>
  <div id="amVenGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>`;venGrid()}
 AM.vTab=function(k){AM.vf.t=k;ven()};
@@ -2224,7 +2274,7 @@ function divBlock(){const L=mine().filter(a=>!dead(a)),g={};L.forEach(a=>{const 
  return `<h3 class="text-sm font-bold text-white mt-2"><i class="fa-solid fa-sitemap text-dobah-400 mr-2"></i>Alokasi per Divisi</h3>`+tbl(th('Divisi','Unit','Nilai Perolehan','Nilai Buku','Aksi'),rows,'Belum ada aset.')}
 function mapAll(){map();$('view-amap').insertAdjacentHTML('beforeend',divBlock())}
 AM.goDiv=function(i){const k=AM._dk[i];AM.f.div=k==='(Belum dialokasikan)'?'__NONE':k;AM.f.page=1;switchTab('areg')};
-const R={adash:dash,areg:reg,amap:mapAll,amtc:mtc,ainc:incView,adep:depr,aasg:loanView,amkt:mkt,aven:ven};
+const R={adash:dash,areg:reg,amap:mapAll,amtc:mtc,ainc:incView,adep:depr,aasg:loanView,amkt:mkt,aven:ven,acon:con};
 function renderActive(){const t=appState.activeTab;if(R[t])R[t]()}
 
 /* --- aksi --- */
@@ -2293,6 +2343,52 @@ AM.vendor=async function(id){if(!isGA())return deny();const v=AM.vendors.find(x=
  if(!r)return;if(r.type==='none'){r.contractNo='';r.start='';r.expiry=''}
  if(id)Object.assign(v,r);else AM.vendors.push({id:'VND-'+Date.now().toString(36).toUpperCase(),...r});save()};
 AM.delVendor=async function(id){if(!isGA())return deny();if(!(await confirmBox('Hapus vendor?','')))return;AM.vendors=AM.vendors.filter(v=>v.id!==id);save()};
+
+/* --- kontak sales: penawaran lokasi / tempat & vendor mesin dll --- */
+const CT_ICON={lokasi:'fa-location-dot',mesin:'fa-gears',peralatan:'fa-chair',lain:'fa-box-open'},CT_COL=['amber','sky','emerald','slate','rose','dobah'],CT_FIX={lokasi:'amber',mesin:'sky',peralatan:'emerald',lain:'slate'};
+const ctList=()=>appState.contactTypes||[];
+const ctInfo=k=>{const t=ctList().find(x=>x.id===k);let h=0;String(k||'').split('').forEach(ch=>h=(h*31+ch.charCodeAt(0))>>>0);return [t?t.label:'(Jenis dihapus)',CT_ICON[k]||'fa-tag',CT_FIX[k]||CT_COL[h%CT_COL.length]]};
+const CS={baru:['Baru','sky'],dihubungi:['Sudah Dihubungi','amber'],negosiasi:['Negosiasi','dobah'],deal:['Deal','emerald'],batal:['Tidak Lanjut','rose']};
+const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(!d)return '';if(d.startsWith('0'))d='62'+d.slice(1);else if(d.startsWith('8'))d='62'+d;return d};
+function ccard(c){const t=ctInfo(c.type),s=CS[c.status]||CS.baru,wa=waNum(c.phone),ga=isGA(),
+ lk=(href,ic,tt,cls,ext)=>`<a href="${href}" ${ext?'target="_blank" rel="noopener"':''} title="${tt}" class="modern-button bg-cocoa-800 hover:bg-cocoa-900 ${cls} text-[11px] px-2.5 py-1.5 border border-white/5 ml-1 inline-block"><i class="${ic}"></i></a>`;
+ return `<div class="glass-panel p-5"><div class="flex justify-between items-start gap-2"><div class="min-w-0"><h3 class="font-bold text-white text-sm">${esc(c.name)}</h3>${c.company?`<p class="text-xs text-dobah-200/70 mt-0.5">${esc(c.company)}</p>`:''}</div><span class="px-2 py-1 text-[10px] font-bold rounded border bg-${s[1]}-500/10 text-${s[1]}-400 border-${s[1]}-500/20 whitespace-nowrap">${s[0]}</span></div>
+ <p class="text-[11px] mt-2 font-bold text-${t[2]}-400"><i class="fa-solid ${t[1]} mr-1"></i>${t[0]}</p>
+ ${c.offer?`<p class="text-xs text-dobah-200/80 mt-2">${esc(c.offer)}</p>`:''}
+ ${c.phone?`<p class="text-xs text-dobah-200/60 mt-2"><i class="fa-solid fa-phone mr-1"></i>${esc(c.phone)}</p>`:''}
+ ${c.email?`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-regular fa-envelope mr-1"></i>${esc(c.email)}</p>`:''}
+ ${c.area?`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${esc(c.area)}</p>`:''}
+ ${c.last?`<p class="text-xs text-dobah-200/60 mt-1"><i class="fa-regular fa-calendar mr-1"></i>Kontak terakhir: ${esc(c.last)}</p>`:''}
+ ${c.note?`<p class="text-[11px] text-dobah-200/60 mt-2 italic">${esc(c.note)}</p>`:''}
+ <div class="mt-3 flex flex-wrap items-center gap-y-1">${wa?lk('https://wa.me/'+wa,'fa-brands fa-whatsapp','Chat WhatsApp','text-emerald-400',1):''}${c.phone?lk('tel:'+esc(String(c.phone).replace(/[^\d+]/g,'')),'fa-solid fa-phone','Telepon','text-dobah-300'):''}${c.email?lk('mailto:'+esc(c.email),'fa-regular fa-envelope','Kirim email','text-dobah-300'):''}${ga?btn(`AM.contact('${c.id}')`,'fa-pen','Edit')+btn(`AM.delContact('${c.id}')`,'fa-trash','Hapus','text-rose-400'):''}</div></div>`}
+function conGrid(){const el=$('amConGrid');if(!el)return;const f=AM.cf,qq=(f.q||'').toLowerCase();
+ const L=AM.contacts.filter(c=>(f.t==='all'||c.type===f.t)&&(!f.s||c.status===f.s)&&(!qq||[c.name,c.company,c.offer,c.phone,c.email,c.area,c.note].join(' ').toLowerCase().includes(qq))).sort((a,b)=>(b.ts||0)-(a.ts||0));
+ el.innerHTML=L.length?L.map(ccard).join(''):'<div class="glass-panel p-10 text-center text-dobah-200/50 italic md:col-span-2 xl:col-span-3">'+(AM.contacts.length?'Tidak ada kontak pada filter ini.':'Belum ada kontak sales. Klik “Tambah Kontak” untuk menyimpan.')+'</div>'}
+function con(){const ga=isGA(),C=AM.contacts,f=AM.cf,cnt=k=>C.filter(c=>c.type===k).length,fu=C.filter(c=>c.status==='baru'||c.status==='dihubungi').length;if(f.t!=='all'&&!ctList().some(t=>t.id===f.t))f.t='all';
+ const tabs=[['all','Semua ('+C.length+')']].concat(ctList().map(t=>[t.id,t.label+' ('+cnt(t.id)+')'])).map(([k,l])=>`<button onclick="AM.cTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${f.t===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('');
+ $('view-acon').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${kpi('Total Kontak',C.length,'fa-address-book')}${kpi('Perlu Follow-up',fu,'fa-phone-volume','rose')}${kpi('Negosiasi',C.filter(c=>c.status==='negosiasi').length,'fa-comments-dollar','amber')}${kpi('Deal',C.filter(c=>c.status==='deal').length,'fa-circle-check','emerald')}</div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div><div class="flex gap-2"><button onclick="AM.cExport()" class="modern-button bg-cocoa-800 text-dobah-200 border border-white/10 text-xs font-bold px-4 py-2"><i class="fa-solid fa-file-excel mr-1"></i>Download Excel</button>${ga?`<button onclick="AM.contact()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Kontak</button>`:''}</div></div>
+ <div class="glass-panel p-4 flex flex-col sm:flex-row gap-3"><input placeholder="Cari nama / perusahaan / penawaran / telepon..." value="${esc(f.q)}" oninput="AM.cQ(this.value)" class="flex-1 glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"><select onchange="AM.cS(this.value)" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"><option value="" class="bg-cocoa-900">Semua Status</option>${Object.entries(CS).map(([k,v])=>`<option value="${k}" class="bg-cocoa-900" ${f.s===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+ <div id="amConGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>`;conGrid()}
+AM.cTab=function(k){AM.cf.t=k;con()};
+AM.cQ=function(v){AM.cf.q=v;conGrid()};
+AM.cS=function(v){AM.cf.s=v;conGrid()};
+AM.contact=async function(id){if(!isGA())return deny();const c=AM.contacts.find(x=>x.id===id)||{};if(!ctList().length)return Swal.fire({title:'Belum ada jenis kontak',text:'Tambahkan dulu di menu Master Data & Akun, bagian “Jenis kontak sales”.',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
+ const r=await ask(id?'Edit Kontak Sales':'Tambah Kontak Sales',[{k:'type',l:'Jenis',v:(ctList().some(t=>t.id===c.type)?c.type:ctList()[0].id),opts:ctList().map(t=>[t.id,t.label])},{k:'name',l:'Nama sales / kontak',v:c.name,req:1},{k:'company',l:'Perusahaan / pemilik / agen',v:c.company},{k:'offer',l:'Yang ditawarkan (lokasi, mesin, harga, dll)',v:c.offer},{k:'phone',l:'Telepon / WhatsApp',t:'tel',v:c.phone},{k:'email',l:'Email',t:'email',v:c.email},{k:'area',l:'Alamat / area',v:c.area},{k:'status',l:'Status follow-up',v:c.status||'baru',opts:Object.entries(CS).map(([k,v])=>[k,v[0]])},{k:'last',l:'Tanggal kontak terakhir',t:'date',v:c.last||today()},{k:'note',l:'Catatan',v:c.note}],'Simpan',{check:o=>(!o.phone&&!o.email)?'Isi minimal telepon / WhatsApp atau email':''});
+ if(!r)return;if(id)Object.assign(c,r);else AM.contacts.push({id:'CTK-'+Date.now().toString(36).toUpperCase(),ts:Date.now(),...r});save()};
+AM.delContact=async function(id){if(!isGA())return deny();const c=AM.contacts.find(x=>x.id===id);if(!c||!(await confirmBox('Hapus kontak?',c.name)))return;AM.contacts=AM.contacts.filter(x=>x.id!==id);save()};
+async function xlsDownload(file,sheet,head,rows,widths){
+ try{await loadXLSX()}catch(e){return Swal.fire({title:'Gagal memuat pustaka Excel',text:'Periksa koneksi internet lalu coba lagi.',icon:'error',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})}
+ const ws=XLSX.utils.aoa_to_sheet([head].concat(rows));ws['!cols']=widths.map(w=>({wch:w}));ws['!freeze']={xSplit:0,ySplit:1};
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheet);XLSX.writeFile(wb,file+'-'+today()+'.xlsx')}
+AM.cExport=function(){const L=AM.contacts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+ if(!L.length)return Swal.fire({title:'Belum ada data kontak',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
+ return xlsDownload('kontak-sales','Kontak Sales',['Jenis','Nama Sales','Perusahaan','Penawaran','Telepon / WhatsApp','Email','Alamat / Area','Status','Kontak Terakhir','Catatan'],
+  L.map(c=>[ctInfo(c.type)[0],c.name||'',c.company||'',c.offer||'',c.phone||'',c.email||'',c.area||'',(CS[c.status]||CS.baru)[0],c.last||'',c.note||'']),[24,24,26,36,20,26,30,16,16,36])};
+AM.vExport=function(){const V=AM.vendors.slice();
+ if(!V.length)return Swal.fire({title:'Belum ada data vendor',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
+ return xlsDownload('data-vendor','Vendor',['Nama Vendor','Layanan','Telepon','Status Kerja Sama','No. Kontrak','Kontrak Mulai','Kontrak Berakhir','Sisa Hari','Catatan'],
+  V.map(v=>{const n=vt(v)==='none';return [v.name||'',v.service||'',v.phone||'',n?'Tanpa Kontrak':'Berkontrak',n?'':(v.contractNo||''),n?'':(v.start||''),n?'':(v.expiry||''),(!n&&v.expiry)?days(v.expiry):'',v.note||'']}),[28,28,18,18,20,16,18,10,40])};
 AM.setLife=function(c,v){if(!isGA())return;AM.life[c]=Math.max(1,Number(v)||5);save()};
 AM.pg=function(d){const tp=Math.max(1,Math.ceil(filtered().length/AM.size));AM.f.page=Math.min(tp,Math.max(1,AM.f.page+d));regRows()};
 AM.goBranch=function(b){AM.f.loc=b;AM.f.page=1;switchTab('areg')};
@@ -2417,13 +2513,13 @@ AM.reset=async function(){if(!isGA())return deny();const n=AM.assets.length,l=AM
  await save();Swal.fire({title:'Registry dikosongkan',text:'Seluruh data aset dan peminjaman sudah dihapus.',icon:'success',...W,confirmButtonColor:'#f4a23a'})};
 
 /* --- integrasi dengan aplikasi permintaan --- */
-const TABS=['form','list','master','adash','areg','amap','amtc','ainc','adep','aasg','amkt','aven'],GA_ONLY=['master','adep','aasg','amkt','aven'],
- TT={form:'Buat Permintaan Aset',list:'Dashboard & Status Pengajuan Tiket',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',ainc:'Aset Rusak & Hilang',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',amkt:'Jual Beli Aset Antar Toko',aven:'Manajemen Vendor'};
+const TABS=['form','list','master','adash','areg','amap','amtc','ainc','adep','aasg','amkt','aven','acon'],GA_ONLY=['master','adep','aasg','amkt','aven','acon'],
+ TT={form:'Buat Permintaan Aset',list:'Dashboard & Status Pengajuan Tiket',master:'Master Data & Akun',adash:'Dashboard Aset',areg:'Registry Aset',amap:'Pemetaan Cabang',amtc:'Maintenance Aset',ainc:'Aset Rusak & Hilang',adep:'Depresiasi & Nilai Buku',aasg:'Peminjaman Aset',amkt:'Jual Beli Aset Antar Toko',aven:'Manajemen Vendor',acon:'Kontak Sales & Penawaran'};
 window.switchTab=function(t){const s=user();if(s&&s.role==='Staff Store'&&GA_ONLY.includes(t)){Swal.fire({title:'Akses Dibatasi',text:'Menu ini hanya untuk GA Manager.',icon:'warning',background:'#22120a',color:'#fcf6f0'});return}
  appState.activeTab=t;TABS.forEach(x=>{$('view-'+x).classList.add('hidden');$('tab-'+x).className=NAV_IDLE_CLS});$('view-'+t).classList.remove('hidden');$('tab-'+t).className=NAV_ACTIVE_CLS;
  const pt=$('page-title');if(pt)pt.textContent=TT[t]||'';const wb=$('welcomeBanner');if(wb)wb.style.display=(t==='list')?'none':'';if(window.innerWidth<768)toggleSidebar(false);
  if(t==='list'){applyTableFilters();updateMetrics()}else if(t==='master')renderMasterDataView();else if(R[t])R[t]()};
-const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','amkt','aven'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive();NC.start()};
+const _chk=window.checkUserSession;window.checkUserSession=function(){_chk();const st=(user()||{}).role==='Staff Store';['adep','aasg','amkt','aven','acon'].forEach(x=>{const b=$('tab-'+x);if(b)b.style.display=st?'none':'flex'});renderActive();NC.start()};
 /* ===== PUSAT NOTIFIKASI REALTIME ===== */
 const ld=()=>{const t=new Date(),p=n=>String(n).padStart(2,'0');return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`};
 const NC=window.NC={store:null,uid:null,built:false,live:false,fresh:[]};
