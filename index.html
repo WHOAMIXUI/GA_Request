@@ -2367,7 +2367,7 @@ function conGrid(){const el=$('amConGrid');if(!el)return;const f=AM.cf,qq=(f.q||
 function con(){const ga=isGA(),C=AM.contacts,f=AM.cf,cnt=k=>C.filter(c=>c.type===k).length,fu=C.filter(c=>c.status==='baru'||c.status==='dihubungi').length;if(f.t!=='all'&&!ctList().some(t=>t.id===f.t))f.t='all';
  const tabs=[['all','Semua ('+C.length+')']].concat(ctList().map(t=>[t.id,t.label+' ('+cnt(t.id)+')'])).map(([k,l])=>`<button onclick="AM.cTab('${k}')" class="modern-button text-xs font-bold px-4 py-2 border ${f.t===k?'bg-dobah-400 text-cocoa-950 border-dobah-400':'bg-cocoa-800 text-dobah-200 border-white/10'}">${l}</button>`).join('');
  $('view-acon').innerHTML=`<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${kpi('Total Kontak',C.length,'fa-address-book')}${kpi('Perlu Follow-up',fu,'fa-phone-volume','rose')}${kpi('Negosiasi',C.filter(c=>c.status==='negosiasi').length,'fa-comments-dollar','amber')}${kpi('Deal',C.filter(c=>c.status==='deal').length,'fa-circle-check','emerald')}</div>
- <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div><div class="flex gap-2"><button onclick="AM.cExport()" class="modern-button bg-cocoa-800 text-dobah-200 border border-white/10 text-xs font-bold px-4 py-2"><i class="fa-solid fa-file-excel mr-1"></i>Download Excel</button>${ga?`<button onclick="AM.contact()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Kontak</button>`:''}</div></div>
+ <div class="flex flex-wrap justify-between items-center gap-3"><div class="flex gap-2 flex-wrap">${tabs}</div><div class="flex gap-2">${ga?`<button onclick="AM.cBulk()" class="modern-button bg-cocoa-800 text-dobah-200 border border-white/10 text-xs font-bold px-4 py-2"><i class="fa-solid fa-file-arrow-up mr-1"></i>Upload Massal</button>`:''}<button onclick="AM.cExport()" class="modern-button bg-cocoa-800 text-dobah-200 border border-white/10 text-xs font-bold px-4 py-2"><i class="fa-solid fa-file-excel mr-1"></i>Download Excel</button>${ga?`<button onclick="AM.contact()" class="modern-button bg-dobah-400 text-cocoa-950 text-xs font-bold px-4 py-2"><i class="fa-solid fa-plus mr-1"></i>Tambah Kontak</button>`:''}</div></div>
  <div class="glass-panel p-4 flex flex-col sm:flex-row gap-3"><input placeholder="Cari nama / perusahaan / penawaran / telepon..." value="${esc(f.q)}" oninput="AM.cQ(this.value)" class="flex-1 glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"><select onchange="AM.cS(this.value)" class="glass-input px-3.5 py-2 text-xs sm:text-sm font-semibold"><option value="" class="bg-cocoa-900">Semua Status</option>${Object.entries(CS).map(([k,v])=>`<option value="${k}" class="bg-cocoa-900" ${f.s===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
  <div id="amConGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>`;conGrid()}
 AM.cTab=function(k){AM.cf.t=k;con()};
@@ -2385,6 +2385,55 @@ AM.cExport=function(){const L=AM.contacts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0
  if(!L.length)return Swal.fire({title:'Belum ada data kontak',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
  return xlsDownload('kontak-sales','Kontak Sales',['Jenis','Nama Sales','Perusahaan','Penawaran','Telepon / WhatsApp','Email','Alamat / Area','Status','Kontak Terakhir','Catatan'],
   L.map(c=>[ctInfo(c.type)[0],c.name||'',c.company||'',c.offer||'',c.phone||'',c.email||'',c.area||'',(CS[c.status]||CS.baru)[0],c.last||'',c.note||'']),[24,24,26,36,20,26,30,16,16,36])};
+
+/* --- upload massal kontak sales (XLSX / CSV) + template --- */
+const CMAP={type:['jenis','tipe','type','kategori'],name:['nama sales','nama','nama kontak','nama sales / kontak','name'],company:['perusahaan','company','pemilik','agen','perusahaan / pemilik / agen','instansi'],offer:['penawaran','yang ditawarkan','tawaran','offer','yang ditawarkan (lokasi, mesin, harga, dll)'],phone:['telepon / whatsapp','telepon','telp','no hp','no. hp','hp','wa','whatsapp','phone'],email:['email','e-mail'],area:['alamat / area','alamat','area','lokasi'],status:['status','status follow-up','status follow up'],last:['kontak terakhir','tanggal kontak terakhir','tgl kontak terakhir','last contact'],note:['catatan','note','keterangan']};
+const CHEAD=['Jenis','Nama Sales','Perusahaan','Penawaran','Telepon / WhatsApp','Email','Alamat / Area','Status','Kontak Terakhir','Catatan'];
+const cPhone=v=>{if(v==null||v==='')return '';if(typeof v==='number'){const t=String(Math.round(v));return t.startsWith('8')?'0'+t:t}return String(v).trim()};
+function buildContacts(tb){if(tb.length<2)return{err:'File kosong atau hanya berisi header.'};
+ const norm=x=>String(x==null?'':x).trim().toLowerCase().replace(/\s+/g,' '),H=tb[0].map(norm),ix={};
+ for(const k in CMAP)ix[k]=H.findIndex(h=>CMAP[k].includes(h));
+ if(ix.name<0)return{err:'Kolom “Nama Sales” tidak ditemukan. Gunakan template.'};
+ const types={};ctList().forEach(t=>{types[norm(t.label)]=t.id;types[norm(t.id)]=t.id});
+ const stats={};Object.entries(CS).forEach(([k,v])=>{stats[norm(k)]=k;stats[norm(v[0])]=k});
+ const dk=c=>norm(c.name)+'|'+(String(c.phone||'').replace(/\D/g,'')||norm(c.email));
+ const seen=new Set(AM.contacts.map(dk)),ok=[],bad=[],dup=[];
+ tb.slice(1).forEach((r,n)=>{const g=k=>ix[k]<0?'':r[ix[k]],line=n+2,e=[],name=String(g('name')).trim(),phone=cPhone(g('phone')),email=String(g('email')).trim(),
+  tRaw=String(g('type')).trim(),type=types[norm(tRaw)],sRaw=String(g('status')).trim(),status=sRaw?stats[norm(sRaw)]:'baru',last=pDate(g('last'));
+  if(!name)e.push('Nama kosong');if(!phone&&!email)e.push('Isi minimal telepon atau email');
+  if(!tRaw)e.push('Jenis kosong');else if(!type)e.push(`Jenis “${tRaw}” tidak dikenali (lihat sheet Petunjuk di template)`);
+  if(!status)e.push(`Status “${sRaw}” tidak valid`);if(!last)e.push('Format tanggal kontak terakhir tidak dikenali');
+  const c={type,name,company:String(g('company')).trim(),offer:String(g('offer')).trim(),phone,email,area:String(g('area')).trim(),status,last:last||'',note:String(g('note')).trim()};
+  if(e.length)return bad.push({line,name,e:e.join('; ')});
+  const key=dk(c);if(seen.has(key))return dup.push({line,name});seen.add(key);ok.push(c)});
+ return{ok,bad,dup}}
+AM.cTpl=async function(){try{await loadXLSX()}catch(e){return Swal.fire({title:'Gagal memuat pustaka Excel',text:'Periksa koneksi internet lalu coba lagi.',icon:'error',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'})}
+ const T=ctList(),t0=(T[0]||{label:'Sales Mesin'}).label,t1=(T[1]||T[0]||{label:'Sales Mesin'}).label;
+ const ws=XLSX.utils.aoa_to_sheet([CHEAD,[t0,'Budi Santoso','PT Contoh Mesin Jaya','Mesin donat otomatis 2 jalur, Rp 45.000.000','081234567890','budi@contoh.com','Bandung','Baru',today(),'Contoh baris, hapus sebelum upload'],[t1,'Ibu Sari','Agen Properti Sejahtera','Ruko 2 lantai 120 m², sewa Rp 60 jt/tahun','6281298765432','','Jl. Contoh No. 10, Bogor','Negosiasi',today(),'']]);
+ ws['!cols']=[24,22,26,40,22,24,30,16,16,34].map(w=>({wch:w}));
+ ['E2','E3'].forEach(a=>{if(ws[a])ws[a].t='s'});
+ const guide=[['PETUNJUK PENGISIAN'],[''],['Kolom wajib','Nama Sales, Jenis, dan minimal salah satu dari Telepon / Email'],['Telepon','Boleh format 08xx atau 62xx. Agar angka 0 di depan tidak hilang, format kolom sebagai Teks'],['Kontak Terakhir','Format YYYY-MM-DD atau DD/MM/YYYY. Kosong = hari ini'],['Kontak ganda','Nama + telepon (atau email) yang sudah ada akan dilewati'],[''],['JENIS YANG VALID (kelola di Master Data & Akun)']].concat(T.map(t=>[t.label])).concat([[''],['STATUS YANG VALID']]).concat(Object.values(CS).map(v=>[v[0]]));
+ const g=XLSX.utils.aoa_to_sheet(guide);g['!cols']=[{wch:22},{wch:80}];
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Template');XLSX.utils.book_append_sheet(wb,g,'Petunjuk');XLSX.writeFile(wb,'template-upload-kontak-sales.xlsx')};
+AM.cBulk=function(){if(!isGA())return deny();AM._crows=null;
+ if(!ctList().length)return Swal.fire({title:'Belum ada jenis kontak',text:'Tambahkan dulu di Master Data & Akun, bagian “Jenis kontak sales”.',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
+ Swal.fire({title:'Upload Kontak Sales Massal',width:700,background:'#22120a',color:'#fcf6f0',showCancelButton:true,confirmButtonText:'Impor',cancelButtonText:'Batal',confirmButtonColor:'#f4a23a',
+  html:`<div class="text-left text-xs space-y-3"><p class="text-[#edd5b3]">Unggah file <b>.xlsx</b> atau <b>.csv</b>. Wajib diisi: <b>Nama Sales</b>, <b>Jenis</b>, dan minimal <b>Telepon</b> atau <b>Email</b>. Jenis harus sama dengan daftar di Master Data (lihat sheet <b>Petunjuk</b> di template). Kontak yang sudah ada (nama + telepon sama) otomatis dilewati.</p>
+  <button type="button" onclick="AM.cTpl()" class="px-3 py-2 rounded-lg bg-[#331d14] border border-white/10 text-[#e1b782] font-bold"><i class="fa-solid fa-download mr-1"></i>Unduh Template Excel</button>
+  <input id="amCFile" type="file" accept=".xlsx,.xls,.csv" class="block w-full text-xs file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#f4a23a] file:text-[#150a05] file:font-bold"><div id="amCPrev"></div></div>`,
+  didOpen:()=>{Swal.disableButtons();$('amCFile').onchange=async e=>{const f=e.target.files[0],pv=$('amCPrev');if(!f)return;pv.innerHTML='<p class="italic text-[#edd5b3]">Membaca file...</p>';AM._crows=null;Swal.disableButtons();
+   try{let tb;if(/\.xlsx?$/i.test(f.name)){await loadXLSX();const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});tb=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:''}).filter(r=>r.some(v=>String(v).trim()!==''))}else tb=parseCSV(await f.text());
+    const r=buildContacts(tb);if(r.err){pv.innerHTML=`<p class="text-rose-400 font-bold">${esc(r.err)}</p>`;return}
+    AM._crows=r.ok;
+    pv.innerHTML=`<div class="p-3 bg-[#150a05] rounded-lg"><span class="text-emerald-400 font-bold">${r.ok.length} kontak valid</span>${r.bad.length?` · <span class="text-rose-400 font-bold">${r.bad.length} baris bermasalah (dilewati)</span>`:''}${r.dup.length?` · <span class="text-amber-400 font-bold">${r.dup.length} kontak sudah ada (dilewati)</span>`:''}</div>
+    ${r.ok.length?`<div class="overflow-x-auto max-h-40 mt-2"><table class="w-full text-[11px]"><tr class="text-[#e1b782] text-left"><th class="p-1">Nama</th><th>Jenis</th><th>Perusahaan</th><th>Kontak</th></tr>${r.ok.slice(0,6).map(x=>`<tr class="border-t border-white/5"><td class="p-1">${esc(x.name)}</td><td>${esc(ctInfo(x.type)[0])}</td><td>${esc(x.company)||'—'}</td><td>${esc(x.phone||x.email)}</td></tr>`).join('')}</table>${r.ok.length>6?`<p class="text-[#edd5b3]/60 mt-1">…dan ${r.ok.length-6} baris lainnya</p>`:''}</div>`:''}
+    ${r.bad.length?`<div class="mt-2 max-h-32 overflow-y-auto text-[11px] text-rose-300">${r.bad.slice(0,15).map(x=>`<div>Baris ${x.line}${x.name?' ('+esc(x.name)+')':''}: ${esc(x.e)}</div>`).join('')}${r.bad.length>15?`<div>…dan ${r.bad.length-15} masalah lain</div>`:''}</div>`:''}`;
+    if(r.ok.length){Swal.enableButtons();Swal.getConfirmButton().textContent=`Impor ${r.ok.length} kontak`}
+   }catch(err){pv.innerHTML=`<p class="text-rose-400 font-bold">${esc(err.message||'Gagal membaca file.')}</p>`}}},
+  preConfirm:()=>AM._crows}).then(async r=>{if(!r.isConfirmed||!r.value)return;const t=Date.now(),pre=t.toString(36).toUpperCase();
+   r.value.forEach((c,i)=>AM.contacts.push({id:`CTK-${pre}${String(i).padStart(3,'0')}`,ts:t+i,...c}));
+   const ok=await save(true),W={background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'};
+   Swal.fire(ok?{title:'Berhasil',text:`${r.value.length} kontak sales berhasil diimpor.`,icon:'success',...W}:{title:'Belum tersimpan ke cloud',text:`${r.value.length} kontak masuk di perangkat ini, tetapi GAGAL disimpan ke cloud (${AM.cloudErr}). Jangan muat ulang halaman, hubungi admin.`,icon:'warning',...W})})};
 AM.vExport=function(){const V=AM.vendors.slice();
  if(!V.length)return Swal.fire({title:'Belum ada data vendor',icon:'info',background:'#22120a',color:'#fcf6f0',confirmButtonColor:'#f4a23a'});
  return xlsDownload('data-vendor','Vendor',['Nama Vendor','Layanan','Telepon','Status Kerja Sama','No. Kontrak','Kontrak Mulai','Kontrak Berakhir','Sisa Hari','Catatan'],
