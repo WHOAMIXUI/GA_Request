@@ -994,7 +994,15 @@
             const ct = localStorage.getItem('assetReqContactTypes'); if (ct) { try { const v = JSON.parse(ct); if (Array.isArray(v)) appState.contactTypes = v; } catch(e){} }
         }
 
-        function saveLocalState() { localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests)); }
+        function saveLocalState() {
+            try {
+                localStorage.setItem('assetReqLocalData', JSON.stringify(appState.requests));
+            } catch (e) {
+                // Kuota localStorage penuh: jangan sampai memutus alur sinkronisasi Firestore
+                console.warn('[Local] Penyimpanan lokal penuh, dilewati:', e && e.name);
+                try { localStorage.removeItem('assetReqLocalData'); } catch (_) {}
+            }
+        }
         
         function loadLocalState() { 
             const local = localStorage.getItem('assetReqLocalData'); 
