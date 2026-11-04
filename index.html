@@ -114,6 +114,8 @@
         ::-webkit-scrollbar-thumb:hover { background: #f4a23a; }
 
         #print-sheet { display: none; }
+        .tk-print { display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem; margin-right: .35rem; border-radius: .6rem; color: #ffc97a; transition: background .15s; vertical-align: middle; }
+        .tk-print:hover { background: rgba(244,162,58,.2); }
         @media print {
             @page { size: A4; margin: 14mm; }
             html, body { background: #fff !important; background-image: none !important; overflow: visible !important; height: auto !important; }
@@ -138,8 +140,11 @@
             .ps .c { text-align: center; } .ps .r { text-align: right; white-space: nowrap; }
             .ps tfoot td { background: #fff6e8 !important; font-weight: 800; font-size: 12px; }
             .ps-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .ps-hist { list-style: none; padding-left: 12px; }
+            .ps-hist li { margin: 2px 0; }
+            .ps-sign b { min-height: 14px; }
             .ps-photos figure { margin: 0; page-break-inside: avoid; text-align: center; }
-            .ps-photos img { width: 100%; height: 90px; object-fit: cover; border: 1px solid #ccc; border-radius: 6px; }
+            .ps-photos img { width: 100%; height: 70px; object-fit: cover; border: 1px solid #ccc; border-radius: 6px; }
             .ps-photos figcaption { font-size: 9px; margin-top: 2px; }
             .ps ul { margin: 0; padding-left: 16px; font-size: 10px; color: #444; }
             .ps-sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; text-align: center; page-break-inside: avoid; }
@@ -1081,60 +1086,64 @@
         let currentDetailIdx = null;
         function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-        async function printRequest() {
-            const req = appState.requests[currentDetailIdx];
-            if (!req) return Swal.fire('Info', 'Buka detail tiket terlebih dahulu.', 'info');
+        async function printRequest(idx) {
+            const i0 = (typeof idx === 'number') ? idx : currentDetailIdx;
+            const req = appState.requests[i0];
+            if (!req) return Swal.fire('Info', 'Tiket tidak ditemukan.', 'info');
             const u = getCurrentUser() || {};
-            const logoEl = document.querySelector('#loginModal img[alt="Dobah"]');
+            const logoEl = document.querySelector('#loginModal img[alt="Dobah"]') || document.querySelector('img[data-logo="full"]');
             const logo = logoEl ? logoEl.src : '';
             const items = req.items || [];
-            let total = 0;
-            const rows = items.map((it, i) => {
-                const sub = (Number(it.qty) || 0) * (Number(it.cost) || 0);
-                total += sub;
-                return `<tr><td class="c">${i + 1}</td><td><b>${esc(it.name)}</b>${it.notes ? `<br><small>${esc(it.notes)}</small>` : ''}</td><td>${esc(it.category)}</td><td class="c">${esc(it.qty)} ${esc(it.unit)}</td><td class="r">${formatRupiah(Number(it.cost) || 0)}</td><td class="r">${formatRupiah(sub)}</td><td class="c">${esc(it.itemStatus || '-')}</td></tr>`;
-            }).join('');
-            const photos = items.filter(i => i.photo).map(i => `<figure><img src="${esc(i.photo)}" alt=""><figcaption>${esc(i.name)}</figcaption></figure>`).join('');
-            const requester = (req.audit && req.audit[0] && req.audit[0].actor) || '-';
-            const audit = (req.audit || []).map(a => `<li>${esc(a.timestamp)} &ndash; ${esc(a.actor)} (${esc(a.role)}): ${esc(a.action)}</li>`).join('');
+            const TICKET_ST = { Pending: 'Menunggu', Approved: 'Diproses', Completed: 'Selesai', Rejected: 'Ditolak' };
+            const PRIO = { Low: 'Rendah', Medium: 'Sedang', High: 'Tinggi', Critical: 'Darurat' };
+            const prio = PRIO[req.urgency] || req.urgency || '-';
+            const tStatus = TICKET_ST[req.status] || req.status || '-';
+            const requester = ticketApplicant(req) || '-';
+
+            const rows = items.map((it, i) => `
+                <tr>
+                    <td class="c">${i + 1}</td>
+                    <td><b>${esc(it.name)}</b>${it.notes ? `<br><small>${esc(it.notes)}</small>` : ''}</td>
+                    <td>${esc(it.category || '-')}</td>
+                    <td class="c">${esc(prio)}</td>
+                    <td class="c">${esc(it.itemStatus || 'Menunggu')}</td>
+                </tr>`).join('');
+            const photos = items.filter(it => it.photo).map(it => `<figure><img src="${esc(it.photo)}" alt=""><figcaption>${esc(it.name)}</figcaption></figure>`).join('');
+            const audit = (req.audit || []).map(a => `<li>${esc(a.timestamp)} &ndash; ${esc(a.actor)}: ${esc(a.action)}</li>`).join('');
 
             document.getElementById('print-sheet').innerHTML = `
                 <div class="ps">
                     <div class="ps-head">
                         ${logo ? `<img src="${logo}" alt="Dobah">` : '<b>DOBAH</b>'}
-                        <div class="ps-title"><h1>FORM PENGAJUAN ASET</h1><p>#${esc(req.id)}</p></div>
+                        <div class="ps-title"><h1>FORM PENGAJUAN PERBAIKAN ASET</h1><p>#${esc(req.id)}</p></div>
                     </div>
                     <div class="ps-grid">
-                        <div><span>Tanggal pengajuan</span><b>${esc(req.submissionDate)}</b></div>
-                        <div><span>Divisi pemohon</span><b>${esc(req.division)}</b></div>
-                        <div><span>Cabang</span><b>${esc(req.branch)}</b></div>
+                        <div><span>Tanggal</span><b>${esc(req.submissionDate)}</b></div>
                         <div><span>Pemohon</span><b>${esc(requester)}</b></div>
-                        <div><span>Urgensi</span><b>${esc(req.urgency)}</b></div>
-                        <div><span>Status tiket</span><b>${esc(req.status)}</b></div>
+                        <div><span>Cabang</span><b>${esc(req.branch)}</b></div>
+                        <div><span>Status tiket</span><b>${esc(tStatus)}</b></div>
+                        <div><span>Jumlah item</span><b>${items.length}</b></div>
                     </div>
-                    <h2>Justifikasi</h2>
-                    <div class="ps-box">${esc(req.justification || '-')}</div>
-                    <h2>Rincian aset</h2>
+                    ${req.justification ? `<h2>Keterangan</h2><div class="ps-box">${esc(req.justification)}</div>` : ''}
+                    <h2>Rincian kerusakan</h2>
                     <table>
-                        <thead><tr><th class="c" style="width:28px">No</th><th>Item</th><th>Kategori</th><th class="c">Qty</th><th class="r">Harga satuan</th><th class="r">Subtotal</th><th class="c">Status</th></tr></thead>
-                        <tbody>${rows || '<tr><td colspan="7" class="c">Tidak ada item.</td></tr>'}</tbody>
-                        <tfoot><tr><td colspan="5" class="r">TOTAL ESTIMASI ANGGARAN</td><td class="r" colspan="2">${formatRupiah(total)}</td></tr></tfoot>
+                        <thead><tr><th class="c" style="width:28px">No</th><th>Item &amp; Deskripsi</th><th>Kategori</th><th class="c" style="width:70px">Prioritas</th><th class="c" style="width:70px">Status</th></tr></thead>
+                        <tbody>${rows || '<tr><td colspan="5" class="c">Tidak ada item.</td></tr>'}</tbody>
                     </table>
-                    ${req.gaNotes ? `<h2>Catatan General Affair</h2><div class="ps-box">${esc(req.gaNotes)}</div>` : ''}
-                    ${photos ? `<h2>Foto bukti</h2><div class="ps-photos">${photos}</div>` : ''}
-                    ${audit ? `<h2>Riwayat persetujuan</h2><ul>${audit}</ul>` : ''}
+                    ${photos ? `<h2>Foto kerusakan</h2><div class="ps-photos">${photos}</div>` : ''}
+                    ${audit ? `<h2>Riwayat aktivitas</h2><ul class="ps-hist">${audit}</ul>` : ''}
                     <div class="ps-sign">
                         <div><b>${esc(requester)}</b><span>Pemohon</span></div>
-                        <div><b>&nbsp;</b><span>Atasan / Store Manager</span></div>
-                        <div><b>&nbsp;</b><span>General Affair Manager</span></div>
+                        <div><b>&nbsp;</b><span>Kepala Cabang</span></div>
+                        <div><b>&nbsp;</b><span>Manager GA</span></div>
                     </div>
-                    <div class="ps-foot"><span>GA X DOBAH &middot; Dokumen resmi pengajuan aset</span><span>Dicetak oleh ${esc(u.name || '-')} &middot; ${esc(new Date().toLocaleString('id-ID'))}</span></div>
+                    <div class="ps-foot"><span>GA MAINTENANCE &middot; Dobah</span><span>Dicetak oleh ${esc(u.name || '-')} &middot; ${esc(new Date().toLocaleString('id-ID'))}</span></div>
                 </div>`;
 
             const imgs = Array.from(document.querySelectorAll('#print-sheet img'));
             await Promise.all(imgs.map(im => im.complete ? Promise.resolve() : new Promise(r => { im.onload = im.onerror = r; })));
             const oldTitle = document.title;
-            document.title = `Pengajuan-${req.id}`;
+            document.title = `Tiket-${req.id}`;
             window.addEventListener('afterprint', () => { document.title = oldTitle; }, { once: true });
             window.print();
         }
@@ -1523,9 +1532,11 @@
                 const st = STAT[req.status] || STAT.Approved;
 
                 let btns = isGA
-                    ? `<button type="button" onclick="openEditModal(${actIdx})" class="tk-act">Detail / Ubah</button>
+                    ? `<button type="button" onclick="printRequest(${actIdx})" class="tk-print" title="Cetak form pengajuan" aria-label="Cetak form pengajuan"><i class="fa-solid fa-print text-[13px]"></i></button>
+                       <button type="button" onclick="openEditModal(${actIdx})" class="tk-act">Detail / Ubah</button>
                        <button type="button" onclick="deleteRequest(${actIdx}, '${req.docId}')" class="tk-del" title="Hapus tiket" aria-label="Hapus tiket"><i class="fa-regular fa-trash-can text-[13px]"></i></button>`
-                    : `<button type="button" onclick="openDetailModal(${actIdx})" class="tk-act">Detail</button>`;
+                    : `<button type="button" onclick="printRequest(${actIdx})" class="tk-print" title="Cetak form pengajuan" aria-label="Cetak form pengajuan"><i class="fa-solid fa-print text-[13px]"></i></button>
+                       <button type="button" onclick="openDetailModal(${actIdx})" class="tk-act">Detail</button>`;
 
                 tbody.innerHTML += `
                     <tr class="transition-colors">
