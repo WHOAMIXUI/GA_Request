@@ -1,0 +1,241 @@
+/* ==========================================================================
+   TEMA  —  dimuat PALING AKHIR (setelah tailwind.css) agar bisa menimpa utilitas.
+   Tema gelap = tampilan awal (tidak diubah). Tema terang = "liquid glass":
+   permukaan kaca buram-transparan, blur + saturasi, tepi putih berkilau, bayangan lembut.
+   ========================================================================== */
+
+:root { --chart-text: #edd5b3; --chart-grid: rgba(255,255,255,.05); --chart-border: #22120a; }
+
+/* ---------- tombol ganti tema (kedua tema) ---------- */
+.theme-toggle { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem .85rem; border-radius: .75rem;
+  font-size: .75rem; font-weight: 700; line-height: 1; cursor: pointer; color: #edd5b3; background: #331d14;
+  border: 1px solid rgba(255,255,255,.08); transition: color .15s, background .15s, transform .15s; }
+.theme-toggle:hover { color: #f4a23a; transform: translateY(-1px); }
+.theme-toggle:focus-visible { outline: 2px solid #f4a23a; outline-offset: 2px; }
+.theme-toggle-label { display: none; }
+@media (min-width: 640px) { .theme-toggle-label { display: inline; } }
+
+/* ==========================  TEMA TERANG  ================================= */
+html[data-theme="light"] {
+  color-scheme: light;
+  --ink: #2a1408; --ink-2: #5c3113; --ink-3: #84471b; --accent-ink: #9a4f08;
+  --hair: rgba(110,60,15,.14);
+  --chart-text: #5c3113; --chart-grid: rgba(110,60,15,.10); --chart-border: #fff7ec;
+  background-color: #fdf3e6;
+}
+
+/* ---- latar: kanvas pastel berwarna di belakang kaca ---- */
+html[data-theme="light"] body {
+  color: var(--ink);
+  background-color: #fdf3e6;
+  background-image:
+    radial-gradient(680px 480px at 8% 4%,  rgba(255,184,82,.60), transparent 62%),
+    radial-gradient(640px 520px at 96% 6%, rgba(255,140,170,.40), transparent 60%),
+    radial-gradient(780px 560px at 90% 98%, rgba(123,203,176,.42), transparent 62%),
+    radial-gradient(580px 480px at 2% 94%,  rgba(111,183,255,.34), transparent 62%),
+    linear-gradient(135deg, #fff8ee, #ffeacf 55%, #fde1c6);
+}
+html[data-theme="light"] .landing-bg {
+  background:
+    radial-gradient(680px 480px at 8% 4%,  rgba(255,184,82,.60), transparent 62%),
+    radial-gradient(640px 520px at 96% 6%, rgba(255,140,170,.40), transparent 60%),
+    radial-gradient(780px 560px at 90% 98%, rgba(123,203,176,.42), transparent 62%),
+    linear-gradient(135deg, #fff8ee, #ffeacf 55%, #fde1c6);
+}
+
+/* ---- permukaan kaca ---- */
+html[data-theme="light"] .glass-panel {
+  background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(255,255,255,.38));
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.78);
+  box-shadow: 0 12px 40px -14px rgba(130,70,15,.30), inset 0 1px 0 rgba(255,255,255,.95),
+              inset 0 -1px 0 rgba(255,255,255,.35), inset 0 0 24px rgba(255,255,255,.18);
+}
+html[data-theme="light"] #sidebar {
+  background: linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,.34));
+  -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+  border-right-color: rgba(255,255,255,.8);
+  box-shadow: 10px 0 40px -22px rgba(130,70,15,.30), inset -1px 0 0 rgba(255,255,255,.6);
+}
+html[data-theme="light"] header.drip {
+  background: rgba(255,255,255,.58);
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+  border-bottom-color: rgba(255,255,255,.8);
+  box-shadow: 0 8px 30px -14px rgba(130,70,15,.30), inset 0 1px 0 rgba(255,255,255,.9);
+}
+html[data-theme="light"] #notifMenu, html[data-theme="light"] #userMenuDropdown { background: rgba(255,252,247,.94); }
+html[data-theme="light"] .bg-\[\#150a05\]\/80, html[data-theme="light"] .bg-\[\#150a05\]\/95 {
+  background-color: rgba(255,238,218,.50);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+}
+html[data-theme="light"] .bg-\[\#150a05\]\/80 .glass-panel, html[data-theme="light"] .bg-\[\#150a05\]\/95 .glass-panel { background: linear-gradient(145deg, rgba(255,253,249,.92), rgba(255,247,238,.84)); }
+html[data-theme="light"] .fixed.inset-0.bg-cocoa-950\/60 { background-color: rgba(90,50,15,.28); }
+
+/* ---- latar utilitas cokelat -> kaca putih ---- */
+html[data-theme="light"] .bg-cocoa-950 { background-color: rgba(255,255,255,.50); }
+html[data-theme="light"] .bg-cocoa-900 { background-color: rgba(255,255,255,.55); }
+html[data-theme="light"] .bg-cocoa-800 { background-color: rgba(255,255,255,.64); }
+html[data-theme="light"] .bg-cocoa-950\/40 { background-color: rgba(255,255,255,.28); }
+html[data-theme="light"] .bg-cocoa-950\/50 { background-color: rgba(255,255,255,.34); }
+html[data-theme="light"] .bg-cocoa-950\/60 { background-color: rgba(255,255,255,.40); }
+html[data-theme="light"] .bg-cocoa-900\/40 { background-color: rgba(255,255,255,.30); }
+html[data-theme="light"] .bg-cocoa-900\/60 { background-color: rgba(255,255,255,.42); }
+html[data-theme="light"] .bg-cocoa-900\/70 { background-color: rgba(255,255,255,.48); }
+html[data-theme="light"] .bg-cocoa-900\/80 { background-color: rgba(255,255,255,.54); }
+html[data-theme="light"] .bg-cocoa-900\/90 { background-color: rgba(255,255,255,.60); }
+html[data-theme="light"] .bg-cocoa-900\/95 { background-color: rgba(255,255,255,.62); }
+html[data-theme="light"] .hover\:bg-cocoa-900:hover { background-color: rgba(255,255,255,.80); }
+html[data-theme="light"] .hover\:bg-cocoa-950:hover { background-color: rgba(255,255,255,.85); }
+html[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(217,125,38,.09); }
+html[data-theme="light"] .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(217,125,38,.05); }
+html[data-theme="light"] .bg-slate-950\/30 { background-color: rgba(217,125,38,.15); }
+html[data-theme="light"] .modern-button.bg-cocoa-800, html[data-theme="light"] .modern-button.bg-cocoa-900 {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 2px 8px rgba(130,70,15,.10);
+}
+
+/* ---- tombol utama: amber mengilap ---- */
+html[data-theme="light"] body .modern-button.bg-dobah-400 {
+  background: linear-gradient(180deg, #ffcb7a, #f4a23a 55%, #e8891c);
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.70), inset 0 -2px 4px rgba(167,93,34,.25), 0 8px 18px -6px rgba(217,125,38,.55);
+}
+html[data-theme="light"] body .modern-button.bg-dobah-400:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(167,93,34,.35); }
+
+/* ---- teks ---- */
+html[data-theme="light"] .text-white, html[data-theme="light"] .hover\:text-white:hover { color: var(--ink); }
+html[data-theme="light"] .bg-rose-600.text-white, html[data-theme="light"] .bg-rose-600 .text-white, html[data-theme="light"] .tk-alert, html[data-theme="light"] .tk-alert .text-white { color: #fff; }
+html[data-theme="light"] .tk-alert [class*="bg-white"] { background-color: rgba(255,255,255,.22); }
+html[data-theme="light"] .tk-alert [class*="border-white"] { border-color: rgba(255,255,255,.38); }
+html[data-theme="light"] .text-dobah-100 { color: var(--ink); }
+html[data-theme="light"] .text-dobah-100\/80 { color: rgba(42,20,8,.80); }
+html[data-theme="light"] .text-dobah-200 { color: var(--ink-2); }
+html[data-theme="light"] .text-dobah-200\/80 { color: rgba(92,49,19,.82); }
+html[data-theme="light"] .text-dobah-200\/70 { color: rgba(92,49,19,.74); }
+html[data-theme="light"] .text-dobah-200\/60 { color: rgba(92,49,19,.64); }
+html[data-theme="light"] .text-dobah-200\/50 { color: rgba(92,49,19,.54); }
+html[data-theme="light"] .text-dobah-200\/40 { color: rgba(92,49,19,.44); }
+html[data-theme="light"] .text-dobah-300 { color: var(--ink-3); }
+html[data-theme="light"] .text-dobah-300\/60 { color: rgba(132,71,27,.66); }
+html[data-theme="light"] .text-dobah-300\/50 { color: rgba(132,71,27,.58); }
+html[data-theme="light"] .text-dobah-300\/40 { color: rgba(132,71,27,.48); }
+html[data-theme="light"] .text-dobah-300\/30 { color: rgba(132,71,27,.40); }
+html[data-theme="light"] .text-dobah-400 { color: var(--accent-ink); }
+html[data-theme="light"] .hover\:text-dobah-400:hover { color: #7c3f05; }
+html[data-theme="light"] .text-rose-400, html[data-theme="light"] .text-rose-300 { color: #be123c; }
+html[data-theme="light"] .text-rose-200 { color: #9f1239; }
+html[data-theme="light"] .hover\:text-rose-300:hover, html[data-theme="light"] .hover\:text-rose-200:hover { color: #9f1239; }
+html[data-theme="light"] .text-emerald-400 { color: #065f46; }
+html[data-theme="light"] .text-emerald-300 { color: #064e3b; }
+html[data-theme="light"] .text-amber-400 { color: #92400e; }
+html[data-theme="light"] .text-amber-300 { color: #78350f; }
+html[data-theme="light"] .text-blue-400 { color: #1d4ed8; }
+html[data-theme="light"] .text-sky-400 { color: #0369a1; }
+html[data-theme="light"] .text-violet-400 { color: #6d28d9; }
+html[data-theme="light"] .text-orange-400 { color: #c2410c; }
+html[data-theme="light"] .text-red-400 { color: #b91c1c; }
+html[data-theme="light"] .text-green-400 { color: #15803d; }
+html[data-theme="light"] .text-slate-400, html[data-theme="light"] .text-slate-300 { color: #475569; }
+html[data-theme="light"] [style*="color:#e1b782"] { color: var(--ink-3) !important; }
+html[data-theme="light"] main h3.uppercase, html[data-theme="light"] main h4.uppercase { color: var(--ink); }
+
+/* ---- garis tepi ---- */
+html[data-theme="light"] .border-white\/5 { border-color: rgba(110,60,15,.09); }
+html[data-theme="light"] .border-white\/10 { border-color: rgba(110,60,15,.14); }
+html[data-theme="light"] .border-white\/20 { border-color: rgba(110,60,15,.20); }
+html[data-theme="light"] .border-white\/30 { border-color: rgba(110,60,15,.28); }
+html[data-theme="light"] .divide-white\/5 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(110,60,15,.10); }
+html[data-theme="light"] .border-dobah-400\/20 { border-color: rgba(217,125,38,.28); }
+html[data-theme="light"] .border-dobah-400\/25 { border-color: rgba(217,125,38,.32); }
+html[data-theme="light"] .border-dobah-400\/30 { border-color: rgba(217,125,38,.38); }
+html[data-theme="light"] .hover\:border-dobah-400\/40:hover { border-color: rgba(217,125,38,.55); }
+html[data-theme="light"] .border-dobah-400 { border-color: #d97d26; }
+html[data-theme="light"] .border-cocoa-900 { border-color: #fff; }
+
+/* ---- komponen kustom ---- */
+html[data-theme="light"] .glass-input { background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.9); color: var(--ink);
+  box-shadow: inset 0 1px 3px rgba(130,70,15,.12), 0 1px 0 rgba(255,255,255,.8); }
+html[data-theme="light"] .glass-input::placeholder { color: rgba(92,49,19,.45); }
+html[data-theme="light"] .glass-input:focus { border-color: #f4a23a; background: rgba(255,255,255,.85); box-shadow: 0 0 0 3px rgba(244,162,58,.30), inset 0 1px 3px rgba(130,70,15,.10); }
+html[data-theme="light"] select option { background: #fff; color: #2a1408; }
+html[data-theme="light"] .chip { background: rgba(255,255,255,.62); border-color: rgba(255,255,255,.85); box-shadow: inset 0 1px 0 #fff, 0 2px 8px rgba(130,70,15,.10); }
+html[data-theme="light"] .action-bar { background: rgba(255,255,255,.74); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 12px 30px -12px rgba(130,70,15,.35), inset 0 1px 0 #fff; }
+html[data-theme="light"] .site-footer { color: rgba(92,49,19,.72); }
+html[data-theme="light"] .empty-donut { background: radial-gradient(circle, #fff3e0 0 13%, #ee6a95 14%); }
+html[data-theme="light"] .tk-label { color: var(--ink-2); }
+html[data-theme="light"] .tk-sub { color: rgba(92,49,19,.78); }
+html[data-theme="light"] .tk-seg { background: rgba(255,255,255,.50); border-color: rgba(255,255,255,.85); box-shadow: inset 0 1px 3px rgba(130,70,15,.10); }
+html[data-theme="light"] .tk-seg button { color: var(--ink-3); }
+html[data-theme="light"] .tk-seg button:hover { color: var(--ink); }
+html[data-theme="light"] .tk-seg button.is-active { background: rgba(255,255,255,.96); color: var(--ink); box-shadow: 0 2px 8px rgba(130,70,15,.18), inset 0 1px 0 #fff; }
+html[data-theme="light"] .tk-thead th { background: rgba(255,255,255,.55); color: var(--ink-3); }
+html[data-theme="light"] .tk-id { color: var(--accent-ink); }
+html[data-theme="light"] .tk-bar { background: rgba(110,60,15,.10); border-color: rgba(255,255,255,.65); }
+html[data-theme="light"] .tk-act { color: #7c3f05; background: rgba(244,162,58,.20); }
+html[data-theme="light"] .tk-act:hover { background: rgba(244,162,58,.34); }
+html[data-theme="light"] .tk-del { color: #e11d48; }
+html[data-theme="light"] .tk-print { color: var(--accent-ink); }
+html[data-theme="light"] th.sortable:hover { color: var(--accent-ink); }
+html[data-theme="light"] #requestsTableBody tr:hover { background: rgba(244,162,58,.12); }
+html[data-theme="light"] ::-webkit-scrollbar-track { background: transparent; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(217,125,38,.38); }
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #f4a23a; }
+
+/* tombol ganti tema */
+html[data-theme="light"] .theme-toggle { color: var(--ink-2); background: rgba(255,255,255,.66); border-color: rgba(255,255,255,.9);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 8px rgba(130,70,15,.12); }
+html[data-theme="light"] .theme-toggle:hover { color: var(--accent-ink); }
+
+/* ---- pop-up SweetAlert (warna dari JS diberi !important agar bisa ditimpa) ---- */
+html[data-theme="light"] .swal2-popup { background: rgba(255,252,247,.90) !important; color: var(--ink) !important;
+  border: 1px solid rgba(255,255,255,.95) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 24px 60px -20px rgba(130,70,15,.45), inset 0 1px 0 #fff; }
+html[data-theme="light"] .swal2-title { color: var(--ink) !important; }
+html[data-theme="light"] .swal2-html-container { color: var(--ink-2) !important; }
+html[data-theme="light"] .swal2-container.swal2-backdrop-show, html[data-theme="light"] .swal2-container { background: rgba(255,238,218,.55) !important; }
+html[data-theme="light"] .swal2-confirm { color: #2a1408 !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 6px 14px -6px rgba(217,125,38,.6) !important; }
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme="light"] .glass-panel, html[data-theme="light"] #sidebar, html[data-theme="light"] header.drip, html[data-theme="light"] .swal2-popup { -webkit-backdrop-filter: none; backdrop-filter: none; background: #fffaf3 !important; }
+}
+
+/* bayangan berwarna cokelat gelap dilembutkan di tema terang */
+html[data-theme="light"] .shadow-dobah-950\/40, html[data-theme="light"] .shadow-dobah-950\/50, html[data-theme="light"] .shadow-black\/30 { --tw-shadow-color: rgba(130,70,15,.28); }
+
+/* ---- performa: blur lebih ringan di layar kecil / perangkat sederhana ---- */
+@media (max-width: 768px), (pointer: coarse) {
+  html[data-theme="light"] .glass-panel, html[data-theme="light"] #sidebar, html[data-theme="light"] header.drip,
+  html[data-theme="light"] .swal2-popup { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  html[data-theme="light"] .bg-\[\#150a05\]\/80, html[data-theme="light"] .bg-\[\#150a05\]\/95 { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+}
+
+/* ---- form & pop-up modul aset: warna gelap yang ditulis langsung di JS (bg-[#150a05], dll) ---- */
+html[data-theme="light"] .bg-\[\#150a05\] {
+  background-color: rgba(255,255,255,.80); color: var(--ink);
+  box-shadow: inset 0 1px 3px rgba(130,70,15,.12), 0 1px 0 rgba(255,255,255,.85);
+}
+html[data-theme="light"] input.bg-\[\#150a05\], html[data-theme="light"] select.bg-\[\#150a05\], html[data-theme="light"] textarea.bg-\[\#150a05\] {
+  border-color: rgba(110,60,15,.24);
+}
+html[data-theme="light"] input.bg-\[\#150a05\]:focus, html[data-theme="light"] select.bg-\[\#150a05\]:focus, html[data-theme="light"] textarea.bg-\[\#150a05\]:focus {
+  outline: none; border-color: #f4a23a; background-color: #fff; box-shadow: 0 0 0 3px rgba(244,162,58,.30);
+}
+html[data-theme="light"] input.bg-\[\#150a05\]::placeholder, html[data-theme="light"] textarea.bg-\[\#150a05\]::placeholder { color: rgba(92,49,19,.45); }
+html[data-theme="light"] .bg-\[\#331d14\] {
+  background-color: rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 8px rgba(130,70,15,.10);
+}
+html[data-theme="light"] .text-\[\#edd5b3\] { color: var(--ink-2); }
+html[data-theme="light"] .text-\[\#edd5b3\]\/60 { color: rgba(92,49,19,.64); }
+html[data-theme="light"] .text-\[\#e1b782\] { color: var(--ink-3); }
+html[data-theme="light"] .text-\[\#f4a23a\] { color: var(--accent-ink); }
+html[data-theme="light"] .text-\[\#ffd65a\] { color: #92400e; }
+html[data-theme="light"] .text-\[\#6ee7a0\] { color: #065f46; }
+html[data-theme="light"] .text-\[\#6fb7ff\], html[data-theme="light"] .text-\[\#7cc1ff\] { color: #1d4ed8; }
+html[data-theme="light"] .swal2-cancel { background: rgba(110,60,15,.12) !important; color: var(--ink-2) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.8) !important; }
+html[data-theme="light"] .swal2-popup input[type="date"], html[data-theme="light"] .swal2-popup input[type="number"], html[data-theme="light"] .swal2-popup select { color-scheme: light; }
+
+/* penanda pengajuan BARU di tema terang */
+html[data-theme="light"] .nr-markall { color: #7c3f05; background: rgba(244,162,58,.22); border-color: rgba(217,125,38,.45); }
+html[data-theme="light"] .nr-markall:hover { background: rgba(244,162,58,.36); }
+html[data-theme="light"] tr.tk-is-new { background: linear-gradient(90deg, rgba(244,162,58,.22), rgba(255,255,255,0) 65%); }
